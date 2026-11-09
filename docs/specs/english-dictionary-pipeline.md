@@ -1,0 +1,278 @@
+# English Dictionary Build Pipeline
+
+## Overview
+**Feature Name**: Dictionary Generation & Quality Pipeline
+**Status**: Complete (V4, 2026-07-03 — one-pass evidence classifier)
+**Last Updated**: 2026-09-26 (source-diagram correction)
+
+### Summary
+The English dictionary pipeline generates `en_enhanced.bin` (V2 binary format, **98,140 words**, V4) via `scripts/build_wordlist.py` (né `build_en_wordlist.py` — renamed via `git mv` on 2026-07-20 when the classifier went multi-language; all mentions below use the current name) — a one-pass evidence classifier over wordfreq's top-150k candidates (hunspell/aspell/NLTK/pyspellchecker/AOSP-LatinIME positive oracles; ed1-typo, foreign-dominance and blocklist negatives; curated allowlist), with accent normalization and contraction support. See the V4 section below and `.claude/skills/dictionary-pipeline.md`.
+
+### Motivation
+A keyboard dictionary must contain only legitimate words. Misspellings in the dictionary become suggestions, undermining user trust. The contraction system must correctly map apostrophe-free swipe input to proper English contractions.
+
+## Architecture
+
+### Build Pipeline Flow
+
+```
+Candidates                  Evidence (build_wordlist.py)          Binary Build
+──────────                  ────────────────────────────          ────────────
+wordfreq top-150k ──→  positive oracles: hunspell, aspell,  ──→  scripts/dictionaries/en/
+  (CC BY-SA 4.0)         NLTK, pyspellchecker, AOSP LatinIME       en_words.txt (98,140)
+                         (Apache-2.0; only AOSP data is                 │
+                          redistributed — as a keep/drop decision)      ▼
+                       negatives: ed1-typo, foreign dominance,   build_dictionary.py
+                         blocklist; curated allowlist                   │
+                                                                        ▼
+                                                        en_enhanced.bin / .json (V2)
+                                                          ├─→ src/main/assets/dictionaries/
+                                                          └─→ scripts/dictionaries/en/
+```
+
+> **Corrected 2026-09-26** (data-licensing audit,
+> `docs/audit/2026-09-26-data-licensing-audit.md`). An earlier version of this diagram showed
+> `en_norvig_50k.txt` and `en_opensubtitles_50k.txt` merging into `en_words.txt`. They never
+> did: `build_wordlist.py` reads only wordfreq candidates plus the oracles above. Norvig and
+> OpenSubtitles were separate experiments that produced standalone *comparison* packs
+> (`langpack-en-norvig-50k.zip`, since withdrawn, and `langpack-en-opensubtitles*.zip`).
+> Shipped English data sources: wordfreq (CC BY-SA 4.0) + AOSP LatinIME oracle (Apache-2.0);
+> hunspell/aspell/NLTK/pyspellchecker are evidence-only and none of their data ships.
+
+### Contraction Pipeline
+
+```
+Source                        Binary Build                     Runtime
+──────                        ────────────                     ───────
+contractions_non_paired.json ─┐
+  (120 entries: dont→don't)   │
+                              ├──→ generate_binary_contractions.py ──→ contractions.bin
+contraction_pairings.json ────┘       │
+  (10,637 lines: possessives          │
+   + contraction variants)            │
+                                      ├──→ ContractionManager.loadMappings()
+Per-language:                         │      1. Try contractions.bin (fastest)
+  contractions_en.json ───────────────┘      2. Fall back to JSON files
+  contractions_fr.json                       3. loadLanguageContractions(langCode)
+  contractions_sv.json
+  ...
+```
+
+### Runtime Application (as built, 2026-10-23)
+
+There is no "+1000 contraction boost" and the path does not run through
+`InputCoordinator.handlePredictionResults`. Replace-mode contractions are resolved in
+`SuggestionHandler`:
+
+```
+User types / swipes "cant"
+    │
+    ▼
+SuggestionHandler.replaceModeContractionFor("cant")        // SuggestionHandler.kt:405
+    │  contractionManager.getNonPairedMapping("cant") → "can't"   (ContractionManager.kt:552)
+    │  guard: null if DictionaryManager.isUserWordIgnoringCase("cant")  — a user word is never rewritten
+    ▼
+"can't" is the displayed / committed form; the apostrophe-free key stays the lookup key
+```
+
+Pairing bases (`contraction_pairings.json`) are never replaced: `isContractionKey` /
+`isKnownContraction` (`SuggestionHandler.kt:1547-1552`) keep `well`, `shell`, … as words and
+offer the paired forms as candidates. The four guards, the display-vs-key model and the
+regeneration commands are in `.claude/skills/contraction-system.md` (authoritative).
+
+## Key Files
+
+### Dictionary Build Scripts
+
+| Script | Purpose | Input | Output |
+|--------|---------|-------|--------|
+| `scripts/get_wordlist.py` | Extract words from wordfreq | `--lang en --count 50000` | `en_words.txt` |
+| `scripts/build_dictionary.py` | Build V2 binary dict | Word list + `--use-wordfreq` | `{lang}_enhanced.bin` |
+| `scripts/build_langpack.py` | Bundle dict + unigrams + contractions + licence metadata/`NOTICE.txt` (`--repack` for existing packs) | `--input`, `--dict` or `--repack` | `langpack-{lang}.zip` |
+| `scripts/build_all_languages.py` | Batch build all bundled languages | (auto) | Multiple `.bin` files |
+| `scripts/compute_prefix_boosts.py` | Aho-Corasick prefix trie (**obsolete**: prefix boosts were a neural-engine input; nothing reads `prefix_boosts/*.bin` since ADR-011, and the only surviving mentions are the legacy backup keys `neural_prefix_boost_*` and a pack-manifest flag `hasPrefixBoost`) | `--langs en` | `prefix_boosts/{lang}.bin` |
+
+### Contraction Build Scripts
+
+| Script | Purpose | Input | Output |
+|--------|---------|-------|--------|
+| `scripts/generate_binary_contractions.py` | JSON → binary contractions | `non_paired.json` + `pairings.json` | `contractions.bin` |
+| `scripts/generate_apostrophe_words.py` | Multi-language contraction lists | Language rules | `contractions_{lang}.json` |
+| `scripts/extract_apostrophe_words.py` | Extract apostrophe words from corpus | Corpus text | Apostrophe word list |
+
+### Comparison Word Lists (untracked, in `scripts/`) — NOT inputs to the bundled dictionary
+
+These local, git-ignored files fed the January 2026 English *comparison* packs only; none of
+them is read by `build_wordlist.py`.
+
+| File | Words | Format | Source | Status |
+|------|-------|--------|--------|--------|
+| ~~`en_norvig_50k.txt`~~ | 50,000 | `word<TAB>frequency` | Peter Norvig's `count_1w.txt` (Google Web 1T, LDC2006T13) | **Pack withdrawn 2026-09-26** — norvig.com's MIT grant covers code only; Web 1T forbids redistribution |
+| `en_opensubtitles_50k.txt` | 50,000 | `word<SPACE>frequency` | hermitdave/FrequencyWords 2018 (OpenSubtitles; CC BY-SA 4.0) | → `langpack-en-opensubtitles-50k.zip` |
+| `en_wordfreq_words.txt` | 25,000 | `word` (one per line) | wordfreq Python library (CC BY-SA 4.0) | → `langpack-en-wordfreq.zip` |
+
+### Curated Dictionary
+
+| File | Words | Description |
+|------|-------|-------------|
+| `scripts/dictionaries/en/en_words.txt` | 98,140 | V4 — generated by `build_wordlist.py` |
+| `scripts/dictionaries/en/en_enhanced.bin` | 98,140 | V2 binary built from en_words.txt |
+| `src/main/assets/dictionaries/en_enhanced.bin` | 98,140 | **Shipped binary (identical to above)** |
+| ~~`src/main/assets/dictionaries/en_enhanced.txt`~~ | — | **DELETED 2026-07-03** (vestigial V1 list, was never loaded) |
+
+### Contraction Assets (in `src/main/assets/dictionaries/`)
+
+| File | Entries | Description |
+|------|---------|-------------|
+| `contractions_non_paired.json` | 120 | `dont→don't` style mappings (the English base) |
+| `contractions_en.json` | 119 | A SUBSET of the base, not a duplicate: the base additionally holds `high-falutin`. Loaded AFTER the base, so it only ever adds keys the base lacks — and it must never re-add a pairing base (see below) |
+| `contraction_pairings.json` | 1,748 | Base word → possessive/contraction variants (count re-derived 2026-10-23) |
+| `contractions.bin` | ~2,219 | Binary format of non-paired + paired |
+
+> `contraction_pairings_cleaned.json` (32 entries) was listed here until 2026-08-21 and has been
+> DELETED. It had zero code references — verified across `src/`, `scripts/` and `tools/`, including
+> the one dynamic route (`detectAvailableV2Dictionaries` enumerates `assets/dictionaries/` but
+> filters on `endsWith("_enhanced.bin")`).
+>
+> **Effective English REPLACE set = `(contractions_non_paired ∪ contractions_en) − contraction_pairings` = 106 keys.**
+> `loadEnglishBase` reclassifies pairing bases OUT of the non-paired map (so `well` stays "well"
+> rather than becoming `we'll`), and `contractions_en.json` repeats 14 of those bases — so the
+> loader must refuse to re-add a key that is already PAIRED. Anything modelling English
+> (the sidecar generator, the runtime scanner, a data test) must subtract the pairings.
+> See `.claude/skills/contraction-system.md` §3.
+
+### Runtime Kotlin Classes
+
+| Class | File | Purpose |
+|-------|------|---------|
+| `ContractionManager` | `ContractionManager.kt` | Loads and queries contraction mappings |
+| `BinaryContractionLoader` | `BinaryContractionLoader.kt` | Fast binary contraction parser |
+| `BinaryDictionaryLoader` | `BinaryDictionaryLoader.kt` | V2 binary dictionary parser |
+| ~~`InputCoordinator`~~ | — | **No longer applies contractions.** WP9 R-1 collapsed the two prediction pipelines that caused the contraction-flicker bugs into one; it now delegates its cursor-sync phase to `SuggestionHandler`. `BackspaceUndoTest` pins that it never regrows a parallel implementation |
+| `SuggestionHandler` | `SuggestionHandler.kt` | The single pipeline: contraction score boost, REPLACE transform (via `replaceModeContractionFor`, which also guards user-dictionary words), paired injection |
+
+## Dictionary History
+
+| Version | Commit | Words | Changes |
+|---------|--------|-------|---------|
+| V1 | `bda21299` | 49,297 | Upstream Unexpected-Keyboard word list |
+| V2 | `e9fcc7da` | 50,000 | Norvig Web Corpus langpack *(historical; the Norvig pack was withdrawn 2026-09-26 — no redistribution grant)* |
+| V3 | `674fc32a` | 52,042 | Merged V1 + 2,763 from wordfreq, removed 15 typos + 3 offensive |
+| **V4** | `5ca6c4025` | **98,140** | One-pass evidence classifier (`build_wordlist.py`; still named `build_en_wordlist.py` at that commit): wordfreq top-150k, band <65k conservative / 65k+ oracle-gated; oracles = hunspell ×3 case-forms, aspell en_GB, NLTK, pyspellchecker, AOSP LatinIME; negatives = ed1-typo (len-tiered zipf gap), foreign dominance (+1.0 margin), blocklist; curated allow/block lists in `scripts/dictionaries/en/`; held-out eval on the user's 483 export words: 2% (V3) → 50% coverage |
+
+### V3 Curation Details (commit `674fc32a`)
+- **Base**: V1 (49,297 words)
+- **Added**: 2,763 high-value words from wordfreq not in V1
+- **Removed (15 typos)**: dissapointed, recieved, thier, definately, seperately, occured, arguement, independant, neccessary, occurence, persistant, refered, succesful, accomodate, occassion
+- **Removed (3 offensive)**: retard, retarded, shemale
+- **Preserved**: Single letters, contractions without apostrophe, possessives, custom words (tribixbite, cleverkeys)
+- **Missed**: teh, wich, hav still present in V3 (removed 2026-06-17; structurally blocklisted in V4)
+
+## Misspelling Detection Pipeline
+
+### Script: `scripts/detect_misspellings.py`
+
+Automated misspelling detection using a multi-stage pipeline:
+
+1. **Whitelist Build** — NLTK words/names (239k), pyspellchecker (160k), hunspell en_US (49k + affixes), wordfreq top 5k, British English suffix rules, contraction patterns, possessive forms
+2. **Edit Distance 1 Matching** — For each non-whitelisted word, check substitution, deletion, insertion, transposition, extra/missing doubles against known-good words
+3. **Frequency Gap Analysis** — Flag words where a similar known word has a much higher zipf frequency (gap >= 1.5)
+4. **Foreign Language Filter** — Remove words with high frequency in fr/de/es/it/pt/nl/sv/da/nb/pl/tr/id/fi/cs/ro
+5. **Category Separation** — Split into wrong plurals, review candidates, and foreign words
+
+```bash
+cd scripts/
+python3 detect_misspellings.py                    # default settings
+python3 detect_misspellings.py --min-gap 2.0      # stricter (fewer results)
+python3 detect_misspellings.py --min-len 3        # include 3-char words
+```
+
+**Dependencies**: `pip install wordfreq pyspellchecker nltk metaphone`
+
+### Pipeline Results (V3 dictionary, 52,042 words)
+
+| Category | Count | Action |
+|----------|-------|--------|
+| Wrong plurals (malformed possessives) | ~347 | Remove from dictionary |
+| Review candidates (possible misspellings) | ~592 | Human review needed |
+| Foreign words (auto-whitelisted) | ~363 | Keep |
+
+### Known Remaining Misspellings in V3 (historical — resolved in V4)
+From spot-check of the 52,042 shipped words:
+- `teh` (rank 177) — "the" typo
+- `wich` (rank 187) — "which" typo
+- `hav` (rank 184) — "have" typo
+- `nite` (rank 179) — informal for "night"
+- `lite` (rank 159) — informal for "light" (but also a valid word: "lite beer")
+- `dat` (rank 158) — informal for "that" (but also valid: data abbreviation)
+- `wat` (rank 162) — informal for "what"
+
+### Limitations
+- Words ≤3 chars are skipped by default (too many false positives with short abbreviations); use `--min-len 3` to include them
+- Edit distance 2+ misspellings (e.g. "definately"→"definitely") are not caught; these were already removed in V3 curation
+- Non-ASCII words (accented/foreign characters) are excluded from review
+- Proper nouns and brand names that don't appear in NLTK/hunspell may be flagged
+
+### Near-Duplicate Contraction Files
+`contractions_en.json` (119 keys) is a strict SUBSET of `contractions_non_paired.json`
+(120 keys — the base additionally holds `high-falutin`); they are NOT byte-identical
+(an earlier revision claimed they were — md5-checked 2026-08-21, and this matches the
+Contraction Assets table above). The per-language file is loaded by
+`loadLanguageContractions("en")` AFTER the base file (`loadMappings()`), so it can only add
+keys the base lacks — and the loader must refuse to re-add a key the base reclassified as
+PAIRED (see the REPLACE-set note in Contraction Assets).
+
+### Vestigial Files
+- ~~`src/main/assets/dictionaries/en_enhanced.txt`~~ — **DELETED 2026-07-03.** Was a V1 word list (49,297 words); never loaded at runtime.
+- `src/main/assets/dictionaries/en_enhanced.json` — JSON export of the dictionary (`{word: freq}` on the AOSP-like 134..255 byte scale). NOT a fallback: its stated consumer `OptimizedVocabulary.loadFromJSON()` was deleted with the neural engine (2026-08-18). It is now the PRIMARY English lexicon source for the CTC engine — `CtcEngineAdapter` reads it for en while every other language uses `<lang>_enhanced.bin` (CKDT). That asymmetry is deliberate and load-bearing: en's λ is fitted to this file's byte scale, so "unifying" the two formats would silently change English decode ranking. See `CtcEngineAdapter.kt:390`.
+
+## Build Commands
+
+### Rebuild English Dictionary (V4, 98,140 words)
+```bash
+cd scripts/
+
+# Report mode (no files touched): classification counts + review artifacts + eval coverage
+python3 build_wordlist.py --lang en
+
+# Regenerate en_words.txt + en_enhanced.{json,bin} (assets + scripts copies) + verify
+python3 build_wordlist.py --lang en --write
+```
+See `.claude/skills/dictionary-pipeline.md` for the full one-pass evidence classifier pipeline.
+
+### Rebuild Contractions
+```bash
+cd scripts/
+
+# Regenerate binary contractions from JSON sources
+python3 generate_binary_contractions.py \
+  ../src/main/assets/dictionaries/contractions_non_paired.json \
+  ../src/main/assets/dictionaries/contraction_pairings.json \
+  ../src/main/assets/dictionaries/contractions.bin
+```
+
+### Build Language Pack
+```bash
+cd scripts/
+
+# Full language pack (dict + unigrams + contractions; prefix boosts are no longer consumed)
+python3 get_wordlist.py --lang fr --output fr_words.txt --count 50000
+python3 build_langpack.py --lang fr --name "French" --input fr_words.txt --use-wordfreq --output langpack-fr.zip
+```
+
+## Testing
+
+### Existing Tests
+- `ConfigDefaultsTest` — dictionary-related config defaults
+- `IssueRegressionTest` — issue regression config checks
+- `ContractionManagerTest` (instrumented) — binary/JSON loading, lookup, possessives
+
+### Missing Tests
+- No tests for `build_dictionary.py`, `get_wordlist.py`, or `build_langpack.py`
+- No misspelling detection or dictionary quality tests
+- No round-trip test (build → load → verify word count)
+
+---
+
+**Created**: 2026-02-17
+**Owner**: tribixbite

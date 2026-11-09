@@ -1,0 +1,25 @@
+# Estonian Swipe (Test)
+
+**Experimental Android keyboard for separate Estonian and English swipe input.** Based on [CleverKeys](https://github.com/tribixbite/CleverKeys) (GPL-3.0); [original project README](UPSTREAM_README.md). This fork adds Estonian offline emoji search, a bounded typo fallback and an experimental Estonian dictionary converter. The upstream engine, layouts and most functionality remain CleverKeys. No Gboard code, models, word lists or artwork are included.
+
+**Early test build, not a replacement for a dependable daily keyboard.** It has been built and installed on an Android x86_64 emulator; there is no real-finger accuracy result on a Pixel 8 / GrapheneOS yet. The keyboard UI is packaged with English-only resources; input can still be Estonian or English. No Internet or microphone permission is requested by this fork's test APK. The upstream voice-input controls are out of scope and will not work without microphone permission.
+
+## Install on a Pixel 8 with Obtainium
+
+1. Install [Obtainium](https://github.com/ImranR98/Obtainium/releases) if necessary, then open **[Add Estonian Swipe to Obtainium](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22io.github.tehisaru.estonianswipe%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Ftehisaru-git%2Festonian-swipe-keyboard%22%2C%22author%22%3A%22tehisaru-git%22%2C%22name%22%3A%22Estonian%20Swipe%20%28Test%29%22%7D)** on the phone. Confirm adding the app, then install the APK. This URL is a hand-off to Obtainium, not an automatic installation.
+2. If the link does not open, paste `https://github.com/tehisaru-git/estonian-swipe-keyboard` into Obtainium → **Add App**. The GitHub Release contains **one APK**, `EstonianSwipe-v0.1.0-arm64-v8a.apk`. Android may ask you to allow Obtainium to install apps. Direct download: [v0.1.0 release](https://github.com/tehisaru-git/estonian-swipe-keyboard/releases/tag/v0.1.0).
+3. In the keyboard's settings, import **`langpack-et.zip`** from the same GitHub Release under **Multi-Language** → **Import language pack**. This is a separate one-time download; Obtainium installs APKs, not dictionary ZIPs. The pack contains 95,000 experimental Estonian forms; it is attributed to the HeliBoard/Leipzig CC BY 4.0 source in its own `NOTICE.txt`.
+4. Enable the keyboard in Android's on-screen keyboard settings. In **Layout Manager**, bind the English QWERTY layout to **English** and `QWERTY (eesti)` to **Estonian (Eesti)**. Select a layout using the keyboard's language/space gesture. Keep your previous keyboard installed while testing.
+
+Future APK updates published as GitHub Releases here will be discoverable by Obtainium. Keep this app installed from **this repository's APKs**: the fork uses package ID `io.github.tehisaru.estonianswipe` and a separate private signing key, so it does not replace upstream CleverKeys or its F-Droid build. Do not mix APKs signed by different publishers. The private update-signing key is not in Git; a loss of that key would require a new install rather than an in-place update.
+
+## Source, attribution and status
+
+- GPL-3.0 source and third-party notices: [LICENSE](LICENSE), [NOTICE](NOTICE). This publication is a **source snapshot**, not the upstream project's Git history; the starting source was CleverKeys `8335bd0` followed by the local Estonian research and emoji changes. The removed upstream deployment/release workflows and upstream debug key are deliberately **not** this fork's release infrastructure.
+- Estonian word-list converter: [`scripts/estonian_wordlist.py`](scripts/estonian_wordlist.py); source: [HeliBoard's `main_et__experimental`](https://codeberg.org/Helium314/aosp-dictionaries/src/branch/main/wordlists/main_et__experimental.combined), itself derived from Leipzig Corpora under CC BY 4.0. Downloaded source SHA-256 for this pack: `10b9b8039c8f83de50ea1b26af6de21c3c0a7850e44532e68c061d3251e9c9e5`. Pack SHA-256: `701f9bfa93992f3d6e11e0fb50689c42151a730062228895298674b0043232b6`.
+- Estonian emoji terms: pinned Unicode CLDR input, provenance and license in [`NOTICE`](NOTICE); English keyword ordering retained. Design and limited emulator results: [`docs/research/estonian-swipe-initial.md`](docs/research/estonian-swipe-initial.md).
+- Still needed: on-device gesture quality measurements, UI verification on a non-English Android locale, and an audit before a production/F-Droid release. Upstream `fastlane/` and `metadata/fdroid/` entries describe **CleverKeys**, not a listing of this fork.
+
+### Build from source
+
+Java 17, Android SDK platform 34 and build-tools 34 are required. `scripts/gradle-guard.sh assembleDebug` builds test APKs; `assembleRelease` builds unsigned APKs unless the private `RELEASE_KEYSTORE`, `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD` environment variables are set. Do not use an upstream debug key for releases. The fork's signing credentials are never committed.

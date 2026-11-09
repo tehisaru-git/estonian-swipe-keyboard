@@ -1,0 +1,468 @@
+# Clipboard Panel Architecture Skill
+
+Use this skill when working on clipboard tabs, entry rendering, inline editing, tag management, pagination, search/filter, or adding new clipboard features.
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `res/layout/clipboard_pane.xml` | Panel layout: search bar, tabs, content area, tag panel, pagination |
+| `res/layout/clipboard_history_entry.xml` | Per-entry layout: text, thumbnail, button column (4 rows) |
+| `ClipboardManager.kt` | Pane-level state: search, tag mode, edit lock UI, tab switching |
+| `ClipboardHistoryView.kt` | Entry list: adapter, getView(), inline edit, expand states |
+| `ClipboardHistoryService.kt` | Singleton data layer: CRUD, history/pinned/todo operations |
+| `ClipboardDatabase.kt` | SQLite: `DATABASE_VERSION = 5` (v5 = GH #156 private copy: `is_private`, `source_package`; v4→v5 like every migration here is CREATE-COPY-DROP-RENAME), FTS4 search, tag JSON, todo status, media |
+| `ClipboardEntry.kt` | Data class: content, timestamp, mimeType, tags, todoStatus |
+| `clipboard/ClipboardTagDialog.kt` | `object ClipboardTagPanel` — inline tag management: chips, suggestions, new tag input (file named Dialog, builds an inline panel) |
+| `KeyEventHandler.kt` | Key routing: tag > edit > search priority chain |
+| `KeyboardReceiver.kt` | Bridge: IReceiver implementation delegating to ClipboardManager |
+
+## Panel Layout Structure
+
+```
+clipboard_pane.xml (ClipboardPaneLayout: LinearLayout, VERTICAL, match_parent)
+| Controls container: search + result rows (vertical narrow, horizontal at ≥720dp)
+|
++-- Search bar row (LinearLayout, HORIZONTAL, 40dp, colorKey bg)
+|   +-- tab_history (ImageView, 36dp, ic_tab_history)
+|   +-- tab_pinned (ImageView, 36dp, ic_tab_pinned)
+|   +-- tab_todos (ImageView, 36dp, ic_tab_todos)
+|   +-- clipboard_search (TextView, weight=1, "Search...")
+|   +-- clipboard_search_clear (ImageButton, 28dp, GONE)
+|   +-- clipboard_regex_toggle (TextView, ".*", 28dp, GONE)
+|   +-- clipboard_date_filter (ImageButton, 32dp)
+|   +-- clipboard_close_button (ImageButton, 32dp)
+|
++-- Result row (48dp minimum): [selection count (selection mode)] summary + deletion feedback,
+|   |                            pagination controls, Select (GONE in selection mode)
+|   +-- Pagination controls are GONE when ≤100 results; feedback is GONE until deletion
++-- Selection bar (48dp, GONE unless selecting): select/deselect-all-matching toggle,
+|   clear selection, more actions (⋮), delete selected, exit — 5 × 48dp ImageButtons
+|
++-- Divider (View, 1dp, clipboard_divider_color)
+|
++-- Content ScrollView (id: clipboard_content_scroll, weight=1)
+|   +-- ClipboardHistoryView (NonScrollListView)
+|       +-- [entries rendered by ClipboardEntriesAdapter.getView()]
+|
++-- Tag panel (id: clipboard_tag_panel, weight=1, GONE)
+|   +-- Tag panel content (populated programmatically)
+|
+Pagination lives inside the result row; wide panes share search/results horizontally
+so a short landscape pane retains a full entry/action row.
+```
+
+**Content area and tag panel are mutually exclusive** — when tag panel is VISIBLE, content scroll is GONE, and vice versa.
+
+## Entry Layout Structure
+
+```
+clipboard_history_entry.xml (LinearLayout, HORIZONTAL)
+|
++-- Thumbnail container (FrameLayout, 48dp, GONE for text)
+|   +-- thumbnail (ImageView)
+|   +-- play_badge (ImageView, GONE)
+|
++-- Text content (TextView, style=clipboardEntry, weight=1)
++-- Edit field (EditText, GONE, inputType=textMultiLine|textNoSuggestions; showSoftInputOnFocus=false is set in getView — no public XML attribute)
+|
++-- Button column (LinearLayout, VERTICAL, right-aligned)
+    +-- Row 1: Primary (expand, edit, paste) — always visible in normal mode
+    +-- Row 2: Secondary (pin/unpin/todo/done/status/tags) — shown on expand
+    +-- Row 3: Edit buttons (save, cancel) — shown during edit mode
+    +-- Row 4: Delete row (delete) — shown during edit mode, isolated
+```
+
+## Three Tabs
+
+| Tab | Backing Store | Extra Fields | Actions |
+|-----|--------------|--------------|---------|
+| HISTORY | `clipboard_history` FTS4 | — | pin, todo, delete (in edit) |
+| PINNED | `pinned_entries` | tags (JSON) | unpin, todo, tags |
+| TODOS | `todo_entries` | tags (JSON), status | done, status cycle, tags, delete (in edit) |
+
+Tab switching: `ClipboardManager.switchToTab()` → `ClipboardHistoryView.setTab()` → `loadDataAsync()`
+
+## Data Flow
+
+```
+User action (tap tab, type search, scroll page)
+    ↓
+ClipboardManager (state management)
+    ↓
+ClipboardHistoryView.loadDataAsync()
+    ↓ (Dispatchers.IO)
+ClipboardDatabase.get*Entries()
+    ↓ (Dispatchers.Main)
+history = entries
+applyFilter() → applyPagination() → adapter.notifyDataSetChanged()
+    ↓
+getView() renders each entry with tab-aware button visibility
+```
+
+## Modal Modes (Mutual Exclusion)
+
+The clipboard pane has four mutually exclusive modes. Only one can be active at a time.
+
+### 1. Normal Mode (default)
+- Entry list visible, search works, tabs switchable
+- Tap entry text to expand → shows secondary buttons
+- Tap paste/pin/todo/tags buttons for actions
+
+### 2. Edit Mode (per-entry, in ClipboardHistoryView)
+- **State**: `editingOriginalContent: String?` (non-null = active)
+- **Enter**: Tap edit button → `edit_entry(pos)`
+- **Exit**: Save/cancel → `cancelEdit()` / `save_edit()`
+- **UI lock**: `onEditModeEntered` callback dims tabs, search, pagination
+- **Key routing**: `isClipboardEditMode() → insertToClipboardEdit()` (tab-agnostic — same chain for history, pinned, todos)
+- Search mode cleared on enter. Tab switching blocked.
+- **Text manipulation**: All methods use `activeEditingEditText` (dynamic property with visibility + windowToken validation + child view fallback) — see `ime-key-routing.md` "ListView Scrap View Architecture"
+- **View recycling**: getView() sets up cursor, click listeners, TextWatcher on EVERY call (not just first render). Only the `editingEditText` reference cache is guarded.
+- **State tracking**: `editingInProgressText` is synced directly in text manipulation methods AND via TextWatcher (belt-and-suspenders). `save_edit()` reads from `editingInProgressText` (not EditText widget).
+- **Focus and long entries (2026-10-25)**: getView posts `requestFocus()` on the visible edit field. TextView draws its caret and scrolls it into view (bringPointIntoView → requestRectangleOnScreen → the pane's ScrollView) only while focused; unfocused, an entry taller than the pane put the caret, and every typed character, out of sight. View focus inside the IME window never takes window focus from the app. Never let a FOCUSABLE popup open from the field: `inputType="none"` is the attribute's unset value (EditText stays TYPE_CLASS_TEXT with suggestions), and tapping a spell-checker-underlined word opened the focusable SuggestionsPopupWindow, the app lost window focus and hid the keyboard (same mechanism as `ImeDialogWindowPolicy`). Tests: `ClipboardHistoryViewStateGuardsTest` (mock), `ClipboardLongEntryEditTest` (instrumented).
+
+- **Paged editing (2026-10-26, todo 22)**: an entry over 20,000 units / 1,000 lines (not
+  `isEditableInline`) is edited one page at a time. `clipboard/ClipboardEditPages` (pure) splits
+  pages (line break in the window's last quarter, else whitespace, else the limit; never inside
+  a surrogate pair or CRLF) and its `Session` keeps the working copy. `editingPages` non-null =
+  paged; then the field and `editingInProgressText` hold ONLY the current page — never put the
+  full text in the field (every keystroke re-sets it). Moves (`editPageNext/Previous/First/
+  Last`, pager row `clipboard_entry_edit_pager`, long-press = first/last) splice the field's text
+  in first, re-split only that page, restart the page's undo history and swipe session. Save =
+  `session.fullText(page)` → ONE `editEntryContent(original, full, tab)`. The paged field is
+  capped to the pane height minus the pager (`fitEditFieldHeight`), else the ScrollView's focus
+  scroll hides the pager. A row changed meanwhile → `EditEntryResult.EntryChanged` (UPDATE keyed
+  on the opened content) → `clipboard_edit_changed`, session kept. Tests:
+  `ClipboardEditPagesTest` (pure), `ClipboardPagedEditViewTest` (mock). Spec:
+  `docs/specs/clipboard-system.md` "Paged editing of long entries".
+
+### 3. Tag Mode (pane-level, in ClipboardManager)
+- **State**: `tagMode: Boolean` + `tagEditText: EditText?`
+- **Enter**: Tap tags button → `showTagPanel(entry, tab)`
+- **Exit**: Tap close → `hideTagPanel()`
+- **UI**: Content scroll GONE, tag panel VISIBLE
+- **Key routing**: `isClipboardTagMode() → insertToClipboardTag()`
+- Highest priority in key routing chain (before edit and search).
+
+### 4. Selection Mode (2026-10-07, state in a service-scoped holder)
+- **State**: `ClipboardSelectionHolder` (clipboard/ClipboardSelectionHolder.kt), owned by the
+  service-lifetime `ClipboardManager` and attached to every inflated view
+  (`attachSelectionHolder`). The view's `selection` is a getter onto it. NEVER put selection
+  state back on the view: views are recreated on theme change, and the pane closes on
+  rotation / keyboard hide / app switch, yet the selection must survive all of them.
+- **Enter**: result-row **Select** button → `ClipboardManager.enterSelectionMode()` →
+  `startSelection()` (refused during edit or while a bulk action runs). Long-press is NOT the
+  entry gesture (it copies to the OS clipboard in normal mode; in selection mode it toggles).
+- **Rows**: checkbox `clipboard_entry_select` VISIBLE, all action rows GONE, tint behind
+  selected rows; text/thumbnail/checkbox toggle by entry identity (`bindSelectionRow`).
+- **Persistence**: survives search/regex/filter/page changes AND pane close/reopen, pane
+  switch, keyboard hide, rotation, field/app switch and theme rebuild. `resetSearchOnHide`,
+  `cleanup` and `invalidatePane` only `dismissPendingDialog()`; `resetSearchOnShow` reopens on
+  the selection's tab. `acceptLoadedHistory(entries, loadedTab)` reconciles only loads of the
+  selection's own tab.
+- **Ends ONLY on**: Exit selection, a completed bulk action, or its tab being disabled in
+  Settings. Clear selection empties it but stays in selection mode. Process death loses it.
+- **Model**: `ClipboardSelection` keeps rowId → 64-bit payload version only.
+- **Actions**: bar = select-all toggle, clear, ⋮ more (Add to Pinned/Todos, Merge, Clean —
+  `ClipboardBulkPlans.actionsFor`), delete, exit. All resolve `selectionSnapshot()` (a frozen
+  `ClipboardDeleteSnapshot`) and run through `ClipboardSelectionHolder.runConfirmed` on the
+  HOLDER's scope (never `viewScope`): the transaction starts on IO at once and survives a
+  pane teardown; success ends selection, failure keeps it. Service entry points:
+  `deleteSnapshot`, `copyEntriesTo` (one transaction), `addMergedClip`, `applyClean`
+  (through `editEntryContent`). They run on IO and must not call the view listener directly
+  (`loadDataAsync` ignores reloads while an action runs). Text transform:
+  `ClipboardTextCleaner` (pure).
+- **Dialogs**: all go through `Utils.show_dialog_on_ime`, which is NON-FOCUSABLE
+  (`ImeDialogWindowPolicy`). A focusable IME dialog let Chrome hide the keyboard mid-tap and
+  tore the dialog down before its button ran (Saga, 2026-10-07). Never put a dropdown
+  `Spinner` (focusable popup) in an IME dialog — use `ImeDialogSpinner`, and declare
+  `android:spinnerMode="dialog"` on it: a dropdown spinner's touch-forwarding listener opens
+  the focusable popup on long press / press-and-drag even when `performClick` is overridden
+  (2026-10-08). The class forces dialog mode, bypasses superclass touch handling and uses the
+  framework `android:spinnerStyle` (AppCompat's default style is empty under the framework
+  dialog theme, which left it unclickable).
+- The bulk result line is kept in `ClipboardManager.lastBulkFeedback` and re-rendered by
+  `getClipboardPane`; clear it only via `clearBulkFeedback()` (tab switch, new selection).
+- Non-current tab icons are GONE while selecting, which also gives `ClipboardPaneLayout`
+  (wide search = 212dp + 36dp per visible tab) room for the 240dp bar beside the results in
+  landscape; narrow panes put the bar on its own row.
+
+## Expand/Collapse State
+
+- Tracked by **timestamp** (Long key, not position or content): `expandedStates: MutableMap<Long, Boolean>`
+- Single tap on text/chevron toggles expansion
+- Expanded state shows: up to 20,000 chars / 1,000 lines (maxLines=MAX_VALUE) + secondary buttons,
+  and "Showing the first N of M characters…" when that cut the entry
+- Collapsed state: single line (maxLines=1) + no secondary buttons
+- **Rows never bind the full text** (2026-10-26): every binding goes through
+  `ClipboardPreviewPolicy.forRow` (collapsed / Select mode 300 chars, expanded 20,000). A TextView
+  line-breaks ALL its text even with maxLines=1, so 0.5 MB entries froze the main thread ~50 s
+  per bind and a tap was an ANR. Paste/copy/search use `entry.content`; entries that are not
+  `isEditableInline` are edited a page at a time (below). Any new row text path must use the
+  preview too. Tests: `ClipboardPreviewPolicyTest`, `ClipboardLongEntryPreviewViewTest`.
+- States cleared on tab switch, page change, or filter change (`applyFilter(resetView=true)`)
+- States preserved on data reloads after pin/todo/delete actions (`applyFilter(resetView=false)`)
+
+## Pagination
+
+- 100 items per page (`ITEMS_PER_PAGE`)
+- Pagination bar shows when filteredHistory.size > 100
+- `currentPage` index, `applyPagination()` slices filteredHistory
+- Page change clears expand states
+
+## Search and Filter Pipeline
+
+```
+searchFilter (String) + regexMode (Boolean) + dateFilter (timestamp + direction)
++ tagFilter (Set<String> + matchAll) + statusFilter (active/planned/completed booleans)
++ sizeFilter (inclusive minimum/maximum payload bytes)
+    ↓
+applyFilter(resetView=true) — filters full history → filteredHistory, resets page + expand
+applyFilter(resetView=false) — refilters but preserves page position + expand states
+    ↓
+applyPagination(clearExpandedStates) — slices filteredHistory → paginatedHistory
+    ↓
+adapter.notifyDataSetChanged()
+```
+
+Regex uses `expandGlobShorthand()` for `*`/`?` glob support.
+
+### Filter Dialog (`clipboard_filter_dialog.xml`)
+- Opened via filter icon in search bar (funnel icon, tinted when filters active)
+- All tabs: size + privacy + date; PINNED adds tags; TODOS adds status + tags
+- Size filter: UTF-8 text + thumbnails + saved media bytes, measured off the UI thread
+- Batch deletion: Select → select all matching (every page) → Delete selected; mandatory
+  confirmation freezes the selected rows; database row identity/version guards skip new or
+  changed rows, and other-tab copies stay (see Selection Mode above)
+- Keep pagination and deletion feedback inside the result row. `ClipboardPaneLayout`
+  uses measured width (not orientation) to put search/results side by side at ≥720dp;
+  separate fixed rows consume the default 120dp landscape pane. Require at least 48dp
+  of entry viewport, not a partly clipped row. Tab switches hide old deletion feedback.
+- **Date filter**: Enable toggle + Before/After radio + DatePicker (spinner mode)
+- **Status filter** (TODOS): Active/Planned/Completed checkboxes, Apply disabled when all unchecked
+- **Tag filter**: Checkboxes for all known tags + Match Any/All toggle (Switch, no showText)
+- Filter icon tint: `R.attr.colorLabelActivated` when active, `R.attr.colorLabel` when default
+
+## Action Feedback
+
+- **Tab icon pulse**: When pinning or adding to todos from another tab, the target tab icon
+  pulses (scale 1.0→1.5→1.0 over 350ms) via `onItemAddedToTab` callback
+- Callback set in `ClipboardManager` on `clipboardHistoryView.onItemAddedToTab`
+- No text/toasts — Toasts are invisible in IME context (render behind keyboard panel)
+- Duplicate detection: `addToTodo()` returns Boolean, no pulse on duplicate (already exists)
+
+## Adding New Entry Buttons
+
+1. Add `<View>` in `clipboard_history_entry.xml` inside the appropriate row
+2. Add `findViewById` in `ClipboardHistoryView.getView()`
+3. Set visibility in the tab-aware `when (currentTab)` block
+4. Add click handler with `if (!isEditing())` guard
+5. Implement the action (call service method + `loadDataAsync()`)
+
+## Adding New Inline Panels
+
+Follow the tag panel pattern:
+
+1. Add a container in `clipboard_pane.xml` (GONE, weight=1)
+2. Add mode state in `ClipboardManager.kt` (boolean + view refs)
+3. Add show/hide methods that toggle visibility with content scroll
+4. Wire key routing if the panel has text input (see `ime-key-routing.md`)
+5. Add callback from `ClipboardHistoryView` to `ClipboardManager`
+6. Clean up in `ClipboardManager.cleanup()`
+
+## Todo Status System
+
+Three states cycle: `active` → `planned` → `completed` → `active`
+
+| Status | Visual | Alpha |
+|--------|--------|-------|
+| active | (no prefix) | 1.0 |
+| planned | `[plan] ` prefix | 0.7 |
+| completed | `[done] ` prefix + strikethrough | 0.4 |
+
+Done button toggles between active ↔ completed directly.
+Status button cycles through all three states.
+
+## Tag System
+
+- Tags stored as JSON array in TEXT column: `["tag1","tag2"]`
+- Operations via `ClipboardHistoryService`: `setPinnedTags()`, `setTodoTags()`, `getAllPinnedTags()`, `getAllTodoTags()`
+- Tag chips use `FlowLayout` (custom ViewGroup) for horizontal wrapping
+- Current tags shown as removable chips (tap × to remove)
+- Suggestion chips show unused tags from other entries (tap + to add)
+- New tag input at bottom with Add button
+
+## Common Gotchas
+
+- **COPY semantics**: Pinning/todoing copies the entry (independent from history). Changes to one don't affect the other.
+- **Content-based identity**: Edit/expand states track by content string, not list position. Position changes when entries are added/deleted/filtered.
+- **Async loading**: `loadDataAsync()` cancels previous load job. Rapid tab switches won't cause stale data overwrites.
+- **Edit suppression**: `on_clipboard_history_change()` and `onWindowVisibilityChanged()` return early during edit mode to prevent view recreation that would reset the EditText.
+- **Non-breaking spaces**: Timestamps use `\u00A0` to prevent wrapping mid-unit (e.g., "2\u00A0min\u00A0ago").
+- **View recycling**: `getView()` receives recycled views. Always reset ALL visibility states — never assume a view starts in a particular state.
+- **ListView scrap views**: When EditText height changes (e.g., newline inserted), ListView calls `getView()` with invisible scrap views for measurement. NEVER cache references to scrap view widgets without a guard. See `ime-key-routing.md` "ListView Scrap View Architecture" for the required pattern.
+- **FTS4**: The project uses FTS4 (not FTS5) because FTS5 is unavailable on all Android builds.
+- **IME Toasts invisible**: Android Toasts render behind the keyboard panel (lower Z-order). Use tab icon pulse (`onItemAddedToTab`) or in-view feedback instead. Toasts are OK for non-IME contexts (settings activities).
+- **applyFilter(resetView)**: Always pass `resetView=false` when reloading data after an action (pin, todo, delete). Pass `true` only when the filter criteria themselves changed.
+
+## URL Sanitization (Chunk 3, v1.4.0+)
+
+Inserted clipboard text is run through a URL sanitizer BEFORE the database write,
+at `ClipboardHistoryService.addClip()` line ~288. Sequence is:
+
+```
+addClip(rawText)
+  ↓ privacy gates (password manager check, IS_SENSITIVE flag)
+  ↓ size cap (MAX_CLIP_LEN)
+  ↓ _sanitizationConfig.sanitizer().process(text)
+  ↓ database.insertEntry()
+```
+
+Sanitizer files live in `clipboard/sanitize/`:
+- `UrlSanitizer.kt` — provider matching + `process()` + `stripQueryParams()`
+- `SanitizationConfig.kt` — toggle resolution + lazy cache + `rebuild()` on settings change
+- `RulesetParser.kt` — ClearURLs JSON parser + ruleset merge
+
+Settings hooks: three independent boolean toggles in `Config.kt:464` ("Chunk 3"):
+- `clipboard_sanitize_links_enabled` — bundled `assets/url_rules/clearurls.json`
+- `clipboard_embed_enrich_enabled` — bundled `assets/url_rules/embed_enrich.json`
+- `clipboard_custom_rules_enabled` (+ `clipboard_custom_rules_uri`) — user-supplied JSON via SAF
+
+All default OFF. NoOpSanitizer is returned when all are off (no asset access). Settings UI broadcasts
+`SettingsActivity.ACTION_SANITIZATION_RULES_CHANGED` on any toggle change; ClipboardHistoryService
+drops its cached sanitizer in response (`SanitizationConfig.rebuild()`).
+
+When debugging "sanitizer didn't strip my URL", check in order:
+1. Is `clipboard_sanitize_links_enabled` true (not just `embed_enrich`)?
+2. Is the domain in `assets/url_rules/clearurls.json`? grep for it. If not, fall-through to globalRules
+   only — only `utm_*`, `fbclid`, `gclid` family will be stripped.
+3. Is the specific param name in any rule regex for the matched provider? `Regex.matches(name)` is
+   case-insensitive but exact-match — `aff_short` doesn't match `aff_request_id` even though both look "aff".
+
+See `docs/wiki/specs/clipboard/url-sanitization-spec.md` for the full algorithm + code refs.
+
+## Related Skills
+- `ime-key-routing.md` — How key events reach inline editors
+- `ime-visual-feedback.md` — Tab pulse and other IME-safe feedback patterns (toasts are invisible)
+- `clipboard-tag-system.md` — Tag storage, chip UI, filter integration for pinned/todos
+- `clipboard-todo-system.md` — Status cycle, done button, visual rendering for todos
+- `content-pane-layout.md` — View hierarchy and pane switching
+
+## Clear current Android clipboard (#168)
+
+`clear_clipboard` is an opt-in Editing command, separate from the pane’s confirmed
+Delete results action. Ordinary keys and custom gestures call
+`ClipboardHistoryService.clearSystemClipboard(context)` and show suggestion-bar
+feedback. It must bypass inline edit routing and never obtain an InputConnection
+or initialize the saved-history singleton. API 28+ clear natively; API 21–27 use
+an empty plain-text clip, rejected by the existing ingestion guard. Do not call
+`clearHistory()` or remove media for this action. Real clipboard tests belong on
+an isolated emulator; preserve the Seeker’s clipboard during UI validation.
+
+## Inline entry editor: shortcuts, undo history, copy (2026-10-13/15)
+
+While the entry editor is open, Ctrl+V/X/C/A act on it, Ctrl+Z and the undo key undo,
+Ctrl+Shift+Z / Ctrl+Y and the redo key redo, and every other shortcut or editing command is
+swallowed, never reaching the app behind the panel (`KeyEventHandler.handleInlineShortcut`;
+`3439fff0`, `d599f84a`). Undo is the view's own `InlineEditHistory` (pure, bounded 100 steps /
+1M chars, one step per typed word, cleared on session start/exit) because every routed edit is
+`setText()`, which calls `Editor.forgetUndoRedo()` — any new mutation path in the editor must
+record a before/after snapshot or undo skips it. Copy from the editor is an ordinary copy (it
+lands in history like a cut; private entries ask first, #156 gate); Share is swallowed in inline
+fields. Ctrl+V and the paste key also paste the clip into the search and tag fields. Routing
+detail: `ime-key-routing.md` "Shortcuts and paste inside inline fields". Device: Pixel
+2026-10-13/14 Ctrl+V in the editor PASS (`build/oct14-pixel/65–67`); Ctrl+Z/Ctrl+Y/Ctrl+C in
+the editor not yet device-checked (`memory/todo.md` "Open now").
+
+## Swipe typing in the entry editor, tag entry and search (2026-10-20)
+
+Swiped words go into the active inline field instead of the app behind the panel:
+`SuggestionHandler` asks `KeyEventHandler.activeInlineTarget()` and writes through
+`ClipboardManager.replaceInInlineField` → `ClipboardHistoryView.replaceEditRange` (editor, one
+`InlineEditHistory` step each) or the tag/search setText paths (`setSearchText` is the one
+writer of the search query). Bar taps replace the swiped word there; backspace removes it.
+Nothing is learned. Full route and rules: `ime-key-routing.md` "Swipe typing into inline fields".
+
+## Swipe to delete a row (GH #175 part 2, 2026-10-21)
+
+A horizontal swipe (either direction) on a row in NORMAL mode deletes it from the current tab
+only — the same per-tab path as the edit-mode/media delete button,
+`ClipboardHistoryService.removeFromTab(tab, content)` (an extension, so mocked services still
+record the per-tab member; history remove / unpin / un-todo; media
+file removed once no table references it). Pinned and Todos are COPY tables, so the same text
+on another tab stays. Private entries included. Setting `clipboard_swipe_delete_enabled`
+(default ON, Clipboard section); off = rows ignore horizontal swipes.
+
+- **Gesture** (`ClipboardSwipePolicy` + `ClipboardSwipeTracker`, pure, in
+  `clipboard/ClipboardSwipePolicy.kt`): observed in `ClipboardHistoryView.dispatchTouchEvent`
+  (sees every event whichever child took DOWN). Nothing happens inside the touch slop. Past it
+  the drag is classified ONCE: horizontal only if |dx| > 2·|dy|. Only then does the view send
+  the children a CANCEL (no click / long-press fires), call
+  `parent.requestDisallowInterceptTouchEvent(true)` and move the row (`translationX`, alpha
+  down to 0.2). Vertical drags are never claimed, so the ScrollView scrolls as before. Release
+  past 35 % of the row width, or a fling ≥ 800 dp/s in the travel direction, commits;
+  otherwise the row springs back (150 ms). A second pointer springs it back. Swipes start only
+  when `swipeAllowed`: setting on, not selecting, no row in edit mode, no bulk action running
+  (the tag panel hides the list, so no row is reachable there).
+- **Pending deletion** (`ClipboardPendingDeletion`, pure state machine, owned by the
+  service-scoped `ClipboardManager` and attached to each inflated view via
+  `attachPendingDeletion` — never view state, views are rebuilt on theme change). One row at a
+  time, identity = tab + content (the per-table delete key). `begin` hides it (applyFilter
+  excludes it from results, count and pages; reloads keep it hidden); "Deleted" shows in
+  `clipboard_bulk_feedback` (polite live region) with the `clipboard_swipe_undo` button beside
+  Select for `UNDO_WINDOW_MS` = 5 s. Undo un-hides; NOTHING is written, so there is no restore
+  path. A failed delete reports RESTORED (the entry is still in the database).
+- **Commit triggers** (`CommitReason`): TIMEOUT (main-looper timer), NEXT_SWIPE (another row
+  swiped: the first commits first), PANE_HIDDEN (`resetSearchOnHide`: pane close, pane switch,
+  keyboard hide, rotation's onFinishInputView), PANE_INVALIDATED (`invalidatePane`, `cleanup`),
+  TAB_SWITCH (`switchToTab` and `ClipboardHistoryView.setTab`), FILTER_CHANGE
+  (`applyFilter(resetView = true)` — search, regex, size/date/private/tag/status filters, clear
+  filters), SELECTION (`enterSelectionMode`/`startSelection`), EDIT (`edit_entry`), TAG_PANEL
+  (`showTagPanel`), BULK_ACTION (`runBulk`). A page change does NOT commit (the hidden row stays
+  hidden). On COMMITTED the view drops the row from its loaded list at once so it cannot flash
+  back before the reload the service's change notification triggers.
+- **Process death** inside the window loses only the hide: nothing was deleted, the entry stays.
+- **Accessibility**: each normal-mode row's text carries a "Delete" custom action (a platform
+  `View.AccessibilityDelegate` shared by the list, action id `R.id.clipboard_entry_delete`,
+  label `common_delete`; the row's entry is in the text view's tag of the same id, rebound on
+  every getView, so recycled rows never act on another entry; host tests inject a mock
+  delegate into `deleteActionDelegate` because the stub constructor throws) that runs the
+  same deferred path (`deferDelete`). Not `ViewCompat.addAccessibilityAction`: it keeps its
+  list in a view tag, which relaxed-mock rows in the host tests return as a bare Object. It is NOT gated by the swipe setting (the setting prevents accidental
+  swipes; a custom action is deliberate); removed in selection and edit mode.
+- **Recycled rows**: `getView` cancels any animation and resets `translationX`/alpha on every
+  row except the one being dragged.
+- Tests: `ClipboardSwipePolicyTest`, `ClipboardPendingDeletionTest` (pure),
+  `ClipboardSwipeDeleteViewTest`, `ClipboardSwipeDeleteManagerTest` (mock). The touch path
+  itself (MotionEvent dispatch, VelocityTracker) has no host test; it needs a device check.
+
+## Reorder Pinned / To-dos rows (2026-10-27)
+
+Drag handle `clipboard_entry_drag_handle` (first child of the entry row, `clipboardEntryButton`
+style, `ic_drag_handle`) on PINNED/TODOS rows. Full design: `docs/specs/clipboard-system.md`
+"Reordering Pinned and To-dos rows".
+
+- **Write path**: `moveEntryTo(entry, targetIndex)` (index in `filteredHistory`) →
+  `ClipboardReorderPolicy.neighbours` (the VISIBLE rows around the slot, by `rowId`) →
+  `ClipboardHistoryService.moveInTab` → `ClipboardDatabase.moveEntry`, which re-reads the table in
+  its transaction and applies `ClipboardReorderPolicy.plan`: one midpoint UPDATE, open ends past
+  the table's min/max, renumber 1.0… when the gap ≤ `MIN_GAP` (1e-6), on duplicates or non-finite
+  positions; stale requests refused. Then the view reorders `history` locally (no flash) and the
+  change notification reloads. Only `position` is written — status/tags untouched.
+- **Availability** (`reorderAvailability()`): HIDDEN on History, in Select mode, while editing,
+  during a bulk action; FILTERED (handle alpha 0.3, touch → `onReorderUnavailable` → manager's
+  `showReorderUnavailableHint`, cleared by `updateResultSummary` once no longer FILTERED) with a search or date/size/private/tag
+  filter. The To-dos STATUS filter does not count. Any new filter must be added to
+  `hasNonStatusFilter()`.
+- **Gesture**: `handleReorderTouch` runs FIRST in `dispatchTouchEvent`; a DOWN on the handle
+  (±10dp, full row height) owns the whole gesture, so the swipe tracker, clicks and long-press
+  never see it. Row offset `dragOffset` (half a row past either list end, else the end slots are
+  unreachable), drop slot `dropIndex`, line drawn in `dispatchDraw`, edge auto-scroll of the
+  parent ScrollView via `postOnAnimation` (bands shrink to a third of a viewport shorter than two
+  bands — the landscape pane). `applyPagination` and detach cancel a drag (rows are
+  rebound); `getView` resets `translationY/Z` on every row but the dragged one.
+- **TalkBack**: one shared `RowActionDelegate` reads two tags — `R.id.clipboard_entry_delete`
+  (Delete) and `R.id.clipboard_entry_drag_handle` (moves, also on the handle). Actions come from
+  `rowAccessibilityActions(host)`, testable without the stub `AccessibilityNodeInfo`.
+- Tests: `ClipboardReorderPolicyTest` (pure), `ClipboardReorderViewTest` (mock),
+  `ClipboardReorderDatabaseTest` (instrumented).

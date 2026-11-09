@@ -1,0 +1,262 @@
+---
+title: Privacy Settings
+description: Control data collection and storage
+category: Settings
+difficulty: beginner
+---
+
+# Privacy Settings
+
+Control what data CleverKeys collects, stores, and how your information is handled.
+
+## Quick Summary
+
+| What | Description |
+|------|-------------|
+| **Purpose** | Manage privacy and data |
+| **Access** | Settings > Clipboard / Privacy sections |
+| **Principle** | Local-first, no cloud by default |
+
+## Privacy Philosophy
+
+CleverKeys is designed with privacy as a core principle:
+
+- **Local processing**: All AI runs on your device
+- **No cloud upload**: Data never leaves your device by default
+- **No analytics**: No usage tracking or telemetry
+- **You control data**: Export or delete anytime
+
+## On-Device Learning (Master Switch)
+
+Found at the top of the **Privacy & Data** section:
+
+### Learn From My Typing
+
+One switch controls ALL automatic learning from your typing behavior. **Default: Off on new installs** (turn it on to enable learning); devices upgrading from earlier versions keep learning enabled, matching their previous behavior, until switched off.
+
+When ON, CleverKeys builds private, on-device models from what you type:
+
+| What is learned | Used for |
+|-----------------|----------|
+| **Phrase patterns** (word pairs and triples) | Context-aware suggestion boosting, learned next-word suggestions |
+| **Word usage** (personal vocabulary) | Personalized suggestion ranking |
+| **Suggestion selections** | Adapting which suggestions rank higher |
+| **Swipe corrections** (a swiped word you replaced, and what you chose instead) | Offering "Prefer “word” when swiping?" after the same correction twice (not recorded in private/incognito or password fields) |
+| **Swipe traces** (only if Swipe Data Collection is also on) | Potential future model tuning |
+
+When OFF:
+
+- **Nothing new is recorded** — every learning path is stopped at the write layer.
+- **Already-learned data goes inert** — it is neither updated nor used for suggestions
+  (learned-context boosting and learned next-word suggestions turn off; next-word prediction
+  keeps offering its built-in continuations, which contain nothing about you and record
+  nothing).
+- Turning the switch off offers a one-tap **"Also forget learned data?"** dialog that
+  deletes everything already learned (phrase patterns, word usage, and selection
+  history). Choose "Keep it" to retain the data in case you re-enable learning later.
+
+> [!NOTE]
+> The switch covers *automatic* recording of typing behavior. Data you explicitly create
+> is governed separately: prediction performance statistics (a separate toggle, no text
+> content) and learned data you restore from your own backup.
+>
+> *Corrected 2026-08-28:* this note used to also list "swipe-calibration sessions you
+> start yourself". The activity that collected those traces was removed on 2026-08-18
+> with the neural engine — swipe-trace storage now sits **inside** the switch, not
+> outside it. (The Short Swipe Calibration screen is unrelated and collects nothing.)
+
+### Private/incognito fields
+
+Apps can mark a text field as "no personalized learning" (for example, a browser's
+private tab). CleverKeys honors this automatically: nothing typed in such a field is
+learned, and no personalized next-word suggestions appear there — regardless of your
+settings. (Built-in next-word continuations still appear, like ordinary word completions:
+they are the same for everyone.)
+
+### Reviewing and deleting learned data
+
+Settings > Input Behavior > **Learning & Data** shows what has been learned (per-language
+phrase counts, word usage) and lets you:
+
+- **Browse phrases** — see every learned word pair with its count, delete individually
+- **Browse words** — see your learned vocabulary with usage counts, delete individually
+- **Forget phrases / Forget words** — bulk delete with confirmation
+
+Learned phrases and words are included in dictionary exports (Backup & Restore), so your
+learning survives reinstalls if you back up.
+
+Privacy & Data itself shows a **Learned Language Data** summary: phrase-pair, phrase-triple
+and word counts, a **Forget Learned** button, and a **Currently recording** line naming what
+is being learned right now — Context-Aware Predictions and Personalized Learning (when their
+toggles are on), plus suggestion selections and swipe corrections, which have no toggle of
+their own and record whenever Learn From My Typing is on. Next-word prediction is not on that
+list: it only reads. With the master switch off the line reads "Nothing is being recorded
+right now."
+
+## Clipboard Privacy
+
+### Clipboard Settings
+
+Found under the **Clipboard** section in Settings:
+
+| Setting | Description |
+|---------|-------------|
+| **Clipboard History** | Enable/disable clipboard history |
+| **Clipboard History Limit** | Maximum entries to keep (default: 0 = unlimited; 1–500) |
+| **Clipboard Size Limit** | Total size limit in MB |
+| **Clipboard Max Item Size** | Maximum size per text item in KB (64-1024) |
+| **Save Media Entries** | Enable/disable media capture (images, videos, PDFs) |
+| **Text Only** | Hide media entries and stop media capture |
+| **Max Media Size** | Skip copied media larger than this size (1-50 MB) |
+| **Exclude Password Managers** | Best effort: only skips a copy when Android reveals that a known password manager is in the foreground, which is rarely possible without usage access (never requested) |
+| **Respect Sensitive Flag** | Honor the Android 13+ IS_SENSITIVE flag — the reliable password-manager protection |
+
+### Sensitive Content Protection
+
+CleverKeys automatically protects sensitive content:
+
+| Protection | How It Works |
+|------------|--------------|
+| **Password Fields** | Detected automatically, clipboard disabled |
+| **Sensitive Flag** | Android 13+ password managers mark copies as sensitive; CleverKeys skips them — this is the reliable protection |
+| **Password Managers** | Best-effort extra layer: skips a copy only when Android reveals a known password manager in the foreground (rarely possible without usage access, which CleverKeys never requests) |
+
+## Private and Incognito Fields
+
+There is no Incognito Mode switch in CleverKeys. Instead the keyboard follows what the app
+tells it about the field:
+
+- **Incognito fields** (a private browser tab, or any field an app flags "no personalized
+  learning"): nothing is learned from what you type there, and your earlier suggestion
+  choices are not used to rank suggestions. The built-in word and phrase models still work.
+- **Password fields**: predictions and clipboard capture are off while you are in the field,
+  and swipe typing too unless you enabled it for password fields (see
+  [Password Fields](password-fields.md)).
+
+To stop all learning everywhere, turn off **Learn From My Typing** (Privacy & Data); to keep
+nothing from the clipboard, turn off **Clipboard History** (Clipboard).
+
+## Data Storage
+
+### What's Stored
+
+| Data | Location | Purpose |
+|------|----------|---------|
+| **Settings** | App preferences | Your configuration |
+| **Dictionary** | App data | Personal words |
+| **Profiles** | App data | Saved configurations |
+| **Clipboard** | App data | Recent clips (up to limit) |
+| **Clipboard Media** | App data | Copied images, videos, PDFs |
+| **Voice pack** | App data | The speech model you imported for [voice input](../typing/voice-input.md); audio itself is never stored |
+
+### Storage Location
+
+All data is stored locally on your device:
+
+```
+/data/data/tribixbite.cleverkeys/
+├── shared_prefs/         # Settings
+├── files/                # Dictionary, profiles
+│   └── clipboard_media/  # Copied images, videos, PDFs (excluded from backup)
+└── databases/            # Clipboard history (text + media metadata)
+```
+
+> [!NOTE]
+> Clipboard media files are excluded from Android Auto Backup to protect privacy and prevent consuming Google Drive quota.
+
+## Secure Input
+
+### Password Fields
+
+When a text field is marked as password:
+
+- Predictions disabled
+- Learning disabled
+- Clipboard disabled
+- Keyboard behaves in secure mode
+
+## Data Export and Deletion
+
+### Export Your Data
+
+Use Settings > Backup & Restore to:
+- Export settings and preferences
+- Export clipboard history
+- Export profiles
+
+### Clear Data
+
+| Method | What's Cleared |
+|--------|----------------|
+| **Clear system clipboard** command | Android’s current copied item; saved history, pinned items and todos stay |
+| **Select** → **Delete selected** in clipboard panel | The confirmed selection in the current tab; "select all matching" covers every page, and searches and size filters can build the batch |
+| **Reset Settings** | Settings > Backup & Restore > Reset |
+| **Clear App Data** | Android Settings > Apps > CleverKeys > Clear Data |
+
+## Privacy Settings Reference
+
+| Setting | Section | Default |
+|---------|---------|---------|
+| **Learn From My Typing** | Privacy & Data | Off on a fresh install (an upgrade from before 2.0 keeps learning on, as it was) |
+| **Clipboard History** | Clipboard | On |
+| **History Limit** | Clipboard | 0 (unlimited) |
+| **History Duration** | Clipboard | Never expire |
+| **Save Media Entries** | Clipboard | On |
+| **Text Only** | Clipboard | Off |
+| **Max Media Size** | Clipboard | 10 MB |
+| **Exclude Password Managers** | Clipboard | On |
+| **Respect Sensitive Flag** | Clipboard | On |
+
+## Microphone
+
+Voice input is off by default, and CleverKeys asks for the microphone only when you turn
+**Settings → Voice input → Enable voice input** on or import a voice pack. The microphone is open
+only while you dictate; audio is recognised on the device, never written to storage and never
+sent anywhere. The switch is not restored from a backup, so a restore on another phone never turns
+the microphone on. See [Voice Input](../typing/voice-input.md).
+
+## Network Privacy
+
+CleverKeys does not require network access for core functionality:
+
+| Feature | Network Required |
+|---------|------------------|
+| **Typing** | No |
+| **Predictions** | No |
+| **Autocorrect** | No |
+| **Themes** | No |
+| **Voice input** | No — the voice pack is a file you import; recognition runs on the device |
+
+All processing happens locally on your device.
+
+## Common Questions
+
+### Q: Does CleverKeys send data to servers?
+
+A: No. All processing happens locally on your device.
+
+### Q: Are my passwords safe?
+
+A: Password fields are automatically protected - no learning, no clipboard, no predictions.
+
+### Q: How do I completely clear my data?
+
+A: Go to Android Settings > Apps > CleverKeys > Storage > Clear Data. This removes all personal data while keeping the app installed.
+
+### Q: Can I use CleverKeys without any data storage?
+
+A: Yes. Leave **Learn From My Typing** off (it is off by default on a fresh install) and turn off **Clipboard History**; the keyboard then stores nothing beyond your settings and any words you add to your dictionary.
+
+### Q: How do I stop the keyboard from learning my typing?
+
+A: Turn off Privacy & Data > Learn From My Typing. Nothing new will be recorded, and
+already-learned data stops being used. You will also be offered a one-tap delete of
+everything already learned.
+
+## Related Features
+
+- [Clipboard History](../clipboard/clipboard-history.md) - Manage clipboard
+- [Backup & Restore](../troubleshooting/backup-restore.md) - Data management
+- [Next-Word Prediction](../typing/next-word-prediction.md) - Built-in continuations; adds learned phrases when learning is on
+- [Voice Input](../typing/voice-input.md) - Offline dictation; microphone only on opt-in
+- [Input Behavior Settings](./input-behavior.md) - Learning & Data manager

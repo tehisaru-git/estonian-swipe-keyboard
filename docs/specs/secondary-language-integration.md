@@ -1,0 +1,177 @@
+# Secondary Language Integration
+
+## Overview
+
+Multi-language typing system that allows users to type in two languages simultaneously using a single QWERTY layout. Combines V2 binary dictionaries with accent normalization, unigram language detection, and language pack importing.
+
+## Key Files
+
+| File | Class/Function | Purpose |
+|------|----------------|---------|
+| `src/main/kotlin/tribixbite/cleverkeys/AccentNormalizer.kt` | `AccentNormalizer` | Strips diacritical marks |
+| `src/main/kotlin/tribixbite/cleverkeys/NormalizedPrefixIndex.kt` | `NormalizedPrefixIndex` | Accent-aware prefix lookup |
+| `src/main/kotlin/tribixbite/cleverkeys/BinaryDictionaryLoader.kt` | V1/V2 loading | Dictionary loading |
+| `src/main/kotlin/tribixbite/cleverkeys/WordPredictor.kt` | `loadSecondaryDictionary()`, `secondaryIndex` | Primary + secondary dictionary management for tap typing (`OptimizedVocabulary`, the neural-era owner of this role, was deleted 2026-08-18 — ADR-011) |
+| `src/main/kotlin/tribixbite/cleverkeys/WordPredictor.kt` | `predictInternal` secondary block | Merges secondary candidates inline (dedup against primary, `secondary_prediction_weight` penalty). The standalone `SuggestionRanker.kt` this row used to name had zero production callers post-ADR-011 and was deleted 2026-09-06 (audit C-6) |
+| `src/main/kotlin/tribixbite/cleverkeys/LanguageDetector.kt` | `detectLanguageFromWordsWithConfidence()` | Word/char-pattern language detection behind `MultiLanguageManager.detectAndSwitch` (`UnigramLanguageDetector`, the unigram-profile detector this row used to name, was deleted 2026-08-28 — ARC-006, write-only) |
+| `src/main/kotlin/tribixbite/cleverkeys/langpack/LanguagePackManager.kt` | Pack import | Language pack storage |
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Swipe Decoder                            │
+│  Outputs 26-letter words: "espanol", "cafe"                 │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│        WordPredictor.predictInternal (inline merge)          │
+│  Secondary candidates skip words already in the primary      │
+│  slate and score at calculateUnifiedScore ×                  │
+│  secondary_prediction_weight (default 0.9)                   │
+└─────────────────────────────────────────────────────────────┘
+        │                                    │
+        ▼                                    ▼
+┌───────────────────┐            ┌───────────────────┐
+│ Primary Dict (EN) │            │ Secondary Dict(ES)│
+│ NormalizedPrefix  │            │ NormalizedPrefix  │
+│ Index             │            │ Index             │
+└───────────────────┘            └───────────────────┘
+        │                                    │
+        └────────────────┬───────────────────┘
+                         ▼
+                  merged slate
+```
+
+> The diagram used to end in a `UnigramLanguageDetector` box ("sliding window of 10 words,
+> adjusts scoring multiplier"). That class was **deleted 2026-08-28 (ARC-006)**: it never
+> adjusted any multiplier after `OptimizedVocabulary` was removed — it was fed on every
+> commit and read by nobody. Auto-detection runs through `LanguageDetector` +
+> `MultiLanguageManager.detectAndSwitch`.
+
+## Configuration
+
+| Setting | Key | Default | Description |
+|---------|-----|---------|-------------|
+| Enable Multi-Language | `pref_enable_multilang` | false | Master switch |
+| Primary Language | `pref_primary_language` | en | Main language |
+| Secondary Language | `pref_secondary_language` | none | Additional language |
+| Auto-Detect Language | `pref_auto_detect_language` | true | Enable detection |
+| Detection Sensitivity | `pref_language_detection_sensitivity` | 0.6 | Auto-switch threshold |
+
+## Implementation Details
+
+### V2 Binary Dictionary Format
+
+```
+Header (48 bytes):
+  Magic:        4 bytes (0x54444B43 = "CKDT")
+  Version:      4 bytes (2)
+  Language:     4 bytes (e.g., "es\0\0")
+  Word Count:   4 bytes
+  Canonical Offset:   4 bytes
+  Normalized Offset:  4 bytes
+  Accent Map Offset:  4 bytes
+  Reserved:     20 bytes
+
+Canonical Section:
+  For each word:
+    Length:     2 bytes (uint16)
+    Word:       UTF-8 bytes
+    Rank:       1 byte (0-255, 0=most common)
+
+Normalized Section:
+  Count:        4 bytes (uint32)
+  For each normalized form:
+    Length:     2 bytes (uint16)
+    Word:       UTF-8 bytes (accent-stripped)
+
+Accent Map Section:
+  For each normalized form:
+    Count:      1 byte (number of canonical forms)
+    Indices:    4 bytes each (uint32 index into canonical section)
+```
+
+### Dictionary Loading Flow
+
+```kotlin
+fun loadSecondaryDictionary(language: String): Boolean {
+    // 1. Try loading from installed language packs first
+    val packManager = LanguagePackManager.getInstance(context)
+    val dictFile = packManager.getDictionaryPath(language)
+    if (dictFile != null) {
+        return BinaryDictionaryLoader.loadIntoNormalizedIndexFromFile(dictFile, index)
+    }
+
+    // 2. Fall back to bundled assets
+    return BinaryDictionaryLoader.loadIntoNormalizedIndex(
+        context, "dictionaries/${language}_enhanced.bin", index
+    )
+}
+```
+
+### Prediction Flow with Secondary Dictionary (as built)
+
+There is no `getSuggestions`/`currentLanguageMultiplier`. `WordPredictor.predictInternal`
+(`WordPredictor.kt:~2630-2660`) appends secondary candidates after the primary ones:
+
+```kotlin
+// per hit of secIndex.getWordsWithPrefix(lowerSequence)   (WordPredictor.kt:2635)
+if (already present from primary || isWordDisabled(canonical)) continue
+val frequency = secondaryRankToFrequency(bestFrequencyRank)          // ((255 - rank) * 4000) + 1000
+val baseScore = calculateUnifiedScore(canonical, lowerSequence, frequency, context)
+val score = (baseScore * secondary_prediction_weight).toInt()         // default 0.9
+if (score > 0) candidates.add(WordCandidate(canonical, score))
+```
+
+The typo-tolerant pass (`~2990-3010`) does the same over `FuzzyPrefixMatcher` matches with
+`fromSecondary = true`. Candidates are then ranked by the shared unified score like any other.
+
+### Language Detection Algorithm (as built)
+
+- `LanguageDetector` scores per-language character-frequency tables and common-word arrays
+  (en, es, fr, pt, de, sv); no bundled unigram lists and no 5000-word profiles.
+- `WordPredictor` keeps the last `MAX_RECENT_WORDS = 20` committed words and runs
+  `tryAutoLanguageDetection` once at least 5 are present, when `auto_detect_language` is on and
+  the layout has no language binding; the switch threshold is `language_detection_sensitivity`
+  (default 0.6).
+- Detection never changes the secondary dictionary's weight: `secondary_prediction_weight`
+  is a fixed user preference (default 0.9), not a dynamic 0.85/1.0/1.1 multiplier.
+
+### Language Pack ZIP Format
+
+```
+langpack-fr.zip
+├── manifest.json      # Metadata
+├── dictionary.bin     # V2 binary dictionary
+└── unigrams.txt       # Word frequency list (optional)
+```
+
+**manifest.json**:
+```json
+{
+  "code": "fr",
+  "name": "French",
+  "version": 1,
+  "author": "CleverKeys",
+  "wordCount": 100000
+}
+```
+
+### Import Flow
+
+1. User downloads ZIP file externally
+2. Settings → Multi-Language → Import Pack
+3. File picker opens (Storage Access Framework)
+4. LanguagePackManager validates and extracts to `files/langpacks/{code}/`
+5. Language appears in Secondary Language dropdown
+
+## Performance Considerations
+
+| Aspect | Characteristic |
+|--------|----------------|
+| Memory | Secondary dictionary ~2-5MB in NormalizedPrefixIndex |
+| Lookup | O(log n) prefix search per dictionary, merged linearly |
+| Language Detection | character-frequency + common-word scoring over at most 20 recent words |
+| Pack Import | One-time extraction, ~1-2 seconds for 100k word pack |

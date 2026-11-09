@@ -1,0 +1,169 @@
+---
+title: Custom Layouts
+description: Create keyboard layouts using XML format
+category: Layouts
+difficulty: advanced
+---
+
+# Custom Layouts
+
+Create custom keyboard layouts using XML syntax.
+
+## Quick Summary
+
+| What | Description |
+|------|-------------|
+| **Purpose** | Define custom keyboard layouts |
+| **Access** | Settings > Layouts preference |
+| **Format** | XML-based layout definition |
+
+## How Custom Layouts Work
+
+CleverKeys supports custom layout definitions in XML format. This is an advanced feature requiring knowledge of the layout XML syntax.
+
+### Layout XML Syntax
+
+Custom layouts use the same XML format as the bundled layouts. A layout is defined by rows of keys, each key having:
+
+- **Primary character** (`c="a"`)
+- **Subkeys** by direction (`ne="1"` for northeast)
+- **Width** (`width="2.0"` for wider keys)
+- **Shift variants** (`shift="0.5"` for indent)
+
+### Example Layout Row
+
+```xml
+<row>
+  <key c="q" ne="1"/>
+  <key c="w" ne="2"/>
+  <key c="e" ne="3"/>
+  <key c="r" ne="4"/>
+  <key c="t" ne="5"/>
+</row>
+```
+
+## Accessing Custom Layouts
+
+1. Open Settings
+2. Find the **Layouts** preference
+3. Use the text entry dialog to specify layout XML
+
+The dialog includes:
+- Multi-line text entry with line numbers
+- Real-time validation for syntax errors
+- Option to remove custom layout
+
+## Layout Structure
+
+A complete layout consists of:
+
+| Element | Description |
+|---------|-------------|
+| **Rows** | Horizontal groups of keys |
+| **Keys** | Individual key definitions |
+| **Modkeys** | Modified key layers |
+
+### Key Properties
+
+| Property | Example | Description |
+|----------|---------|-------------|
+| `c` | `c="a"` | Primary character |
+| `ne`, `nw`, `se`, `sw`, `n`, `s`, `e`, `w` | `ne="1"` | Subkey directions |
+| `width` | `width="1.5"` | Key width multiplier |
+| `shift` | `shift="0.5"` | Left margin/indent |
+
+### Default language (`language`)
+
+A layout can name the language it is meant for on its `<keyboard>` element, for example
+`<keyboard name="Persian" script="persian" language="fa">`. That becomes the layout's default
+language binding: while the layout is active, predictions, autocorrect and swipe typing use
+that language only. The **Language** chip in Layout Manager overrides it, including
+**Follow Multi-Language settings** to ignore it. The value must be a language code such as
+`fa`, `de` or `pt_br`; the editor refuses to save anything else.
+
+### Default theme (`theme`)
+
+A layout can also name a theme: `<keyboard name="Persian" script="persian" theme="rosepine">`.
+That theme is used while the layout is active, until you pick something else with the
+**Theme** chip in Layout Manager (including **Follow global theme** to ignore it). The value is
+a theme ID as Theme Manager stores it: a built-in name such as `rosepine` or `cobalt`,
+`decorative_` plus a decorative theme (for example `decorative_neon_cyberpunk`), or
+`custom_` plus a DIY theme's ID. The editor refuses a malformed value; a theme that is not on
+this device falls back to your global theme. **Export XML** writes the layout's current theme
+choice into the file, so importing it elsewhere keeps the theme.
+
+### Key spacing and borders per layout
+
+Each layout can have its own key gaps and border while **Settings > Appearance** stays the
+default for every other layout. In **Layout Manager**, tap a layout's **Key spacing & borders**
+chip: for each of Key Horizontal Margin, Key Vertical Margin, Custom Border Config, Border
+Radius and Border Line Width, untick **Use global setting** and pick a value (same ranges and
+steps as in Appearance). While ticked, the row shows the global value it follows. The chip reads
+**This layout** when anything is set. The values apply as soon as you switch to the layout with
+the space bar, and they win over a familiar look's spacing (for example an iOS-style layout with
+your own wider gaps). Your Appearance settings never change.
+
+A layout XML can carry the same values as defaults on its root element:
+
+```xml
+<keyboard name="Roomy" script="latin" key_horizontal_gap="3" key_vertical_gap="2"
+          key_border="true" key_border_radius="12" key_border_width="1">
+```
+
+Gaps are percentages like the Appearance sliders (0–5), `key_border` is `true` or `false`, the
+radius is a percentage of the key width (0–100) and the width is in dp (0–10). The editor
+refuses an invalid value. **Use global setting** in Layout Manager overrides an XML value, and
+**Export XML** writes the layout's current choices into the file. Backups carry the values; the
+restore preview lists each layout whose spacing or border would change.
+
+### A layout's own theme and per-key styling
+
+A layout can also carry its whole look — a `<theme>` element (colours for light and dark mode,
+key gaps, corners, hints, a key-press preview) — and colours, borders and gaps for single keys or
+rows. Every element and attribute, the order in which settings win, and a complete example are in
+the [Layout XML Reference](layout-xml-reference.md). **Save theme as custom theme** in Layout
+Manager keeps a layout's theme in Theme Manager.
+
+### Keeping CTC swipe available
+
+If a custom layout should use the CTC engine, declare the correct `script` on its
+`<keyboard>` element and put every letter used by the active language on a primary key
+(`c` or `key0`). A letter that appears only in a directional/corner property does not count:
+CTC receives primary-key geometry only.
+
+When either requirement is missing, swipe typing still works through the geometric engine.
+Settings → Swipe Typing shows a fallback card naming the affected layout and, where possible,
+the corner-only or missing letters. This fallback is safe; changing the Prediction Engine
+setting is not required.
+## For Developers
+
+Custom layouts use the same XML format as `src/main/layouts/*.xml` in the source code. Review existing layouts for syntax examples.
+
+## Limitations
+
+| Feature | Status |
+|---------|--------|
+| **Visual editor** | Not available |
+| **Layout import** | Via text entry only |
+| **Sharing** | Copy/paste XML text |
+
+## Common Questions
+
+### Q: Can I create layouts with a visual editor?
+
+A: No, layouts are defined using XML text entry. Review existing layout files for examples.
+
+### Q: Where can I find layout examples?
+
+A: Check the `src/main/layouts/` directory in the source code for XML layout examples.
+
+### Q: How do I share a custom layout?
+
+A: Copy the XML text and share it. Recipients paste it into their custom layout dialog.
+
+## Related Features
+
+- [Layout XML Reference](layout-xml-reference.md) - Every attribute, own theme, per-key styling
+- [Adding Layouts](adding-layouts.md) - Built-in layout options
+- [Per-Key Actions](../customization/per-key-actions.md) - Customize subkeys
+- [Language Packs](language-packs.md) - Download language support

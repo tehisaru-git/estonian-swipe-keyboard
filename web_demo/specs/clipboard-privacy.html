@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipboard Privacy - CleverKeys Documentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'ck-purple': '#9b59b6',
+                        'ck-purple-dark': '#6b21a8',
+                        'ck-purple-light': '#c39bd3',
+                        'ck-dark': '#0f0f1a',
+                        'ck-surface': '#1a1a2e',
+                        'ck-card': '#242438',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-text {
+            background: linear-gradient(135deg, #9b59b6 0%, #c39bd3 50%, #9b59b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-ck-dark text-gray-100 min-h-screen">
+    <!-- Nav -->
+    <nav class="sticky top-0 bg-ck-dark/95 backdrop-blur border-b border-gray-800 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="../" class="flex items-center gap-3">
+                <img src="https://raw.githubusercontent.com/tribixbite/CleverKeys/main/res/mipmap-xxxhdpi/ic_launcher.png" alt="CleverKeys" class="w-8 h-8 rounded-lg">
+                <span class="font-bold">CleverKeys</span>
+            </a>
+            <div class="flex gap-4">
+                <a href="./" class="text-gray-400 hover:text-white transition-colors">All Specs</a>
+                <a href="../" class="text-gray-400 hover:text-white transition-colors">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumb -->
+    <div class="container mx-auto px-6 py-4 pt-20">
+        <div class="flex items-center gap-2 text-sm text-gray-500">
+            <a href="../" class="hover:text-ck-purple">Home</a>
+            <span>/</span>
+            <a href="./" class="hover:text-ck-purple">Specs</a>
+            <span>/</span>
+            <span class="text-gray-300">Clipboard Privacy</span>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="container mx-auto px-6 pb-8">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="px-3 py-1 text-sm rounded-full" style="background: #f39c1220; color: #f39c12">Settings</span>
+            <span class="px-3 py-1 text-sm rounded-full bg-ck-card text-gray-400">v1.2.8</span>
+        </div>
+        <h1 class="text-4xl font-bold gradient-text mb-2">Clipboard Privacy</h1>
+        <p class="text-xl text-gray-400">Password manager exclusion for clipboard history</p>
+    </header>
+
+    <!-- Content -->
+    <main class="container mx-auto px-6 pb-20">
+        <div class="bg-ck-surface rounded-2xl p-8 max-w-4xl">
+            <h1 class="text-3xl font-bold mb-6 gradient-text">Clipboard Privacy</h1>
+
+<p class="mb-4 text-gray-300">> <strong>Note:</strong> As of v1.4.0, the canonical version of this specification lives at</p>
+<p class="mb-4 text-gray-300">> <a href="../wiki/specs/clipboard/privacy-spec.md" class="text-ck-purple hover:underline"><code class="bg-ck-dark px-1 rounded">docs/wiki/specs/clipboard/privacy-spec.md</code></a> and renders at <https://cleverkeys.app/specs/clipboard/privacy-spec/>.</p>
+<p class="mb-4 text-gray-300">> This file is preserved for cross-references but may not be kept in sync.</p>
+
+<h2 class="text-2xl font-bold mt-8 mb-4 text-ck-purple">Overview</h2>
+
+<p class="mb-4 text-gray-300">CleverKeys includes privacy features for the clipboard history system, primarily automatic exclusion of clipboard entries from password managers. When enabled, CleverKeys detects when the foreground app is a password manager and skips storing clipboard content, preventing sensitive credentials from appearing in clipboard history.</p>
+
+<h2 class="text-2xl font-bold mt-8 mb-4 text-ck-purple">Key Files</h2>
+
+<table class="w-full mb-4 border-collapse"><thead class="border-b border-gray-700"><tr><th class="px-4 py-2 text-left font-semibold text-ck-purple-light">File</th><th class="px-4 py-2 text-left font-semibold text-ck-purple-light">Class/Function</th><th class="px-4 py-2 text-left font-semibold text-ck-purple-light">Purpose</th></tr></thead><tbody><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">src/main/kotlin/tribixbite/cleverkeys/Config.kt</code></td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">PASSWORD_MANAGER_PACKAGES</code></td><td class="px-4 py-2 text-gray-300">Set of excluded package names</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">src/main/kotlin/tribixbite/cleverkeys/ClipboardHistoryService.kt</code></td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">getForegroundAppPackage()</code></td><td class="px-4 py-2 text-gray-300">Detects current foreground app</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">src/main/kotlin/tribixbite/cleverkeys/ClipboardHistoryService.kt</code></td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">isPasswordManagerApp()</code></td><td class="px-4 py-2 text-gray-300">Checks if package is excluded</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">src/main/kotlin/tribixbite/cleverkeys/ClipboardHistoryService.kt</code></td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">addCurrentClip()</code></td><td class="px-4 py-2 text-gray-300">Skips storage if excluded app</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">src/main/kotlin/tribixbite/cleverkeys/SettingsActivity.kt</code></td><td class="px-4 py-2 text-gray-300">Clipboard section</td><td class="px-4 py-2 text-gray-300">UI toggle for feature</td></tr></tbody></table>
+<h2 class="text-2xl font-bold mt-8 mb-4 text-ck-purple">Architecture</h2>
+
+<pre class="bg-ck-dark p-4 rounded-lg overflow-x-auto"><code class="language-text">Clipboard Change Event (onPrimaryClipChanged)
+       |
+       v
++----------------------+
+| ClipboardHistory     | -- System notifies of clipboard change
+| Service              |
++----------------------+
+       |
+       v
++----------------------+
+| getForegroundApp     | -- Detect which app copied
+| Package()            |
++----------------------+
+       |
+       v
++----------------------+
+| isPasswordManager    | -- Check against exclusion list
+| App()                |
++----------------------+
+       |
+       v
++----------------------+
+| IS_SENSITIVE flag    | -- Android 13+ sensitive content check
+| (API 33+)           |
++----------------------+
+       |
+       v (if NOT excluded)
++------ text? --------+------- URI? ---------+
+|                      |                      |
+v                      v                      |
+addClip(text)          Dispatchers.IO         |
+                       processClipUri(uri)    |
+                            |                 |
+                   +--------+--------+        |
+                   | text/* | media  |        |
+                   v        v        |        |
+              readTextFromUri  check media    |
+                            toggles           |
+                            |                 |
+                   clipboard_media_enabled?   |
+                   clipboard_text_only?       |
+                            |                 |
+                   (if both pass)             |
+                   saveMedia() + addMediaClip |
++------------------------------------------+</code></pre>
+
+<h3 class="text-xl font-semibold mt-6 mb-3 text-ck-purple-light">Media Privacy Gating</h3>
+
+<p class="mb-4 text-gray-300">Media capture is gated by two independent settings:</p>
+<ul class="mb-4 space-y-1"><li class="ml-4">&#8226; <code class="bg-ck-dark px-1 rounded">clipboard_media_enabled</code> (default: true) — master toggle for media capture</li>
+<li class="ml-4">&#8226; <code class="bg-ck-dark px-1 rounded">clipboard_text_only</code> (default: false) — hides media from display AND blocks capture</li>
+</ul>
+<p class="mb-4 text-gray-300">Both must allow media for it to be captured. Media files are stored in app-private <code class="bg-ck-dark px-1 rounded">filesDir/clipboard_media/</code> and excluded from Android Auto Backup.</p>
+
+<h2 class="text-2xl font-bold mt-8 mb-4 text-ck-purple">Configuration</h2>
+
+<table class="w-full mb-4 border-collapse"><thead class="border-b border-gray-700"><tr><th class="px-4 py-2 text-left font-semibold text-ck-purple-light">Key</th><th class="px-4 py-2 text-left font-semibold text-ck-purple-light">Type</th><th class="px-4 py-2 text-left font-semibold text-ck-purple-light">Default</th><th class="px-4 py-2 text-left font-semibold text-ck-purple-light">Description</th></tr></thead><tbody><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">clipboard_exclude_password_managers</code></td><td class="px-4 py-2 text-gray-300">Boolean</td><td class="px-4 py-2 text-gray-300">true</td><td class="px-4 py-2 text-gray-300">Skip clipboard from password managers</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">clipboard_respect_sensitive_flag</code></td><td class="px-4 py-2 text-gray-300">Boolean</td><td class="px-4 py-2 text-gray-300">true</td><td class="px-4 py-2 text-gray-300">Honor Android 13+ IS_SENSITIVE flag</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">clipboard_media_enabled</code></td><td class="px-4 py-2 text-gray-300">Boolean</td><td class="px-4 py-2 text-gray-300">true</td><td class="px-4 py-2 text-gray-300">Enable media clipboard capture</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">clipboard_text_only</code></td><td class="px-4 py-2 text-gray-300">Boolean</td><td class="px-4 py-2 text-gray-300">false</td><td class="px-4 py-2 text-gray-300">Hide media, block media capture</td></tr></tbody></table>
+<h2 class="text-2xl font-bold mt-8 mb-4 text-ck-purple">Implementation Details</h2>
+
+<h3 class="text-xl font-semibold mt-6 mb-3 text-ck-purple-light">Supported Password Managers</h3>
+
+<p class="mb-4 text-gray-300">Package names recognized (defined in <code class="bg-ck-dark px-1 rounded">Config.kt</code>):</p>
+
+<table class="w-full mb-4 border-collapse"><thead class="border-b border-gray-700"><tr><th class="px-4 py-2 text-left font-semibold text-ck-purple-light">App</th><th class="px-4 py-2 text-left font-semibold text-ck-purple-light">Package Name</th></tr></thead><tbody><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">Bitwarden</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">com.x8bit.bitwarden</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">1Password</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">com.onepassword.android</code>, <code class="bg-ck-dark px-1 rounded">com.agilebits.onepassword</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">LastPass</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">com.lastpass.lpandroid</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">Dashlane</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">com.dashlane</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">KeePass2Android</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">keepass2android.keepass2android</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">KeePassDX</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">com.kunzisoft.keepass.free</code>, <code class="bg-ck-dark px-1 rounded">com.kunzisoft.keepass.pro</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">Enpass</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">io.enpass.app</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">NordPass</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">com.nordpass.android.app.password.manager</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">RoboForm</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">com.siber.roboform</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">Keeper</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">com.callpod.android_apps.keeper</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">Proton Pass</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">proton.android.pass</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">SafeInCloud</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">com.safeincloud</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">mSecure</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">com.msecure</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">Zoho Vault</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">com.zoho.vault</code></td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300">Sticky Password</td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">com.stickypassword.android</code></td></tr></tbody></table>
+<h3 class="text-xl font-semibold mt-6 mb-3 text-ck-purple-light">Foreground App Detection</h3>
+
+<p class="mb-4 text-gray-300">Primary method uses <code class="bg-ck-dark px-1 rounded">UsageStatsManager</code> (Android 5.1+):</p>
+
+<pre class="bg-ck-dark p-4 rounded-lg overflow-x-auto"><code class="language-kotlin">private fun getForegroundAppPackage(): String? {
+    val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE)
+        as UsageStatsManager
+    val endTime = System.currentTimeMillis()
+    val startTime = endTime - 1000 * 60  // Last minute
+
+    val usageStats = usageStatsManager.queryUsageStats(
+        UsageStatsManager.INTERVAL_DAILY, startTime, endTime
+    )
+    return usageStats.maxByOrNull { it.lastTimeUsed }?.packageName
+}</code></pre>
+
+<p class="mb-4 text-gray-300">Fallback uses <code class="bg-ck-dark px-1 rounded">ActivityManager</code> (deprecated but still works):</p>
+
+<pre class="bg-ck-dark p-4 rounded-lg overflow-x-auto"><code class="language-kotlin">private fun getForegroundAppPackageFallback(): String? {
+    val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE)
+        as ActivityManager
+    val runningTasks = activityManager.getRunningTasks(1)
+    return runningTasks.firstOrNull()?.topActivity?.packageName
+}</code></pre>
+
+<h3 class="text-xl font-semibold mt-6 mb-3 text-ck-purple-light">Exclusion Check</h3>
+
+<pre class="bg-ck-dark p-4 rounded-lg overflow-x-auto"><code class="language-kotlin">private fun isPasswordManagerApp(packageName: String?): Boolean {
+    if (packageName == null) return false
+    return PASSWORD_MANAGER_PACKAGES.contains(packageName)
+}
+
+private fun addCurrentClip() {
+    if (config.clipboardExcludePasswordManagers) {
+        val foregroundApp = getForegroundAppPackage()
+        if (isPasswordManagerApp(foregroundApp)) {
+            return  // Skip storage
+        }
+    }
+    // Proceed with normal storage
+    saveToHistory(clipboardManager.primaryClip)
+}</code></pre>
+
+<h3 class="text-xl font-semibold mt-6 mb-3 text-ck-purple-light">Settings UI</h3>
+
+<pre class="bg-ck-dark p-4 rounded-lg overflow-x-auto"><code class="language-kotlin">SettingsSwitch(
+    title = "Exclude Password Managers",
+    description = "Don't store clipboard from Bitwarden, 1Password, LastPass, KeePass, etc.",
+    checked = clipboardExcludePasswordManagers,
+    onCheckedChange = {
+        clipboardExcludePasswordManagers = it
+        saveSetting("clipboard_exclude_password_managers", it)
+    }
+)</code></pre>
+
+<h3 class="text-xl font-semibold mt-6 mb-3 text-ck-purple-light">Security Considerations</h3>
+
+<ul class="mb-4 space-y-1"><li class="ml-4">&#8226; <strong>Detection Timing</strong>: Foreground app checked at moment clipboard changes</li>
+<li class="ml-4">&#8226; <strong>False Positives</strong>: Very low - package names are specific</li>
+<li class="ml-4">&#8226; <strong>False Negatives</strong>: Apps not in list won't be excluded</li>
+<li class="ml-4">&#8226; <strong>Privacy</strong>: Detection is purely local, no data leaves device</li>
+</ul>
+<h3 class="text-xl font-semibold mt-6 mb-3 text-ck-purple-light">Limitations</h3>
+
+<ul class="mb-4 space-y-1"><li class="ml-4">&#8226; Requires UsageStats permission on some devices (optional, falls back to ActivityManager)</li>
+<li class="ml-4">&#8226; New password managers must be added to the package list manually</li>
+<li class="ml-4">&#8226; Does not analyze clipboard content - only checks source app</li>
+</ul>
+<h2 class="text-2xl font-bold mt-8 mb-4 text-ck-purple">Private Copy (#156)</h2>
+
+<p class="mb-4 text-gray-300">> <strong>Canonical spec:</strong> <a href="../wiki/specs/clipboard/private-copy-spec.md" class="text-ck-purple hover:underline"><code class="bg-ck-dark px-1 rounded">docs/wiki/specs/clipboard/private-copy-spec.md</code></a></p>
+<p class="mb-4 text-gray-300">> (renders at <https://cleverkeys.app/specs/clipboard/private-copy-spec/>).</p>
+<p class="mb-4 text-gray-300">> <strong>User guide:</strong> <a href="../wiki/clipboard/private-copy.md" class="text-ck-purple hover:underline"><code class="bg-ck-dark px-1 rounded">docs/wiki/clipboard/private-copy.md</code></a>.</p>
+<p class="mb-4 text-gray-300">> <strong>Design doc:</strong> <a href="audit/remediation-plans/156-private-copy-paste.md" class="text-ck-purple hover:underline"><code class="bg-ck-dark px-1 rounded">docs/history/audits/remediation-plans/156-private-copy-paste.md</code></a>.</p>
+<p class="mb-4 text-gray-300">> This section is an engineering-notes summary; see the canonical spec for full detail.</p>
+
+<p class="mb-4 text-gray-300">Private copy adds a copy path that stores selected text directly into <code class="bg-ck-dark px-1 rounded">ClipboardDatabase</code></p>
+<p class="mb-4 text-gray-300">with an <code class="bg-ck-dark px-1 rounded">is_private</code> marker and <strong>never</strong> calls <code class="bg-ck-dark px-1 rounded">ClipboardManager</code>. It complements the</p>
+<p class="mb-4 text-gray-300">password-manager exclusion above: exclusion prevents <em>capture</em> of OS-clipboard content from</p>
+<p class="mb-4 text-gray-300">sensitive apps, while private copy provides a <em>deliberate</em> capture route that bypasses the OS</p>
+<p class="mb-4 text-gray-300">clipboard entirely.</p>
+
+<h3 class="text-xl font-semibold mt-6 mb-3 text-ck-purple-light">Key Files</h3>
+
+<table class="w-full mb-4 border-collapse"><thead class="border-b border-gray-700"><tr><th class="px-4 py-2 text-left font-semibold text-ck-purple-light">File</th><th class="px-4 py-2 text-left font-semibold text-ck-purple-light">Class/Function</th><th class="px-4 py-2 text-left font-semibold text-ck-purple-light">Purpose</th></tr></thead><tbody><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">PrivateCopyProcessTextActivity.kt</code></td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">onCreate</code> → <code class="bg-ck-dark px-1 rounded">handle()</code></td><td class="px-4 py-2 text-gray-300">Exported (but <code class="bg-ck-dark px-1 rounded">android:enabled="false"</code>) <code class="bg-ck-dark px-1 rounded">ACTION_PROCESS_TEXT</code> selection-toolbar receiver; entry point B</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">clipboard/PrivateCopyIntentParser.kt</code></td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">parse()</code></td><td class="px-4 py-2 text-gray-300">Pure-JVM validation; the only intent-reading code (no <code class="bg-ck-dark px-1 rounded">Intent</code> param, so no <code class="bg-ck-dark px-1 rounded">clipData</code>/URI reachable)</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">clipboard/PrivateCopyRateLimiter.kt</code></td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">tryAcquire()</code></td><td class="px-4 py-2 text-gray-300">Sliding-window 10/caller/min + 30/min global</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">ClipboardHistoryService.kt</code></td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">addPrivateClip()</code>, <code class="bg-ck-dark px-1 rounded">privateCopy()</code>, <code class="bg-ck-dark px-1 rounded">storeClip()</code></td><td class="px-4 py-2 text-gray-300">Shared core with <code class="bg-ck-dark px-1 rounded">addClip</code>; private path passes <code class="bg-ck-dark px-1 rounded">rewriteOsClipboard = false</code> (never <code class="bg-ck-dark px-1 rounded">systemClipboardRewrite</code>)</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">ClipboardDatabase.kt</code></td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">PrivateClipMergeRule</code>, <code class="bg-ck-dark px-1 rounded">onUpgrade</code> (V4→V5), <code class="bg-ck-dark px-1 rounded">exportToJSON(includePrivate)</code></td><td class="px-4 py-2 text-gray-300">V5 schema, sticky-privacy dedup, export exclusion</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">ClipboardHistoryView.kt</code></td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">copyEntryToSystemClipboard()</code>, <code class="bg-ck-dark px-1 rounded">privateBadge</code></td><td class="px-4 py-2 text-gray-300">Confirm gate + lock badge</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">KeyValue.kt</code></td><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">Editing.COPY_PRIVATE</code>, <code class="bg-ck-dark px-1 rounded">"copy_private"</code> (<code class="bg-ck-dark px-1 rounded">🔒⎘</code>)</td><td class="px-4 py-2 text-gray-300">In-IME editing key; entry point A</td></tr><tr class="border-b border-gray-800"><td class="px-4 py-2 text-gray-300"><code class="bg-ck-dark px-1 rounded">ui/settings/sections/ClipboardSection.kt</code></td><td class="px-4 py-2 text-gray-300">toggle + <code class="bg-ck-dark px-1 rounded">setPrivateCopyToolbarComponentEnabled()</code></td><td class="px-4 py-2 text-gray-300">Settings toggle flips the manifest-disabled component</td></tr></tbody></table>
+<h3 class="text-xl font-semibold mt-6 mb-3 text-ck-purple-light">Schema V5</h3>
+
+<p class="mb-4 text-gray-300"><code class="bg-ck-dark px-1 rounded">DATABASE_VERSION = 5</code>. O(1) <code class="bg-ck-dark px-1 rounded">ALTER TABLE ADD COLUMN</code> on all three tables</p>
+<p class="mb-4 text-gray-300">(<code class="bg-ck-dark px-1 rounded">clipboard_entries</code>, <code class="bg-ck-dark px-1 rounded">pinned_entries</code>, <code class="bg-ck-dark px-1 rounded">todo_entries</code> — pin/todo COPY semantics carry the marker):</p>
+
+<ul class="mb-4 space-y-1"><li class="ml-4">&#8226; <code class="bg-ck-dark px-1 rounded">is_private INTEGER NOT NULL DEFAULT 0</code></li>
+<li class="ml-4">&#8226; <code class="bg-ck-dark px-1 rounded">source_package TEXT</code> (nullable) — provenance (<code class="bg-ck-dark px-1 rounded">EditorInfo.packageName</code>, <code class="bg-ck-dark px-1 rounded">getCallingPackage()</code>, or <code class="bg-ck-dark px-1 rounded">"direct-launch"</code>)</li>
+</ul>
+<p class="mb-4 text-gray-300">Dedup is sticky: <code class="bg-ck-dark px-1 rounded">is_private</code> ORs across duplicate copies; <code class="bg-ck-dark px-1 rounded">source_package</code> most-recent-non-null wins.</p>
+
+<h3 class="text-xl font-semibold mt-6 mb-3 text-ck-purple-light">Export policy (option B)</h3>
+
+<p class="mb-4 text-gray-300"><code class="bg-ck-dark px-1 rounded">exportToJSON(includePrivate)</code> excludes private entries from <strong>plaintext</strong> exports (counted in the</p>
+<p class="mb-4 text-gray-300">summary) and includes them in <strong>encrypted (CKENC)</strong> exports with the marker round-tripping through</p>
+<p class="mb-4 text-gray-300">restore.</p>
+
+<h3 class="text-xl font-semibold mt-6 mb-3 text-ck-purple-light">Threat model</h3>
+
+<p class="mb-4 text-gray-300">The PROCESS_TEXT activity is exported but ships disabled (<code class="bg-ck-dark px-1 rounded">android:enabled="false"</code>); the settings</p>
+<p class="mb-4 text-gray-300">toggle flips the component. It is strictly inbound (text in → local row + toast → <code class="bg-ck-dark px-1 rounded">finish()</code> with</p>
+<p class="mb-4 text-gray-300"><code class="bg-ck-dark px-1 rounded">RESULT_CANCELED</code>), never returns a result, never reads a URI, is rate-limited, and records</p>
+<p class="mb-4 text-gray-300">kernel-attested provenance. See the design doc §6 for the full exported-surface analysis.</p>
+
+<h3 class="text-xl font-semibold mt-6 mb-3 text-ck-purple-light">Tests</h3>
+
+<p class="mb-4 text-gray-300">Pure JVM: <code class="bg-ck-dark px-1 rounded">PrivateCopyIntentParserTest</code> (14), <code class="bg-ck-dark px-1 rounded">PrivateCopyRateLimiterTest</code> (7),</p>
+<p class="mb-4 text-gray-300"><code class="bg-ck-dark px-1 rounded">PrivateClipMergeRuleTest</code> (9). MockK: <code class="bg-ck-dark px-1 rounded">PrivateCopyServiceTest</code> (7, pins</p>
+<p class="mb-4 text-gray-300"><code class="bg-ck-dark px-1 rounded">verify(exactly = 0) { cm.setPrimaryClip(any()) }</code>). Instrumented:</p>
+<p class="mb-4 text-gray-300"><code class="bg-ck-dark px-1 rounded">PrivateCopyProcessTextActivityTest</code> (5), <code class="bg-ck-dark px-1 rounded">ClipboardDatabaseV5MigrationTest</code> (8),</p>
+<p class="mb-4 text-gray-300"><code class="bg-ck-dark px-1 rounded">PrivateCopyEditingKeyTest</code> (2), <code class="bg-ck-dark px-1 rounded">ClipboardPanelPrivateBadgeTest</code> (4).</p>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="container mx-auto px-6 py-8 text-center text-gray-500 text-sm border-t border-gray-800">
+        <p>CleverKeys Documentation - Generated from specs</p>
+    </footer>
+</body>
+</html>

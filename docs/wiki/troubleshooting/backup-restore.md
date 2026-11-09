@@ -1,0 +1,429 @@
+---
+title: Backup & Restore
+description: Export and import your keyboard configuration
+category: Troubleshooting
+difficulty: beginner
+---
+
+# Backup & Restore
+
+Export and import your keyboard settings, dictionary, and clipboard history.
+
+## Quick Summary
+
+| What | How |
+|------|-----|
+| **Settings** | Settings > 💾 Backup & Restore > Export/Import Config |
+| **Dictionary** | Settings > 💾 Backup & Restore > Export/Import Dict |
+| **Clipboard** | Settings > 💾 Backup & Restore > Export/Import Clip / Export/Import ZIP |
+| **Format** | JSON (text-only) or ZIP (full backup with media) |
+
+> [!NOTE]
+> As of v1.4 the Backup & Restore surface lives inline in the main Settings
+> page under the "💾 Backup & Restore" collapsible section. The previously
+> separate Activity is now headless-only — it handles the Termux
+> Intent-action automation surface (see "Programmatic Import/Export"
+> below) and redirects to the inline section if opened directly.
+
+## Full Backup (one-click ZIP)
+
+The **Full Backup** workflow bundles every backup section — config, dictionaries, and clipboard (including media files) — into a single dated ZIP. Useful for device migration and as a fast pre-upgrade safety net.
+
+- **Filename convention**: `cleverkeys_full_backup_yyyy-MM-dd.zip`
+- **Where to find**: Settings > **💾 Backup & Restore** > **Export Full Backup** / **Import Full Backup** buttons.
+
+### ZIP Layout
+
+```
+cleverkeys_full_backup_2026-05-22.zip
+├── manifest.json          ← top-level metadata (read first by importer)
+├── config.json            ← same payload as "Export Config"
+├── dictionaries.json      ← same payload as "Export Dict"
+├── clipboard_history.json ← all text entries + media references
+└── clipboard_media/...    ← raw media blobs referenced from clipboard JSON
+```
+
+### Manifest format
+
+`manifest.json` carries forward-compat metadata so importers can sanity-check the file before reading anything else:
+
+| Field | Description |
+|-------|-------------|
+| `format` | Always `"cleverkeys_full_backup"` — importers refuse anything else |
+| `format_version` | Schema version (currently `1`); importer refuses any value `>` this |
+| `app_version` / `app_version_code` | App version that produced the backup |
+| `export_date` | ISO timestamp of export |
+| `entries[]` | Inventory of section files present (manifest, config, dictionaries, clipboard) |
+
+### Forward-compat behavior
+
+- Older ZIPs (with a lower `format_version`) **are accepted** — missing sections are tolerated.
+- Newer ZIPs (with a higher `format_version`) **are refused** with a clear error message — update the app first.
+- ZIPs whose `format` is not `cleverkeys_full_backup` are rejected up-front so the importer doesn't mishandle an unrelated ZIP file.
+
+### Round-trip notes
+
+- Importing the same Full Backup ZIP twice is a no-op: clipboard entries are deduplicated by content hash, dictionary words merge non-destructively, and config import goes through the same preview pipeline as single-file imports.
+- Media files are streamed directly to disk on both export and import — never buffered in memory, so very large clipboards stay OOM-safe.
+
+## Import Preview (v1.4+)
+
+When importing settings or dictionary backups, the app shows a preview
+dialog before applying any changes:
+
+  - **Per-row deselect** — uncheck individual settings or dictionary
+    entries you don't want to apply. The remaining rows are written;
+    deselected rows are left untouched.
+  - **Default-aware diff** — rows whose imported value equals the
+    compile-time default (i.e. what you'd experience on a fresh
+    install) are suppressed from the preview. You only see what's
+    actually about to change.
+  - **Layouts deep-diff** — for the `layouts` row, the preview shows
+    layout names being added/removed and key-count changes per
+    shared-name layout (e.g. `+ azerty  − dvorak  (1 unchanged)` or
+    `~ qwerty: 50→52 keys`).
+  - **Per-layout themes** — a layout's theme binding is saved inside the
+    `layouts` row. When an import changes it, the row lists each layout
+    whose theme changes (e.g. `latn_qwerty_us: theme Follow global theme
+    → cobalt`). A layout bound to a DIY theme that is missing on this
+    device uses the global theme until you pick another in Layout Manager.
+  - **DIY themes** (since 2.0.0) — custom themes are in the settings
+    export and the full backup. The preview lists one row per theme
+    (`+ Ocean`, `~ Dusk` for a changed one, `− Old` under Replace) above
+    a Skip / Merge / Replace choice: **Merge** (the default) lets the
+    file win for a theme with the same id and keeps your other themes,
+    **Replace** installs exactly the file's themes. The themes are
+    written before the settings, so a restored selection of a DIY theme
+    comes back with its theme instead of falling back to CleverKeys Dark.
+    If Replace removes the theme you have selected and the backup selects
+    no other, the keyboard switches to CleverKeys Dark. Backups made
+    before 2.0.0 have no themes and leave yours untouched. (Until
+    2026-10-25 DIY themes were in no backup at all — not by design: they
+    live in their own store, outside the settings the export reads, and
+    nothing carried it. A reinstall plus a restore lost them.)
+  - **Short-swipe diff** — short-swipe customizations show a per-mapping
+    diff above the Skip/Merge/Replace radio so you can see exactly
+    which `key+direction` mappings will change. In **Merge** mode the
+    file wins on conflicts: an imported mapping replaces your local
+    mapping for the same key and direction (shown as a *changed* row in
+    the diff), while local mappings the file doesn't touch are kept.
+    **Replace** wipes all existing mappings and installs the file's set.
+  - **Invalid/skipped section** — keys that can't be imported
+    (deprecated, internal, dictionary words routed elsewhere,
+    type-mismatched) are listed with a clear reason.
+
+## Available Exports
+
+### Configuration Export
+
+Exports all keyboard settings to a JSON file:
+
+| Included | Description |
+|----------|-------------|
+| **All Settings** | Appearance, behavior, swipe engine settings |
+| **Theme Selection** | Current theme choice |
+| **Custom Subkeys** | Per-key customizations |
+
+**How to export:**
+1. Open **Settings**
+2. Scroll to / expand the **💾 Backup & Restore** section
+3. Tap **Export Config**
+4. Choose save location
+
+### Dictionary Export
+
+Exports your personal dictionary:
+
+| Included | Description |
+|----------|-------------|
+| **User Words** | Words you've added |
+| **Learned Words** | Words the keyboard learned |
+
+### Clipboard Export
+
+Exports clipboard history in two formats:
+
+#### JSON Export (text-only, lightweight)
+
+| Included | Description |
+|----------|-------------|
+| **History** | Recent text clipboard items |
+| **Pinned** | Pinned text items |
+| **Todos** | Todo text items |
+| **Media metadata** | MIME types noted but media files not included |
+
+#### ZIP Export (full backup with media)
+
+| Included | Description |
+|----------|-------------|
+| **All text entries** | History, pinned, todos |
+| **Media files** | Images, videos, PDFs, other files |
+| **Thumbnails** | Regenerated on import (not in export) |
+
+> [!TIP]
+> Use JSON export for quick, lightweight backups of text entries. Use ZIP export when you want to preserve images and other media.
+
+## Importing
+
+### Import Config
+
+1. Open **Settings**, scroll to **💾 Backup & Restore**
+2. Tap **Import Config**
+3. Browse to your backup JSON file
+4. **Import preview** opens — review the changes, deselect any rows
+   you don't want, choose a Short-swipe import mode (Skip / Merge /
+   Replace — Merge keeps your other mappings but the file wins where
+   both define the same key+direction), tap **Apply (N)** to commit.
+   Settings apply immediately.
+
+### Import Dictionary
+
+1. Tap **Import Dict**
+2. Select dictionary JSON file
+3. **Dictionary import preview** opens with per-language buckets — you
+   can deselect individual words. Existing words are preserved (merge);
+   imported words that already exist are silently skipped.
+
+### Import Clipboard
+
+1. Tap **Import Clip** (JSON, text-only) or **Import ZIP** (full backup
+   with media)
+2. Select the backup file
+3. Items are appended to history (non-destructive — duplicates skipped)
+4. For ZIP imports: media files are extracted and thumbnails regenerated
+   lazily on first view
+
+Import supports v2, v3, and v4 export formats — older backups work on newer versions.
+
+## Transfer to New Device
+
+1. **Export** config, dictionary, and clipboard on old device
+2. **Transfer** the JSON files (USB, email, cloud storage)
+3. **Import** each file on new device
+
+## Data Export for ML
+
+CleverKeys also supports exporting swipe training data:
+
+| Format | Description |
+|--------|-------------|
+| **JSON** | Structured swipe data |
+| **NDJSON** | Newline-delimited JSON for ML pipelines |
+
+Access via **Settings > Privacy & Data section > Export JSON/NDJSON**.
+
+## Backup Encryption
+
+CleverKeys backups can be **encrypted** so that a leaked or intercepted backup file
+cannot be read, and a forged backup cannot be injected via automation.
+
+### One-time setup: set a Backup Password
+
+Go to **Settings → 💾 Backup & Restore → Backup Password** and tap **Set Password**
+(enter + confirm, minimum 8 characters; 12+ recommended). Once set:
+
+- **All exports are encrypted** into a `CKENC1` container (AES-256-GCM, key derived
+  from your password via PBKDF2-HMAC-SHA256 @ 600,000 iterations).
+- Encrypted files get a `.ckenc` suffix appended to their normal name — the Export
+  buttons pre-fill the file picker with `cleverkeys-config.json.ckenc`,
+  `cleverkeys-dictionary.json.ckenc`, `cleverkeys-clipboard-full.zip.ckenc`,
+  `cleverkeys_full_backup_<date>.zip.ckenc`, and so on. You can rename the file in the
+  picker; nothing depends on the name. Detection never trusts the extension — the file's
+  magic bytes decide. (Automation exports write to whatever path *you* pass on the
+  `am start` command line, so the suffix is yours to add there.)
+- **Restoring on another device** works by entering the *same* password there.
+- **The settings and dictionary import previews tell you what you are about to apply
+  *from*:** an encrypted file shows `🔒 Encrypted backup — exported <date/time>`, read
+  out of the container's authenticated header, so you can spot a file that is much
+  older than you expected before tapping Apply. A plaintext file shows *"Unencrypted
+  backup — consider re-exporting encrypted."* instead.
+
+**A Backup Password is REQUIRED for automation.** The `am start` export/import commands
+below fail closed with *"Set a backup password in Settings → Backup & Restore first"*
+until you set one. This is what closes the exfiltration/injection vector on the exported
+`BackupRestoreActivity` — a zero-permission app that fires the intents gets only
+ciphertext (or nothing), and cannot forge an importable payload.
+
+### The `am start` commands are UNCHANGED
+
+Setting a password does **not** change any automation command — no secret ever goes on
+the command line. The app holds the password in its private storage and uses it
+automatically. Your existing scripts keep working after the one-time setup.
+
+### New failure messages
+
+| Message | Meaning |
+|--------|---------|
+| `Set a backup password in Settings → Backup & Restore first` | Headless export/import with no password set — nothing was written or applied. |
+| `Wrong backup password, or the file is corrupted/tampered.` | The stored/entered password did not decrypt the file, OR the file was modified. AES-GCM cannot tell these apart. No partial import occurs. |
+| `Import failed: plaintext backups are not accepted via automation — use the app's Import button` | A legacy (unencrypted) backup was passed to a headless `IMPORT_*`. Import it via the in-app **Import** button instead, then re-export encrypted. |
+
+### Interactive plaintext opt-out
+
+The in-app export buttons let you deliberately **Export unencrypted…** (a confirm
+dialog under the Backup & Restore section arms the next export as plaintext). This is
+for users who post-process the JSON in on-device scripts. It only affects the manual
+SAF flow — the automation (headless) path is *always* encrypted and never has an
+off switch.
+
+### Foreign-restore escape hatch (`--es passphrase`, default OFF)
+
+To restore a backup made on **another device** (different password) via automation,
+enable **Settings → Backup & Restore → "Allow password via automation intent"** and pass
+the password as an extra on `IMPORT_*` **only**:
+
+```bash
+# Only works when the toggle is ON. NEVER accepted for EXPORT_*.
+am start -a tribixbite.cleverkeys.action.IMPORT_SETTINGS \
+  -n tribixbite.cleverkeys/.BackupRestoreActivity \
+  --es json_base64 "$(base64 -w0 < backup.ckenc)" \
+  --es passphrase 'the-other-devices-password'
+```
+
+> ⚠️ **Shell-history warning.** A password on the command line leaks into your shell
+> history, `ps` snapshots, and any logging of the `am` invocation. Protect it:
+> - Prefix the command with a **leading space** (works when `HISTCONTROL=ignorespace`),
+> - and/or add `am` to `HISTIGNORE`: `export HISTIGNORE='*passphrase*'`.
+>
+> Exports **never** accept `--es passphrase` — supplying your own password to an export
+> would reopen the exfiltration vector, so it is refused by design.
+
+### Decrypting a `.ckenc` file off-app
+
+Use the reference decryptor `scripts/ckenc-decrypt.py` (needs `pip install cryptography`):
+
+```bash
+python3 scripts/ckenc-decrypt.py cleverkeys_settings.json.ckenc -o settings.json
+# prompts for the backup password; -p PASS to pass it non-interactively (history caveat!)
+```
+
+It parses the `CKENC1` header, runs PBKDF2-HMAC-SHA256 with the header's salt/iterations,
+and AES-256-GCM-decrypts using the 51-byte header as AAD — matching the on-disk format
+exactly.
+
+## Programmatic Import/Export (Termux / Automation)
+
+All backup operations can be triggered via Android intents for scripting and automation.
+**Automation requires a Backup Password** (see [Backup Encryption](#backup-encryption)).
+
+### Intent Actions
+
+| Action | Description |
+|--------|-------------|
+| `tribixbite.cleverkeys.action.EXPORT_SETTINGS` | Export settings JSON |
+| `tribixbite.cleverkeys.action.IMPORT_SETTINGS` | Import settings JSON |
+| `tribixbite.cleverkeys.action.EXPORT_DICTIONARIES` | Export dictionary JSON |
+| `tribixbite.cleverkeys.action.IMPORT_DICTIONARIES` | Import dictionary JSON |
+| `tribixbite.cleverkeys.action.EXPORT_CLIPBOARD` | Export clipboard JSON |
+| `tribixbite.cleverkeys.action.IMPORT_CLIPBOARD` | Import clipboard JSON |
+
+### Basic Examples
+
+```bash
+# Export settings to Downloads/CleverKeys/
+am start -a tribixbite.cleverkeys.action.EXPORT_SETTINGS \
+  -n tribixbite.cleverkeys/.BackupRestoreActivity
+
+# Import dictionary via base64 (bypasses scoped storage)
+am start -a tribixbite.cleverkeys.action.IMPORT_DICTIONARIES \
+  -n tribixbite.cleverkeys/.BackupRestoreActivity \
+  --es json_base64 "$(base64 -w0 < dictionaries.json)"
+```
+
+### The `json_base64` Extra
+
+On Android 10+, files modified or created by external apps (cp, vim, Termux) become
+inaccessible to CleverKeys due to scoped storage restrictions. The `json_base64` intent
+extra bypasses this by passing file content inline as base64:
+
+```bash
+am start -a tribixbite.cleverkeys.action.IMPORT_SETTINGS \
+  -n tribixbite.cleverkeys/.BackupRestoreActivity \
+  --es json_base64 "$(base64 -w0 < backup.json)"
+```
+
+**Size limits**:
+- **Direct `am` (Termux)**: ~96KB raw JSON (128KB base64 MAX_ARG_STRLEN)
+- **Via `adb shell`**: ~48KB raw JSON (64KB adb protocol buffer)
+- **UI file picker**: No size limit
+
+### Importing Large Files (Chunked)
+
+Clipboard backups can exceed the `am start` argument limit. This script splits a JSON
+backup into chunks and imports each one. Requires `jq` and `python3`.
+
+```bash
+# Chunked clipboard import — handles files of any size
+# Usage: python3 ck_import.py clip.json
+python3 -c "
+import json,base64,subprocess,sys,time
+F=sys.argv[1]; MAX=125000  # base64 bytes; under 128KB MAX_ARG_STRLEN
+d=json.load(open(F)); e=d['active_entries']
+m={k:v for k,v in d.items() if k not in('active_entries','pinned_entries','todo_entries','total_active','total_pinned','total_todo')}
+p=d.get('pinned_entries',[]); t=d.get('todo_entries',[])
+chunks=[]; cur=[]; first=True
+for x in e:
+    tr=cur+[x]; td=dict(m,active_entries=tr)
+    if first: td['pinned_entries']=p; td['todo_entries']=t
+    bl=len(base64.b64encode(json.dumps(td,separators=(',',':')).encode()))
+    if bl>MAX and cur:
+        chunks.append((cur,first)); first=False; cur=[x]
+    elif bl>MAX and not cur:
+        chunks.append(([x],first)); first=False; cur=[]
+    else: cur=tr
+if cur: chunks.append((cur,first))
+A='tribixbite.cleverkeys.action.IMPORT_CLIPBOARD'
+C='tribixbite.cleverkeys/.BackupRestoreActivity'
+print(f'{sum(len(c) for c,_ in chunks)} entries -> {len(chunks)} chunks')
+for i,(ce,hp) in enumerate(chunks):
+    cd=dict(m,active_entries=ce)
+    if hp: cd['pinned_entries']=p; cd['todo_entries']=t
+    b64=base64.b64encode(json.dumps(cd,separators=(',',':')).encode()).decode()
+    r=subprocess.run(['am','start','-W','-a',A,'-n',C,'--es','json_base64',b64],capture_output=True,text=True)
+    print(f'  [{i+1}/{len(chunks)}] {len(ce)} entries: {\"ok\" if r.returncode==0 else \"FAIL\"}')
+    time.sleep(1)
+" "$1"
+```
+
+> **Note**: Entries with content >96KB (rare — e.g., pasted logs) exceed MAX_ARG_STRLEN
+> even as a single-entry chunk. For those, use the UI Import button.
+>
+> Entries are deduplicated by content hash — re-importing is safe (duplicates are skipped).
+
+## Troubleshooting
+
+### Import Fails
+
+| Issue | Solution |
+|-------|----------|
+| **"Cannot read file"** | Scoped storage issue — use UI Import button or `json_base64` extra |
+| **File corrupt** | Re-export from source device |
+| **Wrong format** | Ensure file is CleverKeys JSON export |
+| **"not a JSON object"** | File is empty or unreadable — likely scoped storage; see above |
+| **"Set a backup password … first"** | Automation requires a password — set one in Settings → Backup & Restore |
+| **"Wrong backup password, or the file is corrupted/tampered."** | Password mismatch or the file was modified. Re-enter the correct password, or re-export from the source device. |
+| **"plaintext backups are not accepted via automation"** | A legacy unencrypted backup hit a headless import — use the in-app Import button, then re-export encrypted |
+
+### Settings Not Applied
+
+1. Close and reopen the keyboard
+2. If needed, disable and re-enable CleverKeys in system settings
+
+### Clipboard History Disappearing
+
+Entries expire based on the **History Duration** setting in the Clipboard section of Settings:
+- Default: **Never expire** (duration = -1)
+- Can be set to 1 hour, 1 day, 7 days, or custom
+- Pinned items and TODO items never expire regardless of this setting
+- **Note**: Changing this setting only affects new entries. To refresh expiry on
+  existing entries, re-import your clipboard backup (import assigns fresh timestamps)
+
+## File Locations
+
+Exported files are saved to the location you choose via Android's file picker (typically Downloads folder).
+
+## Related Topics
+
+- [Privacy](../settings/privacy.md) - Data collection settings
+- [Per-Key Customization](../customization/per-key-actions.md) - Subkey settings
+- [Custom Layouts](../layouts/custom-layouts.md) - Build your own keyboard layout

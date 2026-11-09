@@ -1,0 +1,4 @@
+# Trivy suppressions — every entry needs a rationale and an unblocking condition.
+#
+# (empty — the astro 5.x CVE suppressions were removed by the ARC-071 astro 6
+# migration, 2026-09-01.)

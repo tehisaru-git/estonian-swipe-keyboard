@@ -1,0 +1,292 @@
+# Settings & Preferences Skill
+
+Use this skill when adding, modifying, or removing settings/preferences in the CleverKeys app.
+
+## Architecture
+
+**Hybrid**: AndroidX Preferences (legacy) + Jetpack Compose (current). New settings use Compose.
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `src/main/kotlin/tribixbite/cleverkeys/Config.kt` | All defaults, preference reading, setter methods |
+| `src/main/kotlin/tribixbite/cleverkeys/activities/SettingsActivity.kt` | Compose settings shell — state, SAF launchers, `setContent { SettingsScreen() }` (the screen body lives in `ui/settings/` + `ui/settings/sections/`) |
+| `src/main/kotlin/tribixbite/cleverkeys/ConfigurationManager.kt` | Manages Config instance, notifies listeners |
+
+### Config.kt Structure (3 sections to modify)
+
+```
+object Defaults {                    // Line ~18: const val declarations
+    const val NEW_FEATURE = false    // 1. Add default here
+}
+
+class Config {                       // Line ~337
+    @JvmField var new_feature = Defaults.NEW_FEATURE  // 2. Add field here (~line 398+)
+
+    fun refresh() {                  // Line ~542
+        new_feature = _prefs.getBoolean("new_feature", Defaults.NEW_FEATURE)  // 3. Add read here (~647+)
+    }
+
+    // Optional: setter method (~line 798+)
+    fun set_new_feature(v: Boolean) {
+        new_feature = v
+        _prefs.edit().putBoolean("new_feature", v).commit()
+    }
+
+    companion object {               // Line ~961
+        fun globalConfig(): Config   // Access from anywhere
+        fun globalPrefs(): SharedPreferences
+    }
+}
+```
+
+### Current settings integration
+
+`SettingsActivity` owns state and launchers. `ui/settings/SettingsPersistence.kt`
+initializes preference-backed state, handles preference changes, and persists updates. `SettingsScreen.kt` composes extension sections under `ui/settings/sections/`.
+Add a control to the matching section and follow an adjacent setting through all these
+files rather than relying on historical line numbers.
+
+For a gesture-critical field, update immutable `prefs/ConfigSnapshot.kt` and snapshot
+fixtures as well as `Config.Defaults`, the live Config field, and `refresh()`. Capture
+preferences at pointer-down so a setting change does not alter an active gesture.
+
+## Available Compose Components
+
+| Component | Use For |
+|-----------|---------|
+| `SettingsSwitch(title, description, checked, onCheckedChange)` | Boolean toggles |
+| `SettingsSlider(title, description, value, valueRange, increment, onValueChange, displayValue, enabled = true)` | Numeric sliders. `increment` is the distance between two stops in the value's unit; the Compose step count is derived by `Config.sliderSteps(range, increment)` (Config.kt ~689; `e7c94474` fixed ~40 sliders that passed the interval count). A raw `Slider` must call `sliderSteps` itself |
+| `SettingsDropdown(title, description, options, selectedIndex, onSelectionChange)` | Selection lists |
+| `CollapsibleSettingsSection(title, expanded, onExpandChange) { content }` | Grouped sections |
+| `SettingsSection(title) { content }` | Non-collapsible sections |
+
+## Safe Preference Readers (Config.kt)
+
+```kotlin
+safeGetInt(prefs, key, default)      // Handles ClassCastException
+safeGetFloat(prefs, key, default)    // Recovers from corrupted prefs
+safeGetBoolean(prefs, key, default)  // Parses string/int as boolean
+safeGetString(prefs, key, default)   // Converts any type to string
+```
+
+## `saveSetting()` (ui/settings/SettingsPersistence.kt)
+
+Accepts `Any` — dispatches to `putBoolean/putInt/putFloat/putString/putLong` based on type.
+
+## Pattern: Feature Toggle with Dependent Settings
+
+```kotlin
+// Master toggle
+SettingsSwitch(title = "Enable Feature", checked = featureEnabled, ...)
+
+// Only show dependent settings when enabled
+if (featureEnabled) {
+    SettingsSlider(title = "Sub-setting", ...)
+}
+```
+
+## Checklist: Adding a New Setting
+
+1. [ ] Add `const val` in `Defaults` object (Config.kt ~line 18)
+2. [ ] Add `@JvmField var` in `Config` class (Config.kt ~line 398)
+3. [ ] Add read in `Config.refresh()` (Config.kt ~line 647)
+4. [ ] Optional: Add setter method in Config (Config.kt ~line 798)
+5. [ ] Add `mutableStateOf` in SettingsActivity (~line 163)
+6. [ ] Add to `collapseAllSections()` if new section (~line 399)
+7. [ ] Search: **nothing to do** — the control's search entry is auto-generated from its
+   title at build time. (Only add a manual `SearchableSetting` for NON-control entries such
+   as activity navigation or FAQ links.) See "Search Coverage" below.
+8. [ ] Add preference change handler (~line 755)
+9. [ ] Add UI in `SettingsScreen()` composable
+10. [ ] Init preference-backed state in SettingsPersistence.kt
+11. [ ] Update ConfigSnapshot and its fixtures when gesture-critical
+12. [ ] Classify backup validation/defaults and add all supported locale resources
+
+## Existing Sections (in order, `ui/settings/SettingsScreen.kt` ~229–277, re-read 2026-10-23)
+
+Test Keyboard, Activities, Swipe Typing, Appearance, Swipe Trail, Input Behavior,
+Auto-Correction, Gesture Tuning, Accessibility, **Clipboard**, GIF Panel, Backup & Restore,
+Multi-Language, Privacy, Advanced, Version actions, Help & FAQ
+
+## Notable Config Chunks
+
+The Config file groups settings into "Chunks" — informal section markers
+in comments. When adding a setting, find the right Chunk for locality:
+
+- **Chunk 3** (Config.kt:464 and refresh block at 743): URL sanitization
+  toggles for the clipboard pipeline. Keys:
+  `clipboard_sanitize_links_enabled`, `clipboard_embed_enrich_enabled`,
+  `clipboard_custom_rules_enabled`, `clipboard_custom_rules_uri`. All
+  default OFF. Changes broadcast `SettingsActivity.ACTION_SANITIZATION_RULES_CHANGED`;
+  the `ClipboardHistoryService` receiver calls `Config.reloadSanitizationSettings()` (the
+  settings UI does NOT push these into the live Config) and then rebuilds its cached
+  `UrlSanitizer` — without that reload the sanitizer reads stale toggles until restart. See
+  `clipboard-panel-architecture.md` and `docs/wiki/specs/clipboard/
+  url-sanitization-spec.md` for the full pipeline.
+
+## Search Coverage (auto-generated — every control is findable)
+
+The in-app search index is **generated at build time from the actual controls**, so it can
+never drift out of sync with the UI (it used to be a hand-maintained parallel list, which is
+how the URL toggles and a whole Auto-Correction section silently fell out of search).
+
+- `scripts/generate_settings_search_index.py` (run by the `generateSettingsSearchIndex`
+  Gradle task, wired into `preBuild`) scans the settings shell and section sources for every `SettingsSwitch`
+  / `SettingsSlider` / `SettingsDropdown`, takes the control's **full title** (resolving
+  `stringResource(...)` via `res/values/strings.xml`), derives keywords from the title words
+  + a small synonym map, infers the enclosing collapsible section, and emits
+  `build/generated/search/kotlin/.../SettingsSearchIndex.kt` (`GENERATED_SEARCH_ENTRIES`).
+- `SettingsActivity.searchableSettings` = those generated control entries (mapped to a
+  section display-name + expand action via `sectionDisplayName` / `expanderFor`, ~12 sections)
+  **plus** a small hand-maintained list of NON-control entries (activity navigation, FAQ,
+  What's New). Those are the ONLY search entries you ever write by hand.
+
+**Adding a setting needs zero search work** — build the control; the entry appears.
+
+To make search results **scroll to the exact control**, `SettingsSwitch`/`SettingsSlider`/
+`SettingsDropdown` register their on-screen position under `settingSlug(title)`, which equals
+the generated entry's `settingId`. Keep the Kotlin `settingSlug()` and the Python `slugify()`
+identical. To add a cross-vocabulary synonym (e.g. "haptic" → "Vibration Feedback"), edit the
+`SYNONYMS` map in the generator script, not the UI.
+
+`SettingsSearchCoverageTest` (pure JVM, in `runPureTests`) independently re-scans the source
+and fails the build if any control lacks a generated entry, any entry has empty keywords, or
+any control title-word is uncovered — catching generator gaps.
+
+## Autocorrect Knobs (v1.4.0 + KeyAdjacency)
+
+Calibrated thresholds — don't change without re-running `AutocorrectTest`
+(57 instrumented cases) and `autocorrect/KeyAdjacencyTest` (34 pure-JVM cases; counts re-read 2026-10-23):
+
+| Key | Default | Range | Controls |
+|-----|---------|-------|----------|
+| `autocorrect_enabled` | true | bool | Master toggle |
+| `autocorrect_min_word_length` | 2 | 1-5 | Skip very short words |
+| `autocorrect_prefix_length` | 0 | 0-5 | Required leading-char match (0 allows first-char typos) |
+| `autocorrect_char_match_threshold` | 0.65 | 0.5-0.95 | Min KeyAdjacency weighted score |
+| `autocorrect_max_length_diff` | 2 | 0-5 | Allow ±N length candidates |
+| `autocorrect_confidence_min_frequency` | 100 | 0+ | Winner must clear this dict frequency |
+
+Ranking and every selection constant are settings since 2026-10-18: `autocorrect/AutocorrectTuning.kt`
+`Keys` is the single definition (key, default, range) used by `Config.refresh()` →
+`Config.autocorrect_tuning` (null on an Objenesis test Config = DEFAULT), `SettingsValidation`,
+`SettingsDefaults` and the "Ranking & Tuning" group. Adding a tuning key there classifies it
+everywhere; add its slider in `AutocorrectTuningSliders` + `AutoCorrectionSection` and its two
+strings in all 22 string files. A choice (StringKey) restricts its `values` to what the UI
+offers: `autocorrect_unfinished_word_mode` lists `UnfinishedWordMode.OFFERED` (`keep`, `off`),
+so the unoffered `complete` eval seam can be reached neither from a backup nor a hand-edited pref
+(round 7, eval doc §19.5). Default ranking is `channel` (edit cost + λ·rank); weights and
+evidence: `docs/wiki/specs/typing/autocorrect-spec.md` "Channel Ranking".
+
+## Backup/Restore + Spec Site Integration
+
+For settings that need backup/restore + a live-site spec page, BOTH
+`backup/SettingsValidation.kt` and `backup/SettingsDefaults.kt` must
+classify the key. The `SettingsDefaultsDriftTest` scans source for any
+`prefs.get*` / `editor.put*` call and asserts every key is classified —
+build fails if a new setting is added without classification.
+
+The companion spec at `docs/wiki/specs/settings/settings-system-
+architecture-spec.md` documents the full pipeline: Defaults singleton,
+Config constructor, ConfigurationManager listener, observer pattern,
+backup serialization format.
+
+## Extra-key additions
+
+Update `ExtraKeysPreference.EXTRA_KEYS`, title/description resources and
+`ExtraKeysPreference.categorizedKeys` together (the activity consumes this shared catalog partition). The screen renders only
+categorized keys: adding to the underlying list alone increases the count while
+hiding the row, even under an exact-name search. Protect new keys with a Compose
+search/visibility test and assert opt-in state without toggling user preferences.
+
+Use stable lazy-item keys for extra-key rows and category headers. Resolve each
+row’s title/description from its current key/resources; unkeyed `remember` showed
+Greek/Math for `clear_clipboard` after filtering on Seeker. Search must match the
+displayed title as well as the identifier and description. For UI tests, distinguish
+the search field from the identical key-name text and scroll the filtered row into
+view before asserting visibility; never toggle a real device’s preference to test defaults.
+
+Custom terminal packages: use `TerminalUtils.parseCustomPackages` for settings and
+backup validation. Store a canonical String, publish an immutable Config snapshot
+and pass it to each shared terminal-routing caller. Save/cancel/clear/rotation,
+exact-match removal, whole-list rejection and non-string backup types need tests.
+The Extra Keys catalog-completeness test guards against uncategorized entries.
+Extra Keys headers and rows use one keyed lazy list: fixed headers can consume the
+landscape viewport. Preserve the query with rememberSaveable; test row reachability
+and recreation through actual UI behavior, without requiring a specific header layout.
+
+## Continuous swipe (October 6 development)
+
+`continuous_swipe_enabled` is Boolean/default false. Keep Config refresh/snapshot,
+SettingsPersistence/UI, searchable title and typed SettingsDefaults backup/reset aligned.
+Its switch appears under enabled Swipe Typing. The gesture checks both live toggles and
+its captured Config snapshot before every result; turning swipe off suspends behavior.
+
+## Per-layout theme binding is NOT a preference (2026-10-15, `e237fa95`)
+
+The binding is the `theme` field of each `layouts` entry (and `<keyboard theme="…">` in a
+layout XML), resolved by `LayoutThemeBinding.resolve` at the END of every `Config.refresh()`
+(not in `set_current_layout`). A layout switch never writes the global `theme` pref;
+`ConfigurationManager` re-inflates only when the EFFECTIVE theme changes, and `onThemeChanged`
+rebuilds the suggestion strip while shown. Backup carries the binding inside the classified
+`layouts` blob (the import preview lists per-layout theme changes) — do not add a parallel pref
+or a `SettingsDefaults` entry for it. Deleting a DIY theme asks the keyboard to re-resolve; a
+theme missing on this device falls back to the global one. Spec: `docs/specs/layout-system.md`
+"Per-layout theme binding". Bar colours under a bound theme come from `SuggestionBarPalette`
+(every text role ≥ 3:1 on the bar, `9e2a9804`).
+
+## Per-layout key gaps / border are NOT preferences (2026-10-27)
+
+`key_horizontal_margin`, `key_vertical_margin`, `border_config`, `custom_border_radius` and
+`custom_border_line_width` stay the GLOBAL defaults. A layout overrides any of them through the
+`key_geometry` object of its `layouts` entry (per field: absent = XML `key_*` default,
+`"inherit"` = global, a value in the pref's own unit) — never by writing the prefs. Precedence:
+per-layout choice > layout XML > effective look > global. Backup carries it inside the
+classified `layouts` blob (import preview: `LayoutThemeBindingDiff.geometryChanges`); loading
+drops out-of-range values (`LayoutKeyGeometry.normalizeEntry`, ranges from `SettingsRanges`).
+Do not add prefs or `SettingsDefaults` entries for it. Spec: `docs/specs/layout-system.md`
+"Per-layout key geometry".
+
+## October 2026 additions (all verified at HEAD 2026-10-23)
+
+- **`SettingsRanges`** (`Config.kt` ~533): the one definition of every bounded range —
+  `KEYBOARD_HEIGHT` 20..60, `LONGPRESS_INTERVAL` 25..200, `CHARACTER_SIZE` 0.5..2.0,
+  `OPACITY_PERCENT` 0..100, `CLIPBOARD_PANE_HEIGHT_PERCENT` 10..50, the margin percents, …
+  The sliders, `Config.refresh()` and backup validation all read it, so an imported
+  out-of-range value cannot produce a state the UI cannot show (audit M1, 2026-10-20).
+- **Single key definitions**: `LanguagePrefs` (`pref_primary_language` etc.; `userLanguages`
+  delegates the primary+secondary rule to `LayoutLanguageBinding.resolve`) and
+  `MarginPrefKeys` (per side × orientation × screen). Do not restate the literals (audit L2/L6/L13).
+- **Foldables** (`a6f870d6`, spec `docs/specs/foldable-keyboard-height.md`): inner-screen
+  keys carry `KeyboardHeightPrefs.UNFOLDED_SUFFIX` and follow the outer value until set
+  (`KeyboardHeightPrefs.percent(prefs, landscape, unfolded)` is THE reader); two Appearance sliders.
+- **Gated controls and search** (`fb3695b8`): the generated search entries carry `gateIds`
+  (the switches that reveal a hidden control, innermost first); `expandAndScrollTo(settingId,
+  gateIds)` lands on the revealing switch when the target is hidden (56 gated controls).
+- New prefs: `clipboard_swipe_delete_enabled` (GH #175 part 2, default ON, `2787468d`),
+  `enter_always_newline` (GH #139, default OFF) and the Accessibility "Use System Vibration"
+  switch (GH #154; ON = `vibrate_custom` false), both `2a6c43fc`.
+- The settings file is read through `DirectBootAwarePreferences`; the custom-theme store is a
+  DIFFERENT prefs file (`custom_keyboard_themes`), see `theme-system.md`.
+
+## Internal prefs added October 2026 (classify as INTERNAL, never exported)
+
+- `voice_input_enabled` and `voice_mic_permission_blocked` (2026-10-29, voice input): the switch is
+  this device's opt-in to the microphone, so a restore elsewhere must not turn it on (the
+  maintainer rule: no microphone request until the user turns voice input on). Keys live in
+  `stt.VoicePacks`; Settings → Voice input is `ui/settings/sections/VoiceInputSection.kt`
+  (section key `voice`), its SAF/permission plumbing `ui/settings/io/SettingsVoiceHandlers.kt`.
+
+- `legacy_custom_freq_offer_dismissed` (per language): the Custom-tab offer to raise
+  frequency-100 words was dismissed for the listed words; the offer returns only when a word at
+  100 outside that set appears (e.g. from a backup import). Policy: `LegacyCustomWordFrequency`.
+
+## Autocorrect constants that are not prefs
+
+- `DROPPED_DOUBLE_MARGIN_STEPS = 64` (DD-M, `WordPredictor`): DEV-tuned and TEST-gated on the
+  shipped `en_enhanced.bin` scale (`docs/eval/2026-10-11-dropped-double-margin.md` §5). Re-tune
+  only against the `.bin`, never the CTC JSON (see `dictionary-pipeline.md`).
+- `autocorrect_prefix_length` > 0 interacts with DD-M unmeasured (todo "Open now"): at prefix
+  length 1, `very`/`from` fail the prefix check, so `bery`/`grom` are not corrected.

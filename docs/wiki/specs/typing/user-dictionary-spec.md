@@ -1,0 +1,274 @@
+---
+title: User Dictionary - Technical Specification
+user_guide: /wiki/typing/user-dictionary/
+status: implemented
+version: v1.2.7
+---
+
+# User Dictionary Technical Specification
+
+## Overview
+
+The user dictionary system stores custom words with their original capitalization and applies this case to both tap and swipe predictions. This enables proper nouns, brand names, and technical terms to appear with correct capitalization.
+
+## Key Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| WordPredictor | `WordPredictor.kt:68-382` | Stores and applies user word case |
+| InputCoordinator | `InputCoordinator.kt:343-349` | Applies case to swipe predictions |
+| PredictionContextTracker | `PredictionContextTracker.kt:436-447` | Preserves raw prefix case |
+| SuggestionHandler | `SuggestionHandler.kt:617-626` | Applies case to tap selections |
+
+## Architecture
+
+```
+User adds "Boston" to dictionary
+         ↓
+WordPredictor.loadCustomAndUserWords()
+         ↓
+userWordOriginalCase["boston"] = "Boston"
+         ↓
+[Later, when predicting...]
+         ↓
+Swipe/tap prediction: "boston"
+         ↓
+applyUserWordCase("boston") → "Boston"
+         ↓
+Display with correct capitalization
+```
+
+## Data Structures
+
+### User Word Case Map
+
+```kotlin
+// WordPredictor.kt:68
+private val userWordOriginalCase: MutableMap<String, String> = mutableMapOf()
+```
+
+Stores mapping from lowercase word → original capitalization:
+- Key: Lowercase normalized word (e.g., "boston")
+- Value: Original user-entered form (e.g., "Boston")
+
+### Raw Prefix Tracking
+
+```kotlin
+// PredictionContextTracker.kt:70-71
+private var rawPrefixForDeletion: String = ""
+private var rawSuffixForDeletion: String = ""
+```
+
+Preserves user's typed capitalization for add-to-dictionary flow.
+
+## Key Code Patterns
+
+### Loading Custom Words with Case Preservation
+
+```kotlin
+// WordPredictor.kt:1253-1263 (sync) and 1122-1131 (async)
+val originalWord = keys.next()  // Keep original case
+val lowerWord = originalWord.lowercase()
+// ... add to prediction index ...
+if (originalWord != lowerWord) {
+    userWordOriginalCase[lowerWord] = originalWord
+}
+```
+
+### Loading Android User Dictionary with Case Preservation
+
+```kotlin
+// WordPredictor.kt:1309-1318 (sync) and 1177-1186 (async)
+val originalWord = it.getString(wordIndex)
+val lowerWord = originalWord.lowercase()
+targetMap[lowerWord] = frequency
+loadedWords.add(lowerWord)
+// v1.2.7: Preserve original case for proper nouns (Issue #72)
+if (originalWord != lowerWord) {
+    userWordOriginalCase[lowerWord] = originalWord
+}
+```
+
+### Applying Case to Predictions
+
+```kotlin
+// WordPredictor.kt:370-372
+fun applyUserWordCase(word: String): String {
+    val lowerWord = word.lowercase()
+    return userWordOriginalCase[lowerWord] ?: word
+}
+```
+
+### Batch Application for Lists
+
+```kotlin
+// WordPredictor.kt:381-382
+fun applyUserWordCaseToList(words: List<String>): List<String> {
+    return words.map { applyUserWordCase(it) }
+}
+```
+
+### Swipe Prediction Path (v1.2.7+)
+
+```kotlin
+// InputCoordinator.kt:343-349
+// Apply user word case preservation BEFORE shift transformation
+val casedPredictions = predictionCoordinator.getWordPredictor()
+    ?.applyUserWordCaseToList(predictions) ?: predictions
+
+// Then apply shift/caps-lock transformation
+val transformedPredictions = casedPredictions.map { applyShiftTransformation(it) }
+```
+
+### Tap Selection Path
+
+```kotlin
+// SuggestionHandler.kt:617-626
+val currentWord = contextTracker.getCurrentWord()
+val shouldCapitalize = currentWord.isNotEmpty() && currentWord[0].isUpperCase()
+val capitalizedWord = if (shouldCapitalize && processedWord.isNotEmpty()) {
+    processedWord.replaceFirstChar { ... }
+} else {
+    processedWord
+}
+```
+
+## Capitalization Priority Order
+
+When determining final word capitalization:
+
+1. **User dictionary case** - Checked first via `applyUserWordCase()`
+2. **Shift/CapsLock state** - Applied via `applyShiftTransformation()`
+3. **I-words** - Applied via `capitalizeIWord()`
+4. **Default** - Word as-is from the decoder (lowercase)
+
+## Configuration
+
+### Storage Location
+
+Custom words stored in SharedPreferences:
+- Key: `"custom_words_{language}"`
+- Format: JSON object `{"word": frequency, ...}`
+
+### Frequency and swipe priority
+
+The stored frequency is 1..255, default 255 (`UserWordFrequency.DEFAULT`, the top of the
+scale). Each consumer reads it on its own scale:
+
+| Consumer | Use of the stored frequency |
+|---|---|
+| Tap prediction (`WordPredictor`) | rank `255 − stored`; 255 is the strongest |
+| CTC swipe (`CtcLexiconMerge`) | mapped linearly onto the base lexicon's `[floor..255]` (en floor 134); 255 → 255 |
+| Geometric swipe (`GeometricUserWordMerge`) | ORDER among the prepended user words only; all of them sit ahead of base words |
+
+The frequency can therefore only lower a word. **Swipe priority** (2026-10-08) is the separate,
+bounded way to raise one:
+
+- Key: `"swipe_priority_{language}"`. Format: JSON object `{"word": 1|2}` (1 = High,
+  2 = Highest), raised words only (`SwipePriority`). An absent key means every word is Normal.
+- Applies only to current personal-dictionary words (`SwipePriority.forUserWords`). Deleting
+  a word drops its level, renaming carries it (`CustomDictionarySource`, `DictionaryManager`).
+- Engines: CTC adds 2.0 / 4.0 nats to the final score of words already in the beam
+  (`CtcPriorityBonus`). Geometric adds `GEO_HIGH` / `GEO_HIGHEST` to `S(w)` of pruner survivors
+  (`GeometricDictionary.swipeBonus`). Tap prediction does not read it.
+- Both swipe adapters fold the raw JSON into `LexiconContentVersion`, so a change rebuilds the
+  lexicon like any word edit; `SwipeRewarmScheduler` pre-warms it.
+- Backups: `swipe_priority_by_language` in the dictionaries payload. On import a level is
+  applied only to a word that is a personal-dictionary word after the import and has no level
+  on this device yet (`DictImportApplier`).
+- The "Prefer … when swiping?" offer adds a new word at Normal, raises a Normal word to High,
+  and offers nothing at High or Highest (`SwipeCorrectionPolicy.offerLevel`).
+
+- Add/Edit dialog (2026-10-10): selecting High or Highest while the frequency field holds less
+  than 255, or nothing parseable, sets it to 255 and shows `dict_swipe_priority_frequency_raised`
+  (`UserWordFrequency.liftedForPriority`). Normal never changes the field. The initial check
+  does not fire, so opening the dialog changes nothing.
+
+Measurements and the collateral cost per level:
+[User swipe priority eval](https://github.com/tribixbite/CleverKeys/blob/main/docs/eval/2026-10-08-user-swipe-priority.md).
+
+### Legacy default frequency (100) offer
+
+The only default ever stored for a custom word before wave U2 (`4525eb9c`, 2026-09-06) was
+**100**. Writers: the Add Word dialog (`f743e49f`, pre-fill and fallback), the IME-side
+`DictionaryManager.saveUserWords` (`1ccb534e`, rewrote every word of the language to 100 on any
+IME add or remove), and the `user_words` migration (`10930d45`). Still live:
+`DictImportPlanBuilder.DEFAULT_USER_WORD_FREQ` = 100 for a backup entry without a frequency.
+
+U2 deliberately does not rewrite stored values. A 100 the user chose cannot be told from a
+default. So the Custom tab OFFERS the raise (`LegacyCustomWordFrequency`, pure):
+
+- Shown when the language has a word at exactly 100 that is not in the dismissed set.
+- Review lists the words, then Raise / Not now. Raise re-reads the store and sets only words
+  still at 100 to 255 (`CustomDictionarySource.raiseLegacyFrequencies`). Swipe priorities are
+  untouched. The write changes `custom_words_<lang>`, so both swipe lexicons re-key on it.
+- Dismiss stores that language's current legacy words in `legacy_custom_freq_offer_dismissed`
+  (JSON `{lang: [word…]}`). That key is in `SettingsValidation.INTERNAL_KEYS`, so it is never
+  exported. The notice returns only when a legacy word outside that set appears, for example
+  after a backup import (`DictImportApplier` keeps imported frequencies as stored).
+- Tests: `LegacyCustomWordFrequencyTest` (pure), `CustomWordEditLexiconInputTest` (mock).
+
+### Dictionary Manager Access
+
+- Settings > Activities > Dictionary Manager
+- Tabs: Active, Disabled, User, Custom
+- Custom tab Add/Edit dialogs: word, frequency (1–255) and Swipe priority (Normal / High /
+  Highest radio buttons, with an explanation of what each number does). A raised word's row
+  reads "Frequency: N · Swipe priority: High".
+- Custom tab notice for words at the legacy default frequency 100 (see above).
+
+## State Management
+
+### On Keyboard Start
+
+```kotlin
+// WordPredictor initialization
+loadCustomAndUserWords()  // Populates userWordOriginalCase
+```
+
+### On Dictionary Reload
+
+```kotlin
+// WordPredictor.kt:247
+userWordOriginalCase.clear()  // Reset before reloading
+```
+
+### On Word Addition
+
+```kotlin
+// Word added via prompt or Dictionary Manager
+// Saved to SharedPreferences with original case
+// userWordOriginalCase updated on next load
+```
+
+## Testing
+
+### Unit Test Cases
+
+1. `testUserWordCasePreservation_ProperNoun` - "Boston" stays "Boston"
+2. `testUserWordCasePreservation_BrandName` - "iPhone" stays "iPhone"
+3. `testUserWordCasePreservation_Acronym` - "API" stays "API"
+4. `testSwipePrediction_AppliesUserCase` - Swipe path applies case
+
+### Integration Test
+
+```kotlin
+// Add "Boston" to custom words
+// Swipe pattern for "boston"
+// Verify output is "Boston"
+```
+
+## Related Specifications
+
+- [Autocorrect Spec](autocorrect-spec.md) - Spelling corrections
+- [Swipe Typing Spec](swipe-typing-spec.md) - Swipe prediction
+- [CTC Swipe Engine](https://github.com/tribixbite/CleverKeys/blob/main/docs/specs/ctc-swipe-engine.md) - the decoder that consumes the merged lexicon
+
+## Version History
+
+| Version | Change |
+|---------|--------|
+| v2.0.0 | Per-word swipe priority (Normal / High / Highest) for custom words |
+| v1.2.7 | Added swipe prediction case preservation |
+| v1.2.5 | Initial user word case preservation for tap |
+| v1.2.0 | Basic custom dictionary support |

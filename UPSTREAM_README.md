@@ -1,0 +1,597 @@
+<div align="center">
+</br>
+<img src="./res/mipmap-xxxhdpi/ic_launcher.png" width="200" />
+
+# CleverKeys
+
+<img src="./art/banner/social_preview.jpg" width="100%" />
+
+</div>
+
+</br>
+
+<p align="center">
+  <img alt="API" src="https://img.shields.io/badge/Api%2024+-50f270?logo=android&logoColor=black&style=for-the-badge"/></a>
+  <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-a503fc?logo=kotlin&logoColor=white&style=for-the-badge"/></a>
+  <img alt="ONNX Runtime" src="https://img.shields.io/badge/ONNX-005CED?logo=onnx&logoColor=white&style=for-the-badge"/></a>
+  <img alt="Material 3" src="https://custom-icon-badges.demolab.com/badge/material%20you-lightblue?style=for-the-badge&logoColor=333&logo=material-you"/></a>
+  </br>
+  </br>
+
+<a href="https://github.com/tribixbite/CleverKeys/releases">
+  <img src="https://img.shields.io/github/downloads/tribixbite/CleverKeys/total?color=ff9500&style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRpdGxlPmRvd25sb2FkPC90aXRsZT48cGF0aCBkPSJNNSwyMEgxOVYxOEg1TTE5LDlIMTVWM0g5VjlINUwxMiwxNkwxOSw5WiIgZmlsbD0id2hpdGUiIC8+PC9zdmc+&labelColor=a6660d"/>
+</a>
+
+<a href="https://github.com/tribixbite/CleverKeys/stargazers">
+  <img src="https://img.shields.io/github/stars/tribixbite/CleverKeys?color=ffff00&style=for-the-badge&labelColor=a1a116&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRpdGxlPnN0YXI8L3RpdGxlPjxwYXRoIGQ9Ik0xMiwxNy4yN0wxOC4xOCwyMUwxNi41NCwxMy45N0wyMiw5LjI0TDE0LjgxLDguNjJMMTIsMkw5LjE5LDguNjJMMiw5LjI0TDcuNDUsMTMuOTdMNS44MiwyMUwxMiwxNy4yN1oiIGZpbGw9IndoaXRlIiAvPjwvc3ZnPg=="/>
+</a>
+
+</br>
+
+<a href="https://github.com/tribixbite/CleverKeys/releases/latest">
+  <img src="https://img.shields.io/github/v/release/tribixbite/CleverKeys?color=9b59b6&include_prereleases&logo=github&style=for-the-badge&labelColor=6b21a8"/>
+</a>
+<a href="https://f-droid.org/packages/tribixbite.cleverkeys">
+  <img src="https://img.shields.io/f-droid/v/tribixbite.cleverkeys?style=for-the-badge&logo=f-droid&logoColor=white&color=1976D2&labelColor=0D47A1"/>
+</a>
+
+</br>
+</br>
+
+</p>
+
+<div align="center">
+
+# 🗺️ Project Overview
+
+CleverKeys is a feature-rich open-source keyboard for Android. On-device swipe typing with autocorrect, multi-language hot-swap with per-language dictionaries, unlimited clipboard with pinning/todos/tags/regex search/inline editing, offline GIF packs, opt-in on-device voice input, 241 customizable short-swipe commands, TrackPoint cursor control, 35+ themes with DIY creator — all running 100% on-device with zero internet permissions.
+
+</div>
+
+<p align="middle">
+    <img src="./docs/banners/feature_banner.png" width="99%" />
+</p>
+
+## What Makes CleverKeys Unique
+
+### Open-Source Gesture Keyboard Comparison
+
+| Feature | CleverKeys | HeliBoard | FUTO | FlorisBoard | AnySoftKeyboard | Urik |
+|---------|:----------:|:---------:|:----:|:-----------:|:---------------:|:----:|
+| **Gesture Typing in Termux** | ✅ | ⚠️ Corrupted⁴ | ❌ Broken | ⚠️ Disabled | ⚠️ Experimental | ❓ |
+| **Gesture/Swipe Typing** | ✅ Stable | ✅ Stable | ⚠️ Alpha | ⚠️ Disabled⁵ | ⚠️ Experimental | ✅ Geometric¹⁰ |
+| **Multi-Language Swipe**⁹ | ✅ 20 languages | ⚠️ Single | ⚠️ English only | ❌ | ❌ | ✅ Simultaneous |
+| **Gesture Engine Open Source** | ✅ | ❌¹ | ✅² | ✅ | ✅ | ✅ |
+| **ML Training Code Public** | ✅ | N/A | ✅⁶ | N/A³ | N/A³ | N/A¹⁰ |
+| **Model Size** | 2.9MB | Proprietary | 62MB | N/A | N/A | N/A |
+| **APK Size** | ~25MB¹² | ~45MB | ~200MB | ~15MB | ~25MB | ~40MB |
+| **Clipboard History** | ✅ Unlimited | ⚠️ 10min default⁷ | ✅ 25 items | ✅ 20-100 items | ❌ 15s hint only | ✅ Encrypted |
+| **Short-Swipe Actions**⁸ | ✅ 208 gestures | ⚠️ Limited | ❌ | ⚠️ Limited | ⚠️ Limited | ⚠️ Space/Del only¹¹ |
+| **Per-Key Customization** | ✅ 241 commands | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Custom Layouts** | ✅ XML (8 sublabels) | ✅ JSON | ✅ YAML | ⚠️ JSON (no editor) | ⚠️ Addon packs only | ✅ |
+| **DIY Theme Creator** | ✅ | ✅ | ❌ (16 built-in) | ✅ Snygg v2 | ✅ | ✅ |
+| **Word Suggestions** | ✅ | ✅ | ✅ | ❌ (v0.6 planned) | ✅ | ✅ |
+| **No Internet Access** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **License** | GPL-3.0 | GPL-3.0 | Source-First² | Apache-2.0 | Apache-2.0 | GPL-3.0 |
+
+<details>
+<summary><b>Footnotes & Sources</b></summary>
+
+¹ HeliBoard requires Google's proprietary `libjni_latinimegoogle.so` library for gesture typing ([source](https://github.com/Helium314/HeliBoard#gesture-typing))
+
+² FUTO uses "Source First License 1.1" — source-available but restricts commercial use ([source](https://keyboard.futo.org/))
+
+³ FlorisBoard and AnySoftKeyboard use algorithmic approaches (corner matching, template matching) — no ML training involved
+
+⁴ HeliBoard has a [known bug](https://github.com/termux/termux-app/issues/3941) where swipe typing in Termux produces duplicated/corrupted output
+
+⁵ FlorisBoard glide typing is disabled by default and labeled "alpha quality" — must be enabled manually in advanced settings
+
+⁶ FUTO swipe training dataset is public on [HuggingFace](https://huggingface.co/datasets/futo-org/swipe.futo.org) with training code in their repo
+
+⁷ HeliBoard clipboard retention defaults to 10 minutes but is configurable; items are not persisted across restarts by default
+
+⁸ Short-swipe actions: 8 directions × 26 keys = 208 one-touch gestures for navigation (arrows, home/end), editing (select all, undo, cut/copy/paste), function keys (F1-F12), and more — no long-press menus needed
+
+⁹ Multi-language swipe typing: CleverKeys uses one layout-agnostic CTC model for the languages it serves — dictionaries provide word candidates, not language-specific models. 7 languages bundled (en, es, fr, pt, it, de, sv), 13 downloadable (nl, ru, el, tr, id, ms, tl, sw, uk, bg, mk, he, fa). Primary + secondary language support with automatic best-match selection.
+
+¹⁰ Urik uses a geometric/template path matcher (no ML model, no training code applicable) — German-friendly QWERTZ-native with simultaneous multilingual spell-check. CleverKeys ships a complementary geometric decoder for the languages and scripts its CTC model does not serve, selectable via the Prediction Engine setting — see [ROADMAP.md](./ROADMAP.md#-swipe-prediction).
+
+¹¹ Urik short-swipe is limited to Space (cursor movement) and Backspace (delete word) — no general short-swipe action mapping system.
+
+¹² CleverKeys-v2.0.0-arm64-v8a.apk measured 25,286,923 bytes (25.3 MB) on the 2026-10-22 local release build; the armeabi-v7a and x86_64 splits are 24.7 MB and 26.5 MB.
+
+</details>
+
+### Why CleverKeys?
+
+Most keyboard apps do one thing well. CleverKeys does many things well:
+
+- **Swipe + autocorrect + multi-language** — an on-device CTC decoder evaluates multiple language dictionaries per swipe, with contraction-aware autocorrect
+- **Clipboard as a productivity tool** — not just history, but pinning, todos with status tracking, tags, inline editing, regex search, and media support (images/videos/PDFs)
+- **Deep customization** — 208 short-swipe actions, Android intent launching, custom text macros, per-key gesture mapping, XML layout authoring
+- **Power user essentials** — TrackPoint cursor, selection-delete, backspace undo, terminal key support, offline GIF packs
+- **Auditable ML** — model architecture, training code, and datasets all public at [CleverKeys-ML](https://github.com/tribixbite/CleverKeys-ML)
+
+### 📱 Works Everywhere — Including Termux
+CleverKeys is the **only open-source keyboard with reliable swipe typing in Termux**. Other keyboards either disable gestures in terminals (FlorisBoard), produce corrupted output (HeliBoard), or don't work (FUTO). Commercial keyboards like Gboard and SwiftKey also disable swipe in Termux.
+
+<div align="center">
+
+# 📲 Install Options
+
+<p align="middle">
+    <a href="https://f-droid.org/packages/tribixbite.cleverkeys"><img alt="F-Droid" src="https://img.shields.io/badge/F--Droid-1976D2?style=for-the-badge&logo=f-droid&logoColor=white" height="60"/></a>
+    <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22tribixbite.cleverkeys%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Ftribixbite%2FCleverKeys%22%2C%22author%22%3A%22tribixbite%22%2C%22name%22%3A%22CleverKeys%22%2C%22preferredApkIndex%22%3A0%2C%22additionalSettings%22%3A%22%7B%5C%22includePrereleases%5C%22%3Afalse%2C%5C%22fallbackToOlderReleases%5C%22%3Atrue%2C%5C%22filterReleaseTitlesByRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22filterReleaseNotesByRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22verifyLatestTag%5C%22%3Afalse%2C%5C%22dontSortReleasesList%5C%22%3Afalse%2C%5C%22useLatestAssetDateAsReleaseDate%5C%22%3Afalse%2C%5C%22trackOnly%5C%22%3Afalse%2C%5C%22versionExtractionRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22matchGroupToUse%5C%22%3A%5C%22%5C%22%2C%5C%22versionDetection%5C%22%3Atrue%2C%5C%22releaseDateAsVersion%5C%22%3Afalse%2C%5C%22useVersionCodeAsOSVersion%5C%22%3Afalse%2C%5C%22apkFilterRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22invertAPKFilter%5C%22%3Afalse%2C%5C%22autoApkFilterByArch%5C%22%3Atrue%2C%5C%22appName%5C%22%3A%5C%22CleverKeys%5C%22%2C%5C%22exemptFromBackgroundUpdates%5C%22%3Afalse%2C%5C%22skipUpdateNotifications%5C%22%3Afalse%2C%5C%22about%5C%22%3A%5C%22On-device%20gesture%20keyboard%20for%20Android%5C%22%7D%22%7D"><img alt="Obtainium" src="https://img.shields.io/badge/Obtainium*-0D47A1?style=for-the-badge&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAADHklEQVR4nO2ZzWsTQRjGf9GDiOLRkxcPgiehoHjxIHgQPPlx8SJ40NqD4EXwIPgH+Ad4EAQFPQiiB0FRET0IYgtFba3VNmljk93ZnZ3ZeWeyE9I0aZKd2drsh0+ysMO+z/vOzM7uzgYCBAi0fRUHpgE/cFygJrAMfAOuA4teBxDx9Z/5Qgf4ARwCfgHXgL/9CmLQw/OeFR6Ao8AqcBlY6zeCdoIoB5YB94EIcAX4028gmj2AWsBH4CmwF7gIbOy3ALT6Au8ALIDpwJLXIBptFqAK/AbmgCngKrDR6wAyXb7QB8BTYD9wDtjidQCZLl/oI+AZcAC4DGz2OoBMly/0CfAcOABcALZ5HUCmyxf6BHgJHATOA9u9DuD8s+X5wfcJ8Bo4BJwFdngdwP5ny/MX3ifAW+AwcArY7XUA588tz1+4jwE/gaPACeBwvwFYAbR7fgPtBN4Dh4HjwFGvA5gAbPf5GYo7Ae+AI8DxfgMwAFi+0M/QnQJ4DxwBjvUbgAHA8oW+g64dwAfgGHC83wAMAJYv9CN0JwE+AseBE/0GYACwfKGfoTsD8Ak4AZzoNwADgOUL/QLdKYCvwAngRL8BGAAsX+gX6M4CfAFOAif7DcAAYPlCv0N3DuAbcAI42W8ABgDLF/odunMA34GTwMl+AzAAWL7Qn9CdB/gBnAJO9RuAAcDyhf6C7gLAT+AUcKrfAAwAli/0N3QXAX4Bp4HT/QZgALB8ob+huwjwGzgNnO43AAOA5Qv9A90lgD/AaeB0vwEYACxf6F/oLgP8BU4Dp/sNwABg+UL/QXcZ4B9wGjjTbwAGAMsX+h+6KwD/gTPAmX4DMAAYX+hOAqwAZ4Ez/QZgfKE7BbAKnAXO9BuA8YXuNMA6cBY4028AxhfaU4DrAeeAc14HML7Q/Q9o7E8DngecAc55HcD4QjcBeA44B5z3OoDxhe4k4CLwHDgHnPc6gPGF7mTgJeA5cB644HUA4wvdKcArwAvgPHDB6wDGF7pTgdeAF8AF4KLXAYwvdKcBbwAvgQvARa8DGF/oTgfeAl4BF4BLXgcIEGB79Q8cPxXm8tdVtgAAAABJRU5ErkJggg==&logoColor=white" height="60"/></a>
+    <a href="https://github.com/tribixbite/CleverKeys/releases/latest"><img alt="GitHub" src="https://img.shields.io/badge/GitHub_APK-238636?style=for-the-badge&logo=github&logoColor=white" height="60"/></a>
+</p>
+
+<sub>*Recommended — Obtainium pulls directly from GitHub releases, avoiding F-Droid's typical 24-48 hour update delay.</sub>
+
+# 🎨 Extensive Theme Engine
+
+</div>
+
+CleverKeys features one of the most powerful keyboard theme engines available:
+
+### Built-in Themes (36: 18 classic + 18 decorative)
+- **CleverKeys Dark** — Deep purple with silver accents (default)
+- **CleverKeys Light** — Silver keys with purple accents
+- **Neon Electric Blue / Hot Pink / Cyberpunk** — Vibrant neon aesthetic
+- **ePaper / ePaper Black** — High contrast e-ink styles
+- **Jungle** — Tropical teal theme
+- **Everforest Light** — Soft green nature theme
+- **Monet (Auto)** — Material You dynamic colors
+- **Dark / Light / Black / Alt Black** — Classic options
+- And many more...
+
+### DIY Theme Creator
+Build your own themes on-the-fly with full control over:
+- **Key Colors** — Default, Activated, Locked, Modifier, Special
+- **Label Colors** — Primary, Sub-label, Secondary labels
+- **Border Colors** — Full border customization
+- **Trail Effects** — Swipe trail color and style
+
+<p align="center">
+    <img src="./docs/screenshots/theme-manager.png" width="24%" />
+    <img src="./docs/screenshots/theme-dark-selected.png" width="24%" />
+    <img src="./docs/screenshots/Screenshot_20251205_063059_CleverKeys (Debug).jpg" width="24%" />
+    <img src="./docs/screenshots/Screenshot_20251205_032954_Samsung Notes.jpg" width="24%" />
+</p>
+
+<div align="center">
+
+# ✨ Features
+
+</div>
+
+### 🧠 Swipe Typing & Autocorrect
+- **CleverKeys-trained CTC model** (2.9MB) trained from scratch on MIT-licensed real swipe data
+- **Two selectable swipe engines** — CTC (default): the 7 bundled Latin languages on any full a–z Latin layout via a 2.9 MB CleverKeys-trained model scoring 89.3% top-1 on a 2,400-swipe held-out English benchmark, plus 6 non-Latin languages (ru, uk, bg, mk, el, he) on their own per-script encoders, plus any imported Latin pack that is a–z-typeable; and geometric (layout-agnostic, no ML model), used when CTC prerequisites are unavailable — including Turkish, whose dotless `ı` has no a–z spelling
+- **Sub-200ms predictions** with XNNPACK hardware acceleration
+- **Autocorrect with contraction support** — "dont" to "don't", "im" to "I'm"
+- **Full inference control** — beam width, length normalization, pruning, early stopping
+- **Next-word prediction (on by default)** — built-in phrase suggestions before you type a letter, with optional personalized learning and tap-to-chain
+- **Suggestion transparency** — long-press any suggestion to see which engine produced it and its full score breakdown; optional per-origin markers
+- **100% on-device** — works in airplane mode, no cloud anything
+
+Optional **continuous multiword swipe**: enable it in Swipe Typing settings, then dwell
+inside the spacebar between words. It defaults off;
+pending words stop when editor/session ownership changes. See the
+[swipe guide](docs/wiki/typing/swipe-typing.md) and
+[assignment guide](docs/wiki/customization/per-key-actions.md) for behavior and limits.
+
+### 🌍 Multi-Language with Hot-Swap
+- **20 swipe languages** — 7 bundled, 13 downloadable packs
+- **Primary + secondary language** — both dictionaries are evaluated per swipe
+- **Instant language switch** — toggle between languages without reloading
+- **Per-language custom dictionaries** — add words, adjust frequency weights, disable entries
+- **Smart contractions** — language-aware handling across English, French, and more
+
+### 🎙️ Voice Input (on device, opt-in)
+- **Offline dictation** — a Voice input key (Extra Keys) or the `voice_input` command types what you say; the newest words stay underlined until the model confirms them
+- **Opt-in voice pack** — import `voicepack-moonshine-v2-tiny-en.zip` (English, Moonshine v2 tiny streaming, MIT, ~45 MB) once from the [`langpacks` release](https://github.com/tribixbite/CleverKeys/releases/tag/langpacks); nothing of the model ships in the APK
+- **Microphone only when you turn it on** — the permission is requested only when you enable voice input or import a pack; audio is never stored and never leaves the device
+- **Safe everywhere** — terminals and remote-desktop fields get confirmed words only, appended; password fields refuse voice input
+- See the [voice input guide](docs/wiki/typing/voice-input.md)
+
+### 📋 Clipboard System
+As an IME, CleverKeys has legitimate clipboard access that other apps don't:
+- **Unlimited history** — configurable by count or storage size, persistent across reboots
+- **Pinned entries** — save important clips with drag-and-drop reordering
+- **Built-in todo list** — track items with active/planned/completed status and tags
+- **Inline editing** — edit any clipboard entry directly in the panel
+- **Regex search** — VSCode-style `.*` toggle, glob shorthand, full regex power
+- **Media clipboard** — images, videos, PDFs with thumbnail previews
+- **Tags** — organize pinned and todo entries with custom tag labels
+- **Size filter** — filter history by entry size and delete all matching entries after a confirmation
+- **Clear OS clipboard** — an assignable command that clears only Android's current clip; saved history stays (#168)
+- **Export/Import** — JSON (text) or ZIP (full backup with media)
+
+### 🎮 Offline GIF Panel
+- **No internet permission** — GIF packs imported via file picker, not downloaded
+- **FTS4 search** — find GIFs by keyword with compound word fallback
+- **Category browsing** — 17 emotion categories + recently used
+- **Community packs** — import ZIP packs from Discord or build your own
+
+### 🎯 208 Short Swipe Actions
+Assign custom actions to any key's 8 swipe directions:
+- **241 built-in commands** — navigation, editing, clipboard, function keys, special chars
+- **Custom text macros** — email addresses, signatures, code snippets, emoji sequences
+- **Explicit dynamic templates** — clipboard, selection, UUID and cursor tokens in per-key or popover assignments; ordinary text stays literal
+- **Verified apostrophe suffix commands** — append exact `'s` or `'` to the last verified word, with suffix-only undo and owned learning replacement
+- **Android intents** — launch any app, Termux commands, system settings, maps, browser
+- **Visual feedback** — custom icons displayed as sublabels on keys
+- **Import/Export** — share customizations as JSON profiles
+- **Subkey popover** — hold a text key to open a 3×3 grid of its subkeys, slide and release to type or run one; empty and assigned slots open assign/edit screens
+- **Minimize** — `minimize_bar` and `minimize_fab` commands shrink the keyboard to a strip or a floating button (#175)
+
+### 🖱️ Cursor & Text Control
+- **TrackPoint navigation** — IBM/Lenovo-style joystick cursor on nav key (hold to activate)
+- **Selection-Delete** — hold backspace + swipe to highlight text, release to delete
+- **Backspace undo** — press backspace after autocorrect to revert to original word
+- **Arrow keys** — full cursor control with shift-select support
+
+### 🔒 Privacy First
+- **Zero network permissions** — literally cannot phone home
+- **Microphone only on opt-in** — voice input is off by default; the microphone is requested only when you turn it on, and audio is recognised on the device and never stored
+- **No analytics, telemetry, or cloud sync**
+- **One-switch learning control** — "Learn From My Typing" gates ALL on-device learning (phrases, word usage, selection adaptation, swipe traces); turning it off stops recording AND stops using what was learned, with a one-tap forget
+- **Learned-data manager** — browse and delete individual learned phrases and words, per language
+- **Incognito-field aware** — honors apps that request no personalized learning (e.g. browser private tabs)
+- **Password manager privacy** — exclude clipboard from 1Password, Bitwarden, KeePassDX, etc.
+- **Open source = auditable**
+
+### ⌨️ 100+ Keyboard Layouts
+- QWERTY, AZERTY, QWERTZ, Dvorak, Colemak, and programming layouts
+- International layouts for 30+ languages
+- Full XML customization with 8 sublabels per key
+- Ctrl/Meta/Fn keys for Termux; terminal apps are detected automatically, and more can be added by package ID (Settings → Advanced)
+
+### 🎨 35+ Themes with DIY Creator
+- Material You (Monet), Rose Pine, Everforest, Cobalt, ePaper, and more
+- Full control: key colors, label colors, borders, swipe trail effects
+- Dark and light variants for every theme
+
+<div align="center">
+
+# 🌍 Multi-Language Swipe Typing
+
+</div>
+
+CleverKeys supports swipe typing in **20 languages** with intelligent multi-language features:
+
+> ℹ️ **Current swipe-typing scope** — The default **CTC** engine covers three
+> groups:
+>
+> - the **7 bundled Latin languages** (English, French, German, Spanish,
+>   Italian, Portuguese, Swedish) on any Latin layout that has all 26 letters
+>   (QWERTY, AZERTY, QWERTZ, Dvorak, Colemak, …);
+> - **6 non-Latin languages via script routing** — Russian, Ukrainian,
+>   Bulgarian and Macedonian (Cyrillic), Greek, and Hebrew — each on its own
+>   layout, alphabet and encoder, after you import that language's pack;
+> - any **imported Latin pack whose vocabulary is a–z-typeable** (Dutch,
+>   Indonesian, Malay, Tagalog and Swahili all measure 100% projectable).
+>
+> **Turkish is the deliberate exception**: dotless `ı` has no a–z spelling, so a
+> quarter of the vocabulary — and a sixth of its thousand most frequent words —
+> would be unswipeable under CTC. Turkish is served by the **geometric** engine
+> instead, which decodes over the board's real keys. **Persian** (Arabic script,
+> no per-script CTC encoder) is served by the geometric engine the same way on
+> the Persian PC layout once `langpack-fa.zip` is imported. Geometric remains the
+> automatic fallback when CTC prerequisites are unavailable. Successful decoding
+> still requires a usable dictionary, supported letter geometry and a valid trace.
+> The **Prediction Engine** setting chooses whether CTC is used. Tap typing
+> remains available independently of swipe support.
+>
+> **Evidence tiers, stated honestly.** Only English, French, German and Spanish
+> have their own measured accuracy bar. Italian, Portuguese and Swedish are
+> *provisional* — enabled on the frequency-scale evidence they share with
+> French/German/Spanish, never measured on their own. Russian is
+> *validation-tier only*. Greek, Ukrainian, Bulgarian, Macedonian, Hebrew and
+> every imported pack have **no real-swipe probe at any tier** — no accuracy
+> number is quoted for them anywhere, and any figure you see for
+> English/French/German/Spanish does not apply to them.
+>
+> The QWERTY-only ONNX transformer that used to be the default was removed in
+> v1.6.0 (issue [#9](https://github.com/tribixbite/CleverKeys/issues/9) is
+> resolved by that removal: no layout is swipe-disabled any more).
+
+### Bundled Languages (7)
+Included in the APK — no additional download required. All dictionaries are
+built by the one-pass evidence classifier (`scripts/build_wordlist.py`):
+frequency-ranked wordfreq candidates vetted by spellchecker/AOSP-LatinIME
+oracles with typo/foreign-word negative filters (see the oracle-tier notes).
+
+| Language | Code | Dictionary Size | Oracle tier |
+|----------|:----:|---------------:|-------------|
+| English | en | 98,140 words | A (hunspell + aspell + NLTK + pyspell + AOSP) |
+| Spanish | es | 50,000 words | A (aspell + pyspell + AOSP) |
+| French | fr | 40,000 words | A (hunspell + aspell + pyspell + AOSP) |
+| Portuguese | pt | 40,000 words | B (pyspell + AOSP pt_BR∪pt_PT) |
+| Italian | it | 40,000 words | B (pyspell + AOSP) |
+| German | de | 40,000 words | A (aspell + pyspell + AOSP) |
+| Swedish | sv | 40,000 words | C (AOSP only) |
+
+### Downloadable Language Packs (23 packs, 20 languages)
+Import via **Settings → 🌐 Multi-Language → Import Pack**; download prebuilt
+zips from the [langpacks release](https://github.com/tribixbite/CleverKeys/releases/tag/langpacks)
+(the same files live in [`scripts/dictionaries/`](./scripts/dictionaries/)):
+
+| Language | Code | Dictionary Size | Oracle tier / source |
+|----------|:----:|---------------:|----------------------|
+| Dutch | nl | 40,000 words | A (hunspell + pyspell + AOSP) |
+| Russian | ru | 50,000 words | A (hunspell + pyspell + AOSP) |
+| Ukrainian | uk | 50,000 words | D (negatives-only) |
+| Greek | el | 39,860 words | C (AOSP only, curated down from 46,306) |
+| Bulgarian | bg | 35,027 words | D (negatives-only; wordfreq corpus ceiling) |
+| Macedonian | mk | 50,000 words | D (negatives-only) |
+| Hebrew | he | 50,000 words | C (AOSP oracle) |
+| Persian (experimental) | fa | 50,000 words | Leipzig + wordfreq blend, Lilak oracle (22 % half-space compounds); no native-speaker review yet |
+| Turkish | tr | 40,000 words | C (AOSP only) |
+| Indonesian | id | 28,637 words | D (negatives-only; corpus ceiling ~31k) |
+| Malay | ms | 25,861 words | D (negatives-only; corpus ceiling ~28k) |
+| Tagalog | tl | 27,922 words | D (negatives-only; corpus ceiling ~30k) |
+| Swahili | sw | 20,000 words | Swwiki — Swahili Wikipedia word list (no wordfreq data) |
+
+Packs for the bundled languages (es fr de it pt sv) plus English corpus
+variants (opensubtitles-full / opensubtitles-50k / wordfreq) are also
+prebuilt alongside them — 23 zips in total. (The former `en-norvig-50k` variant
+was withdrawn on 2026-09-26: its counts derive from Google Web 1T, which carries
+no redistribution grant.)
+
+**Data sources & licences.** Word lists are adapted from
+[wordfreq](https://github.com/rspeer/wordfreq) (CC BY-SA 4.0; most packs),
+[FrequencyWords](https://github.com/hermitdave/FrequencyWords) / OpenSubtitles
+(CC BY-SA 4.0; the `en-opensubtitles*` variants) and
+[Swwiki](https://kevindonnelly.org.uk/swahili/swwiki/) (CC BY-SA 3.0 → 4.0;
+Swahili), Leipzig Corpora Collection counts (CC BY 4.0; Persian), with the AOSP
+LatinIME word lists and Lilak (Apache-2.0) as inclusion oracles; the packs are distributed under GPL-3.0-only. Every zip carries a
+`NOTICE.txt` and `license` / `attribution` / `source` manifest keys; full text
+in [`NOTICE`](./NOTICE).
+
+### Multi-Language Features
+
+**Primary + Secondary Language**
+- Set your primary language for main typing
+- Add a secondary language for automatic detection
+- Both dictionaries are evaluated simultaneously
+- Best prediction selected automatically per swipe
+
+**Smart Accent & Punctuation Insertion**
+- Automatic accent marks for languages that need them (café, naïve, señor)
+- Language-aware punctuation (Spanish ¿¡, French « », German „")
+- Proper handling of contractions across languages
+
+**Per-Language Dictionary Manager**
+- Separate tabs for each active language
+- View word frequencies and dictionary statistics
+- Add custom words per language
+- Import/export language-specific word lists
+
+### Creating Custom Language Packs
+
+You can create dictionaries for any language using the included Python scripts:
+
+```bash
+# Navigate to scripts directory
+cd scripts/
+
+# Install prerequisite
+pip install wordfreq
+
+# Option 1: Evidence-classifier build for a configured language (recommended)
+python build_wordlist.py --lang fr          # report mode: classification + review files
+python build_wordlist.py --lang fr --write  # regenerate fr_words.txt + CKDT binary
+python build_all_languages.py --lang fr     # + unigrams + langpack zip
+
+# Option 2: Raw wordfreq build for a language without a LANG_CONFIG entry.
+# --input is a WORD LIST, one entry per line (optionally "word<TAB|SPACE|,>frequency");
+# raw prose (e.g. a Wikipedia dump) is not tokenized — make a word list first.
+python get_wordlist.py --lang xx --output xx_words.txt --count 50000
+python build_langpack.py --lang xx --name "MyLang" --input xx_words.txt --use-wordfreq --output langpack-xx.zip
+
+# Option 3: Build from your own word list: one entry per line, either "word",
+# "word,frequency", "word<TAB>frequency" or "word frequency" (integer or decimal)
+python build_dictionary.py --lang xx --input my_words.csv --output my_lang.bin
+python build_langpack.py --lang xx --name "MyLang" --dict my_lang.bin --output langpack-xx.zip \
+    --license CC-BY-4.0 --attribution "My corpus, (c) Me, CC BY 4.0" --source https://example.org
+# (build_langpack.py refuses to build a pack whose data source it cannot name —
+#  pass --data-source for a known upstream, or --attribution/--license/--source for your own)
+
+# Option 4: Batch build every configured language (all except frozen en)
+python build_all_languages.py
+```
+
+**Script Details:**
+- `build_wordlist.py` — One-pass evidence classifier (all configured languages; per-language oracles/bands in its `LANG_CONFIG`)
+- `build_all_languages.py` — Orchestrates classifier → unigrams → langpack per language
+- `build_langpack.py` — Creates deterministic .zip language packs, with licence metadata + `NOTICE.txt` (`--repack` adds them to an existing pack without touching its payload)
+- `build_dictionary.py` — Builds the CKDT V2 binary dictionary from word lists
+- `get_wordlist.py` — Extracts top N words from wordfreq for a language
+
+Language packs are simple .zip files containing:
+- `dictionary.bin` — CKDT V2 binary dictionary (accent-normalization map + frequency ranks)
+- `manifest.json` — Metadata (language code, name, version, word count, the model block below, and `license` / `attribution` / `source`)
+- `NOTICE.txt` — Attribution, licence and change note for the pack's third-party word data
+- `unigrams.txt` — Top-5k word list for automatic language detection
+- `contractions.json` — Apostrophe/elision mappings (languages that use them)
+- `model.onnx` — CTC swipe encoder, for the non-Latin scripts only (ru, el, uk, bg, mk, he)
+
+(Older packs may also contain a `prefix_boost.bin`; the importer still accepts it, but nothing has read it since the neural engine was removed in v1.6.0, and new packs do not include one.)
+
+The six script packs carry their own swipe model. Those languages can only swipe-decode with
+their pack installed anyway, so shipping the graph in the APK cost every other user ~3 MB they
+could never reach. The app pins each model's SHA-256 and refuses to load a pack model that is
+not byte-identical to what it pins, so nothing untrusted is ever handed to the ONNX runtime; a
+mismatch is treated as "no model" and swipe falls back to the geometric engine.
+
+**Pre-built Language Packs:**
+Download from the [langpacks release](https://github.com/tribixbite/CleverKeys/releases/tag/langpacks), or grab them from [`scripts/dictionaries/`](./scripts/dictionaries/) when working from a checkout.
+
+<div align="center">
+
+#
+
+<img src="./docs/banners/social_preview.png" width="99%" />
+
+# 📖 Documentation
+
+</div>
+
+- **[User Guide Wiki](https://tribixbite.github.io/CleverKeys/wiki/)** — 46-page comprehensive documentation
+- **[Feature Specifications](./docs/specs/)** — Technical documentation for developers
+- **[Changelog](./CHANGELOG.md)** — Version history and release notes
+- **[Roadmap](./ROADMAP.md)** — Planned features and development path
+
+<div align="center">
+
+# 📚 Tech Stack & Open-source Libraries
+
+</div>
+
+- Minimum SDK level 24 (Android 7.0+)
+- [Kotlin](https://kotlinlang.org/) based — 100% Kotlin, zero Java
+- [ONNX Runtime](https://onnxruntime.ai/) — Microsoft's cross-platform inference engine
+- [Kotlin Coroutines](https://github.com/Kotlin/kotlinx.coroutines) — Asynchronous processing
+- [Flow](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/) — Reactive data streams
+- [Material 3](https://m3.material.io/) — Google's latest design system
+
+<div align="center">
+
+# 🔧 Building from Source
+
+</div>
+
+### Requirements
+- Android SDK Platform 34 (compileSdk 34; minSdk 24)
+- Gradle 8.10.2 (repository wrapper)
+- Kotlin 2.0.0
+- JDK 17
+
+### Commands
+```bash
+# Clone repository
+git clone https://github.com/tribixbite/CleverKeys.git
+cd CleverKeys
+
+# Debug build
+./scripts/gradle-guard.sh assembleDebug
+
+# Run tests
+./scripts/gradle-guard.sh runPureTests runMockTests
+
+# APK location
+# build/outputs/apk/debug/CleverKeys-v2.0.0-<abi>.apk
+```
+
+### Termux Users
+Use the included build script which handles ARM64-specific AAPT2:
+```bash
+./build-on-termux.sh
+```
+
+<div align="center">
+
+# 🧠 The ML Model
+
+</div>
+
+CleverKeys decodes swipes on-device with a CTC model:
+
+| Component | Details |
+|-----------|---------|
+| Architecture | Convolutional/recurrent encoder emitting per-frame character distributions |
+| Input | Swipe trajectory (x, y, velocity, acceleration) plus the live key geometry — the model is layout-agnostic |
+| Decoding | Pure-JVM Viterbi trie beam over the merged per-language lexicon |
+| Format | ONNX (cross-platform, optimized inference) |
+| Runtime | ONNX Runtime 1.21.1 with XNNPACK acceleration |
+| Total Size | 2.91 MB (encoder only — decoding is on the CPU, in Kotlin) |
+
+A layout-agnostic geometric (SHARK2-style) decoder requires no ML model and is used
+when CTC prerequisites are unavailable. Dictionary and letter-geometry requirements
+still apply; Bangla tap layouts do not yet establish Bangla swipe support.
+
+Training code, model architecture, and datasets: **[CleverKeys-ML](https://github.com/tribixbite/CleverKeys-ML)**
+
+<div align="center">
+
+# ☕ Buy me a coffee
+
+This application is completely free and open source. If you want to support continued development, you can send a donation via the methods below:
+
+| </br> ![Solana](https://img.shields.io/badge/Solana-9945FF?style=for-the-badge&logo=solana&logoColor=white) <br/> <br/> `triQem2gDXHXweNceTKWGfDfN6AnpCHmjR745LXcbix` <br/> <br/> |
+|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+
+</div>
+
+<div align="center">
+
+# ❤️ Credits & Acknowledgments
+
+</div>
+
+### Unexpected Keyboard
+CleverKeys began as a fork of [Unexpected Keyboard](https://github.com/Julow/Unexpected-Keyboard) by Jules Aguillon ([@Julow](https://github.com/Julow)). The original is an excellent, highly customizable keyboard with support for 100+ layouts.
+
+Our projects have since diverged significantly (~900 commits apart):
+- Complete rewrite from Java to Kotlin with coroutines and Flow
+- On-device gesture typing (CTC ONNX model + geometric decoder)
+- Full clipboard system (unlimited history, pinning, todos, tags, inline editing, regex search, media)
+- Offline GIF panel with FTS4 search
+- Multi-language simultaneous prediction with per-language dictionary management
+- Autocorrect with contraction support
+- About 7,000 automated tests: 3,687 pure JVM and 1,675 MockK tests, plus 1,646 instrumented tests run on Android 14–17 (API 34–37) emulators (counts of 2026-10-31)
+
+If you want a lightweight keyboard without gesture typing, we recommend the original Unexpected Keyboard.
+
+### Swipe Model Research
+- **[Neural Swipe Typing](https://github.com/proshian/neural-swipe-typing)** by [@proshian](https://github.com/proshian) — Initial architecture inspiration
+- **[How We Swipe](https://github.com/nicosio2/how-we-swipe)** — Research paper and dataset on swipe behavior
+- **[FUTO Swipe Dataset](https://huggingface.co/datasets/nicosio2/FUTO-swipe-dataset)** — Hugging Face dataset
+
+<div align="center">
+
+# ⭐ Star History
+
+<a href="https://star-history.com/#tribixbite/CleverKeys&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=tribixbite/CleverKeys&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=tribixbite/CleverKeys&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=tribixbite/CleverKeys&type=Date" />
+ </picture>
+</a>
+
+# 📢 Support
+
+</div>
+
+- **Issues**: [GitHub Issues](https://github.com/tribixbite/CleverKeys/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/tribixbite/CleverKeys/discussions)
+- **Security**: See [SECURITY.md](SECURITY.md)
+
+<div align="center">
+
+# ⚖️ License
+
+```
+CleverKeys - Gesture Keyboard for Android
+Copyright (C) 2024-2026 tribixbite
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+```
+
+Third-party notices: [`NOTICE`](./NOTICE); the licence texts it cites: [`LICENSES/`](./LICENSES/).
+Both are also in the app, under Settings → Help & FAQ → Open-source licenses.
+
+</br>
+</br>
+
+<em>Built with Kotlin, ONNX, and a commitment to privacy.</em><br/>
+<em>Developed in Termux on Android.</em><br/><br/>
+🦝✨
+
+</div>

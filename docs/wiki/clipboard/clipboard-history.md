@@ -1,0 +1,437 @@
+---
+title: Clipboard History
+description: Access and manage previously copied text
+category: Clipboard
+difficulty: beginner
+---
+
+# Clipboard History
+
+CleverKeys maintains a history of everything you've copied — text, images, videos, PDFs, and more — making it easy to paste items from earlier.
+
+## Quick Summary
+
+| What | Description |
+|------|-------------|
+| **Purpose** | Access previous clipboard items (text + media) |
+| **Access** | Swipe SW from Ctrl key, or add Clipboard to Extra Keys |
+| **Capacity** | Unlimited by default (History Limit 0); cap it at 1–500 entries in Settings > Clipboard |
+
+## Accessing Clipboard History
+
+### Method 1: Ctrl Key Swipe
+
+1. Find the **Ctrl** key on the bottom row
+2. **Swipe SW** (down-left) to activate `switch_clipboard`
+3. Clipboard history panel opens
+4. Tap any item to paste
+
+### Method 2: Extra Keys
+
+If you've added a clipboard key to Extra Keys:
+
+1. Tap the **clipboard icon** in your extra keys row
+2. History panel opens
+3. Tap item to paste
+
+### Method 3: Per-Key Customization
+
+You can assign clipboard access to any key's short swipe:
+
+1. Go to **Settings > Activities > Short Swipe Calibration > Customize Per-Key Actions**
+2. Select any key
+3. Assign `switch_clipboard` to a swipe direction
+
+## Using Clipboard History
+
+### Paste from History
+
+1. Open clipboard history
+2. **Tap** any item
+3. Item is pasted at cursor position
+
+### Edit an Entry
+
+Tap the **✏️ edit button** on a text entry to edit it in place, in the panel. Type with the
+keyboard as usual (swiped words, Delete word and the undo key work inside the editor), then
+save or cancel with the editor's buttons. An edit that would duplicate another entry, or empty
+it, is refused with a message.
+
+**Very long entries are edited a page at a time.** An entry longer than 20,000 characters or
+1,000 lines opens one page at a time, with **Page N of M** and previous / next buttons above
+the editor (hold a button to jump to the first or last page). Pages end at a line break or a
+word boundary where possible.
+
+- Edits are kept while you move between pages; **Save** writes the whole entry once, and
+  **Cancel** drops every page's edits.
+- Works on History, Pinned and Todos. Paste, copy and search still use the whole entry.
+- If the entry was changed or removed after you started editing, Save says so and writes
+  nothing.
+- Rows of very long entries show a shortened preview, so a huge clipping no longer freezes the
+  panel. Pasting it sends the full text, in chunks Android can carry.
+
+### Delete Item
+
+- **Text entries**: tap the **✏️ edit button** on the item — the delete row appears with the edit controls. Tap **🗑 delete** there.
+- **Media entries**: media can't be edited inline, so tap the **expand chevron** instead — the delete row shows directly on the expanded entry.
+
+Deleting from the Pinned or Todos tab removes the item from that tab only (the copies are independent).
+
+### Swipe to Delete
+
+Swipe an item **left or right** to delete it from the current tab. The item disappears at once and
+the results row shows **Deleted** with an **Undo** button for 5 seconds; tap **Undo** to bring it
+back. A short, quick flick also deletes; a swipe that goes less than about a third of the way and
+is released slowly springs back. Up-and-down drags still scroll the list, and taps and long-presses
+work as before.
+
+- Works on all three tabs and removes the item from that tab only, exactly like the delete button.
+- Not available in selection mode, while an item is being edited, or in the tag panel.
+- The delete happens for real when the 5 seconds end, or straight away when you close the panel
+  or the keyboard, switch tabs, change the search or filters, start selecting or editing, or swipe
+  another item.
+- TalkBack: each item offers a **Delete** action (in the actions menu) that works the same way.
+- Turn it off with **Settings > Clipboard > Swipe to delete clipboard entries**.
+
+### Long-Press to Copy
+
+Copy an item to the system clipboard without pasting it into the current field:
+
+1. Open clipboard history
+2. **Long-press** any item's text
+3. A "Copied to clipboard" toast confirms the action
+4. The text is now on the system clipboard — paste it in any app
+
+This is useful when you want to store text for use in another app without inserting it into the current text field.
+
+## Pin Items
+
+Keep important items from being removed:
+
+### Pin an Item
+
+1. Open clipboard history (History tab)
+2. Tap the item to expand it
+3. Tap the **📌 pin button**
+4. Item is added to the Pinned tab
+
+### Unpin Item
+
+1. Switch to the **Pinned tab** (📌)
+2. Expand the item and tap the **📌 pin button** to unpin
+3. Item is removed from Pinned tab
+
+Pinned items:
+- Appear in the dedicated Pinned tab
+- Don't auto-expire
+- Don't count toward history limit
+
+### Pinned Entry Shortcuts
+
+You can bind pinned clipboard entries to swipe gestures using the `paste_pinned_1` through `paste_pinned_5` commands. This lets you insert frequently used pinned text with a single swipe, without opening the clipboard panel.
+
+Entries are numbered by position (most-recently-pinned first):
+- `paste_pinned_1` inserts your most recently pinned entry
+- `paste_pinned_2` inserts the second, and so on up to `paste_pinned_5`
+
+To set this up, go to **Settings > Activities > Short Swipe Calibration > Customize Per-Key Actions**, choose a key and direction, select **Command**, and search for "paste_pinned". See [Per-Key Actions](../customization/per-key-actions.md#pinned-clipboard-actions) for full details.
+
+## Todo Items
+
+Mark clipboard items as to-do reminders:
+
+### Add to Todos
+
+1. Open clipboard (History or Pinned tab)
+2. Expand the item and tap the **✓ todo button**
+3. Item is added to the Todos tab
+
+### Mark as Done
+
+1. Switch to the **Todos tab** (✓)
+2. Expand the item and tap the **✓ todo button** to remove it from todos
+3. Item is removed from Todos tab (still in history)
+
+Todo items:
+- Appear in the dedicated Todos tab
+- Can also be pinned (both flags independent)
+- Useful for quick reference or follow-up
+
+## Reorder Pinned Items and To-dos
+
+Pinned items and to-dos stay in the order you give them. Each row on the **Pinned** and **Todos**
+tabs has a handle (two short bars) at its start:
+
+1. Touch the handle and, without lifting, drag the row up or down. The row lifts and a line shows
+   where it will land.
+2. Hold it near the top or bottom of the panel to scroll the list while dragging.
+3. Lift your finger to drop it. The new order is saved straight away: it is kept when the panel
+   closes or the keyboard restarts, and backups carry it.
+
+- **To-do status is not changed by moving.** Active, planned and completed to-dos share one order.
+  With the default filter (active only) you are ordering the active to-dos; hidden planned and
+  completed ones keep their places.
+- **While you search or use a tag, date, size or private-only filter**, the handle is dimmed and
+  reordering waits: touching it says *Clear the search and filters to reorder*. The status filter
+  does not pause it.
+- No handle on the History tab (it is ordered by time), in selection mode or while editing an item.
+- Long-press still copies and a sideways swipe still deletes; only a drag that starts on the handle
+  reorders.
+- TalkBack: each item's actions menu offers **Move up**, **Move down** and **Move to top**, and
+  announces the new position.
+
+## Media Clipboard
+
+CleverKeys automatically captures images, videos, PDFs, and other files you copy to the clipboard.
+
+### Supported Media Types
+
+| Type | Examples | Thumbnail |
+|------|----------|-----------|
+| **Images** | JPEG, PNG, WebP, GIF | Photo preview |
+| **Animated** | Animated GIF, animated WebP | First frame + play badge |
+| **Videos** | MP4, QuickTime | Video frame preview |
+| **PDFs** | PDF documents | First page preview |
+| **Other files** | ZIP, documents | MIME-type icon |
+
+### How Media Clipboard Works
+
+1. **Copy** an image/video/file in any app (Gallery, Chrome, Files, etc.)
+2. CleverKeys captures it automatically in the background
+3. A **thumbnail** appears in clipboard history
+4. **Tap** the media entry to paste it into the current app (via `commitContent`)
+
+### Media Paste
+
+- Media is pasted via Android's `commitContent` API — the receiving app must support it
+- Most messaging apps (Signal, Telegram, WhatsApp) and text editors support image paste
+- If the app doesn't support media paste, a "Cannot paste media here" message appears
+- **Long-press** a media entry to copy the media URI to the system clipboard
+- **Expand** a media entry (chevron) for the extra actions — pin, todo, tags, and **🗑 delete**. The stored media file is removed from disk once no tab still references it
+
+### Media Settings
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| **Save Media Entries** | Enable/disable media capture | On |
+| **Text Only** | Hide all media, show only text entries | Off |
+| **Max Media Size** | Skip copied media larger than this size (1-50 MB) | 10 MB |
+
+To access: **Settings > Clipboard section** (expand it). There is no separate clipboard settings screen.
+
+> [!TIP]
+> If you only want text in your clipboard and find media entries distracting, enable **Text Only**. It hides existing media entries from the panel and stops new media from being captured.
+
+## Tab System
+
+The clipboard pane organizes items into three tabs:
+
+| Tab | Icon | Description |
+|-----|------|-------------|
+| **History** | 📋 | Recent clipboard history (default) |
+| **Pinned** | 📌 | Items you've pinned for quick access |
+| **Todos** | ✓ | Items marked as to-do reminders |
+
+### Switching Tabs
+
+1. Open clipboard pane
+2. Tap the tab icon (📋, 📌, or ✓) in the header row
+3. Active tab is fully visible (alpha 1.0), inactive tabs are dimmed (alpha 0.5)
+
+### Item Actions by Tab
+
+| Action | History Tab | Pinned Tab | Todos Tab |
+|--------|-------------|------------|-----------|
+| **Pin button** | Pins item | Unpins item | Pins item |
+| **Todo button** | Adds to todos | Adds to todos | Removes from todos |
+| **Delete** | Removes from history | Removes from Pinned | Removes from Todos |
+| **Swipe left/right** | Removes from history (Undo 5 s) | Removes from Pinned (Undo 5 s) | Removes from Todos (Undo 5 s) |
+| **Paste** | Pastes to editor | Pastes to editor | Pastes to editor |
+| **Long-press** | Copies to system clipboard | Copies to system clipboard | Copies to system clipboard |
+
+Pin, todo, and tag buttons appear when an entry is expanded (tap the entry or its chevron). Delete lives behind the ✏️ edit button for text entries and behind expansion for media entries (see [Delete Item](#delete-item)). Any entry can also be swiped away (see [Swipe to Delete](#swipe-to-delete)).
+
+## Filter by Clipping Size and Work with a Batch
+
+Open the filter controls and choose minimum and maximum clipping sizes. Size filtering
+combines with the current search and other filters in the active History, Pinned, or
+Todos tab. An inverted range cannot be applied. Cancel leaves the previous range
+unchanged; clearing all filters also clears the size range.
+
+To delete, copy, merge or clean a batch, tap **Select** in the results row. Each entry gets a checkbox:
+tap an entry (or its checkbox) to select or deselect it. The selection bar offers:
+
+- **Select all matching** (checkbox icon) — adds every entry that matches the current
+  search and filters, on every page, not just the one you see. When all matches are
+  already selected, the same button deselects them.
+- **Clear selection** — deselects everything, including entries the current search hides.
+- **More actions** (⋮) — **Add to Pinned**, **Add to Todos**, **Merge** and **Clean**
+  (described below). A tab is not offered as a target for its own entries.
+- **Delete selected** (trash) — asks for confirmation, then deletes the batch.
+- **Exit selection** (✕) — leaves selection mode without deleting.
+
+The selection is kept while you change the search, the size range or other filters and
+the page, so you can build one batch from several searches — for example every clipping
+over 100 kB plus everything matching "log" — then deselect a few. The count ("N
+selected") stays visible. Long-press selects instead of copying while selection mode is on.
+
+The confirmation shows the number of clippings and their combined size before anything is
+deleted; Cancel keeps the selection. Only copies in the current tab are deleted — copies
+in other tabs remain there. A clipping edited or removed after you selected it is skipped,
+and the result line reports how many were deleted. Stored media is removed only when no
+tab references it.
+
+A selection belongs to one tab: the other tab icons are hidden until you exit, so one
+count and one set of actions are always in view. The selection is kept when you close the
+clipboard panel, hide the keyboard, rotate the phone, or switch to another field or app;
+reopening the panel goes back to that tab with the same entries checked (any that were
+deleted or edited meanwhile drop out). It ends only when you tap **Exit selection** or an
+action completes. If Android closes the keyboard in the background, the selection is lost.
+
+**Add to Pinned / Add to Todos** copy every selected entry, text or media, into that tab;
+the originals stay. Entries already there are reported, not duplicated, and the tab icon
+pulses.
+
+**Merge** creates one new History entry from the selected text entries, oldest first, one
+per line. Media entries are skipped, the originals stay, and the result must fit the
+maximum clipping size. The confirmation shows a preview. If any selected entry is private,
+the merged entry is private too.
+
+**Clean** tidies the selected text entries in place: it removes spaces and tabs at line
+ends and joins lines that were broken inside a paragraph (as text copied from a PDF or
+an e-mail often is), rejoining a word split by a hyphen at the line end. Blank lines,
+lists, short lines (such as addresses), links and code keep their line breaks. Only the
+entries in the current tab change, never their copies in other tabs. The confirmation
+shows how many will change and a preview; entries that need no cleaning are left alone.
+
+Size describes clipping payload bytes, rather than guaranteed disk space recovered.
+SQLite allocation and shared media can make the recovered space smaller. To clear
+Android’s current clipboard while keeping saved clippings, assign the separate
+**Clear system clipboard** command.
+
+## Pagination
+
+For large clipboard histories (>100 items), pagination improves performance:
+
+- Items are displayed 100 per page
+- Pagination bar appears at the bottom when needed
+- Shows current page / total pages (e.g., "1 / 6")
+- ◀ and ▶ buttons navigate between pages
+- **Search still searches ALL items** across all pages
+
+```
+┌─────────────────────────────────────┐
+│ [◀]         3 / 6              [▶]  │
+└─────────────────────────────────────┘
+```
+
+## History Panel Layout
+
+```
+┌─────────────────────────────────────┐
+│ 📋 📌 ✓  [Search...]  🔽  [▼]      │ ← Tabs + Search + Filter + Close
+├─────────────────────────────────────┤
+│ Recently copied text here...  [✏️ ▼]│ ← Text entry (edit + expand)
+│ [thumb] photo.jpg · 2h ago      [▼]│ ← Image entry with thumbnail
+│   └ expanded: [📌] [✓] [🏷] [🗑]    │ ← Actions shown on expansion
+│ [▶vid] clip.mp4 · Yesterday     [▼]│ ← Video entry with play badge
+│ Another clipboard item...     [✏️ ▼]│ ← Text entry
+├─────────────────────────────────────┤
+│ [◀]         1 / 3              [▶]  │ ← Pagination (if >100 items)
+└─────────────────────────────────────┘
+```
+
+## Privacy Features
+
+### Sensitive Flag (the reliable protection)
+
+On Android 13+, password managers mark copied credentials with the system
+`IS_SENSITIVE` flag. With **Respect Sensitive Flag** enabled (the default),
+CleverKeys never stores those clips. This works regardless of which password
+manager you use.
+
+### Password Manager Exclusion (best effort)
+
+**Exclude Password Managers** is a best-effort extra layer: it skips a copy only
+when Android reveals that a known password manager is in the foreground. That is
+rarely possible without usage access — which CleverKeys never requests — so don't
+rely on it alone; the sensitive-content flag above is the dependable mechanism.
+
+### Password Field Detection
+
+CleverKeys automatically detects password fields:
+
+| Behavior | Description |
+|----------|-------------|
+| **Don't save** | Password field text not saved to history |
+| **Mask display** | Sensitive items may show masked |
+
+## Tips and Tricks
+
+- **Pin frequently used**: Pin items you paste often
+- **Clear sensitive data**: Regularly clear history with sensitive info
+- **Quick access**: Add clipboard to Extra Keys for one-tap access
+- **Customize access**: Assign clipboard to any key via Per-Key Customization
+
+> [!TIP]
+> The Ctrl key's SW subkey is `switch_clipboard` by default on most layouts.
+
+## Settings
+
+| Setting | Location | Description |
+|---------|----------|-------------|
+| **Enable History** | Clipboard section | Turn history on/off |
+| **History Size** | Clipboard section | Maximum items to keep |
+| **History Duration** | Clipboard section | Auto-expiry (default: never) |
+| **Max Item Size** | Clipboard section | Per-item text size limit (64-1024 KB) |
+| **Save Media Entries** | Clipboard section | Enable/disable media capture |
+| **Text Only** | Clipboard section | Hide media, show only text |
+| **Max Media Size** | Clipboard section | Skip media larger than this (1-50 MB) |
+| **Pinned Tab** | Clipboard section | Show/hide the Pinned tab |
+| **Todo Tab** | Clipboard section | Show/hide the Todos tab |
+| **Exclude Password Managers** | Clipboard section | Best-effort skip of copies from known password managers (rarely detectable) |
+| **Respect Sensitive Flag** | Clipboard section | Honor Android 13+ IS_SENSITIVE (the reliable protection) |
+
+## Clear History
+
+To clear clipboard history, use the export/import features in Settings > Backup & Restore, or delete items individually (see [Delete Item](#delete-item)).
+
+## Common Questions
+
+### Q: Why don't I see clipboard history?
+
+A: Check that it's enabled in **Settings > Clipboard** section (expand it).
+
+### Q: How do I access clipboard quickly?
+
+A: Swipe SW (southwest/down-left) on the Ctrl key, or add a clipboard key to your Extra Keys.
+
+### Q: Why wasn't my copied text saved?
+
+A: It may have been from a password field, or marked sensitive by a password manager (Android 13+ `IS_SENSITIVE` flag, skipped by default).
+
+Copies made while the keyboard is hidden are saved as usual, as long as CleverKeys is your
+selected keyboard. If you copied something while another keyboard was selected, or while
+Android had closed CleverKeys in the background, it was not seen at the time. When the
+keyboard next opens, CleverKeys checks the current clipboard and saves that clip if it has
+not seen it before. Only the most recent copy can be recovered this way; earlier copies
+from that gap are lost. A clip you deleted from history, or one that was skipped as
+sensitive, is not added back.
+
+### Q: Can I recover deleted items?
+
+A: No, deleted items cannot be recovered. Pin important items.
+
+### Q: Why don't I see images in my clipboard?
+
+A: Check that **Save Media Entries** is enabled and **Text Only** is off in **Settings > Clipboard section**, and that the file is under your **Max Media Size** limit. The source app must also provide a content URI when copying (most apps do).
+
+### Q: Can I paste an image from clipboard into a messaging app?
+
+A: Yes — tap the image entry in clipboard history. It uses Android's `commitContent` API. The receiving app must support media input (most modern messaging apps do).
+
+## Related Features
+
+- [Text Selection](text-selection.md) - Select text efficiently
+- [Shortcuts](shortcuts.md) - Keyboard shortcuts for clipboard
+- [Privacy](../settings/privacy.md) - Privacy settings

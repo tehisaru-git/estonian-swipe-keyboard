@@ -1,0 +1,1267 @@
+{
+  "_about": [
+    "Per-locale product-term glossary, enforced by src/test/kotlin/tribixbite/cleverkeys/TranslationGlossaryTest.kt.",
+    "concepts.<c>.keys: string resources whose English text expresses concept <c>. For every locale that has a",
+    "locales.<l>.terms.<c> entry, each keyed string must contain at least one 'allowed' stem and no 'forbidden' stem.",
+    "Matching: NFC-normalized, lower-cased with Locale.ROOT, U+0307 (combining dot) dropped. A stem must start a",
+    "word (preceded by start-of-text or a non-letter/non-mark character) unless the locale sets matchAnywhere",
+    "(compounding languages and scripts written without spaces).",
+    "Stems were chosen from the DOMINANT established usage in each strings.xml (counts recorded in 'note') and,",
+    "where usage was genuinely split, from AOSP LatinIME's translation (see docs/i18n/2026-09-29-terminology.md).",
+    "Machine-derived: no entry here is native-speaker reviewed.",
+    "locales.<l>.register: the address register (formal/informal/neutral) and Java regexes for forms of the OTHER register; no string or plural item in that locale may match. Enforced by TranslationGlossaryTest.everyStringUsesTheLocalesAddressRegister; decisions in docs/i18n/2026-09-29-register.md."
+  ],
+  "concepts": {
+    "swipe": {
+      "keys": [
+        "settings_section_swipe_typing",
+        "swipe_enable_title",
+        "privacy_swipe_pattern_title",
+        "dict_word_too_long_for_swipe_title",
+        "input_backspace_undo_swipe_title",
+        "gesture_swipe_recognition_header",
+        "swipe_trail_enable_title",
+        "suggestion_prefer_when_swiping",
+        "suggestion_prefer_when_swiping_added",
+        "privacy_learned_source_swipe_corrections",
+        "privacy_learned_forget_body",
+        "privacy_forget_learned_body"
+      ]
+    },
+    "dictionary": {
+      "keys": [
+        "activities_dictionary_title",
+        "backup_section_custom_dictionary",
+        "import_preview_dict_title",
+        "suggestion_add_to_dictionary",
+        "suggestion_added_to_dictionary",
+        "suggestion_removed_from_dictionary",
+        "privacy_learned_forget_body"
+      ]
+    },
+    "suggestion": {
+      "keys": [
+        "theme_section_suggestion_bar",
+        "input_suggestion_bar_opacity_title",
+        "advanced_provenance_markers_title",
+        "accessibility_suggestion_tap_title",
+        "privacy_learned_source_selections",
+        "privacy_learned_forget_body"
+      ]
+    },
+    "learn": {
+      "keys": [
+        "privacy_on_device_learning_header",
+        "privacy_learned_data_header",
+        "learning_data_words_dialog_title",
+        "learning_data_phrases_dialog_title",
+        "input_personalized_learning_title",
+        "input_next_word_desc",
+        "privacy_forget_learned_title",
+        "privacy_learned_forget_body",
+        "privacy_forget_learned_body",
+        "backup_result_learned_data_incomplete"
+      ]
+    },
+    "clipboard": {
+      "keys": [
+        "settings_section_clipboard",
+        "clipboard_history_title",
+        "backup_section_clipboard_history",
+        "clipboard_sanitize_system_title",
+        "private_copy_expose_dialog_title"
+      ]
+    },
+    "layout": {
+      "keys": [
+        "layout_manager_title",
+        "activities_layout_title",
+        "pref_custom_layout_title",
+        "layout_manager_remove_title",
+        "layout_manager_editor_title",
+        "layout_manager_import_failed",
+        "layout_manager_export_failed"
+      ]
+    },
+    "gesture": {
+      "keys": [
+        "gesture_enable_short_title",
+        "gesture_short_gestures_header",
+        "settings_section_gesture_tuning",
+        "input_circle_gesture_title"
+      ]
+    },
+    "word": {
+      "keys": [
+        "learning_data_words_dialog_title",
+        "privacy_learned_forget_body",
+        "privacy_forget_learned_body"
+      ]
+    },
+    "correction": {
+      "keys": [
+        "privacy_learned_source_swipe_corrections",
+        "provenance_origin_typo_correction",
+        "privacy_learned_forget_body"
+      ]
+    }
+  },
+  "locales": {
+    "cs": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "tah",
+            "tažen"
+          ],
+          "forbidden": [
+            "swipov",
+            "tažení"
+          ],
+          "note": "psaní tahem / tah* in ~62 strings; swipování (3) and tažení (1) were 2026-09-26 outliers. AOSP says 'psaní gesty' but the file never uses it for swipe."
+        },
+        "dictionary": {
+          "allowed": [
+            "slovník"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "návrh"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "uč",
+            "nauč"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "schránk"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "rozložení"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "gest"
+          ]
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:tě|tebe|tobě|tebou|tvůj|tvoje|tvá|tvé|tvého|tvých|tvým|tvou|tvoji|tvému|tvojí|tvojí)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:můžeš|máš|chceš|musíš|jsi|potřebuješ|bys|vidíš|uvidíš|budeš|píšeš|zadáš|klepneš|přejedeš|zvolíš|nastavíš|smažeš|zkusíš)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:klepni|stiskni|přejeď|vyber|zapni|vypni|podrž|otevři|použij|zadej|zkus|přejdi|přidej|zkontroluj|nastav|uprav|přetáhni|ulož|odstraň|smaž|klikni|ťukni|zvol|zobraz|vrať|začni|aktivuj|povol|zakaž|spusť|změň|obnov|vytvoř|zkopíruj|vlož|označ|pusť|drž|vyzkoušej|ujisti se|pamatuj|vyplň|potvrď|zruš|ponech|nech|dotkni se|klepej|přejížděj)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "vy-register: 2pl imperatives ('Zadejte' 5, 'Vyberte', 'Nastavte', 'Ponechte', 'Zkuste', 'Importujte' …) and 'vaše/vaši/vám/vás', 'můžete/chcete' in 41 strings, zero 2sg (no -eš/-íš/-áš verbs, no tvůj/tě). The impersonal 'Klepnutím … přidáte' construction is also 2pl. 'ty'/'ti' are left out of the pronoun list because they double as demonstratives ('ty klávesy'). AOSP cs: vy ('můžete', 'Uložte', 'váš'). All three patterns are guards."
+      }
+    },
+    "de": {
+      "matchAnywhere": true,
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "wisch"
+          ],
+          "forbidden": [
+            "swip"
+          ]
+        },
+        "dictionary": {
+          "allowed": [
+            "wörterbuch",
+            "wörterbüch"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "vorschl"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "lern"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "zwischenablage"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "layout"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "geste"
+          ]
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:du|dich|dir|dein|deine|deinen|deinem|deiner|deines|deins|euch|euer|eure|euren|eurem|eurer)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:kannst|hast|bist|willst|möchtest|musst|solltest|wirst|brauchst|siehst|findest|tippst|wischst|nutzt du|kennst)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:tippe|tipp|wische|wähle|öffne|halte|drücke|aktiviere|deaktiviere|gib|ziehe|berühre|streiche|nutze|verwende|erstelle|prüfe|schalte|füge|lege|setze|gehe|klicke|probiere|versuche|bestätige|überprüfe|exportiere|importiere|lösche|speichere|wechsle|bearbeite|entferne|ändere|starte|kopiere|lass|sieh|schau) (?:auf|die|den|das|der|dem|ein|eine|einen|einem|einer|hier|zum|zur|im|in|an|es|sie|ihn|dieses|diese|diesen|erneut|zweimal|und|oder|nach|nicht|oben|unten|links|rechts|dein|deine|deinen|deinem|dir|dich)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "Sie-register throughout: 33 strings with mid-sentence 'Sie', 21 with 'Ihr/Ihre/Ihren'; imperatives are either 'Tippen Sie …' or the impersonal infinitive ('Zum Umordnen ziehen'). Zero du/dein/2sg-'-st' forms; the two counter hits ('Tipp-' in 'Tipp-, Wisch- und…', 'Wechsel' = noun) are false positives. AOSP LatinIME de uses du ('deinem', 'kannst', 'Aktiviere'), i.e. it DISAGREES, but AOSP is only a tie-breaker and the file is not tied (43:0). Pattern 3 (du-imperative + object) matched nothing before either, so all three patterns are diagnostic guards."
+      }
+    },
+    "es": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "desliz"
+          ],
+          "forbidden": [
+            "swip"
+          ]
+        },
+        "dictionary": {
+          "allowed": [
+            "diccionario"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "sugerencia"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "aprend"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "portapapeles"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "diseño",
+            "distribuci"
+          ],
+          "note": "established split (diseño 22 / distribución 8); not touched by recent strings — native review."
+        },
+        "gesture": {
+          "allowed": [
+            "gesto"
+          ]
+        }
+      },
+      "register": {
+        "register": "informal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:usted|ustedes|vosotros|vosotras|vuestro|vuestra|vuestros|vuestras)(?![\\p{L}\\p{M}])",
+          "(?:^|(?<=[.!?¡¿…]\\s)|(?<=\\n))(?:toque|pulse|deslice|seleccione|mantenga|abra|use|utilice|escriba|elija|introduzca|pruebe|vaya|haga|añada|agregue|compruebe|verifique|configure|arrastre|presione|suelte|guarde|importe|exporte|elimine|borre|habilite|deshabilite|consulte|revise|vuelva|intente|mueva|cambie|edite|empiece|comience|inicie|reinicie|restaure|restablezca|cree|copie|pegue|marque|desmarque|defina|establezca|active|desactive|deje) (?:el|la|los|las|un|una|para|aquí|de nuevo|dos veces|en|cualquier|su|sus|este|esta|esto|otra vez)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "tú-register: 'tu/tus' 24 strings, 2sg imperatives 'Toca' 10, 'Ajusta/Activa/Arrastra' 4 each, 'Introduce/Escribe/Crea' 3, 'quieres' 3, 'tú' 1, 'te' several; zero 'usted'. The 30 'formal' counter hits are all 3sg descriptions ('puede', 'necesita', 'debe'), nouns ('Toque de sugerencia', 'Ajuste de gestos', 'Toque y escritura', 'Doble toque en Mayús') or subjunctives ('antes de que comience la…', 'la próxima vez que se abra el teclado'): no usted-imperative exists. Because the usted-imperative equals the 3sg subjunctive and (for -ar verbs) a noun, pattern 2 is anchored at sentence start AND requires an instruction-shaped complement; a mid-sentence subjunctive or 'Toque de sugerencia' does not match. AOSP es: tú ('Toca', 'tus', 'puedes'). Both patterns are guards (0 pre-existing hits)."
+      }
+    },
+    "fa": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "کشید"
+          ],
+          "forbidden": [
+            "سوایپ"
+          ]
+        },
+        "dictionary": {
+          "allowed": [
+            "واژه‌نامه"
+          ],
+          "forbidden": [
+            "دیکشنری",
+            "لغت‌نامه"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "پیشنهاد"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "یادگیری",
+            "آموخته"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "بریده‌دان"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "چیدمان",
+            "طرح"
+          ],
+          "note": "established split (چیدمان 25 / طرح 6, e.g. pref_custom_layout_title); not touched by recent strings — native review."
+        },
+        "gesture": {
+          "allowed": [
+            "اشاره"
+          ]
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}‌])(?:تو|کن|بزن|بکش|برو|بده|بگیر|بنویس|بگذار|باش|بیاور|ببین|بردار|بساز|بمان|بپرس|نکن|نپرس|بخوان|بفرست|ببند|بیاب|بلرزان|نگه دار|نگهش دار|نده|نزن|نگیر|نرو|نباش|نگذار|نساز|فشار بده|لمس کن|ضربه بزن)(?![\\p{L}\\p{M}‌])",
+          "(?<![\\p{L}\\p{M}‌])(?:می‌توانی|نمی‌توانی|می‌خواهی|نمی‌خواهی|داری|نداری|هستی|نیستی|کنی|نکنی|بزنی|بکشی|بروی|شوی|بشوی|باشی|توانی|بخواهی|می‌کنی|نمی‌کنی|می‌شوی|می‌بینی|می‌زنی|خواهی کرد|خواهی دید)(?![\\p{L}\\p{M}‌])",
+          "(?<![\\p{L}\\p{M}‌])(?:دستگاه|صفحه‌کلید|واژه‌نامه|بریده‌دان|گذرواژه|تنظیم|داده)(?:ت|‌ات)(?![\\p{L}\\p{M}‌])"
+        ],
+        "note": "شما-register: 'شما' 13, 'خودتان' 2, 2pl verb forms in 104 strings ('کنید' 67, 'ضربه بزنید' 12, 'بگذارید' 5, 'بکشید' 5, 'کرده‌اید' 4, 'می‌خواهید' 3, 'ببینید' 3, 'بگیرید' 3, 'نمایش دهید' 9 …). 2sg (تو) forms in 10 strings, all bare imperatives: 'برو' (Go key), 'کپی کن', 'نشان بده', 'بنویس', 'بلرزان', 'یاد بگیر', 'نگهش دار', 'نپرس', 'وارد نکن', 'تصحیح کن'; no 2sg pronoun/possessive. AOSP fa: شما ('کنید' 10, 'شما' 6, 'ضربه بزنید'), and its Go key is 'رفتن' (values-fa/strings-action-keys.xml). All 10 corrected: user-addressed sentences to 2pl ('نشان دهید', 'بنویسید', 'تصحیح کنید'), device-directed or button strings to the file's impersonal/noun convention ('لرزش ایجاد شود' like the sibling accessibility_*_desc, 'کپی شود', 'وارد نشود', 'پرسیده نشود', 'نگه داشتن', 'یادگیری از تایپ من', 'رفتن'). Pattern 1 excludes 'بین' (between) and bare 'دار'; ZWNJ is treated as a word character so 'نگه‌داری' (maintenance) does not match 'داری'. Pattern 1 matched 10 strings before; 2 and 3 are guards."
+      }
+    },
+    "fil": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "swip"
+          ],
+          "note": "English 'swipe' (i-swipe / nag-swipe) is the established Filipino UI borrowing (83 strings)."
+        },
+        "dictionary": {
+          "allowed": [
+            "diksyunaryo",
+            "dictionary"
+          ],
+          "note": "'Dictionary Manager' is kept as an English screen name alongside Theme/Layout Manager (intentional borrowing); prose uses diksyunaryo."
+        },
+        "suggestion": {
+          "allowed": [
+            "mungkahi",
+            "suhest"
+          ],
+          "forbidden": [
+            "suggestion"
+          ],
+          "note": "genuinely split (mungkahi 10 / suhestiyon 11); AOSP LatinIME values-tl leans mungkahi (5/4). Recent privacy strings use mungkahi; the bar titles follow the neighbouring theme strings (Teksto/Background ng Suhestiyon) as \"Bar ng Suhestiyon\". English \"Suggestion Bar\" (4 strings) fixed 2026-09-29. Native review should pick one."
+        },
+        "learn": {
+          "allowed": [
+            "natutun",
+            "pagkatuto",
+            "matuto"
+          ],
+          "forbidden": [
+            "pag-aaral"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "clipboard"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "layout"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "gesture"
+          ]
+        }
+      },
+      "register": {
+        "register": "informal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:po|opo|kayo|kayong|ninyo|inyo|inyong|niyo)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "Informal ikaw/mo/iyong register (Filipino UI convention): 'iyong' 15+, 'mo' 10+, 'ka/kang' several, 31 strings; zero 'po/kayo/ninyo/inyo'. AOSP tl: same ('iyong' 11, 'ka', 'mo', 'kita'). Guard only."
+      }
+    },
+    "fr": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "gliss"
+          ],
+          "forbidden": [
+            "glissement",
+            "swip"
+          ],
+          "note": "noun glissé (72) vs glissement (10 outliers, normalized 2026-09-29); verb glisser/en glissant stays allowed."
+        },
+        "dictionary": {
+          "allowed": [
+            "dictionnaire"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "suggestion"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "appr"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "presse-papiers"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "disposition"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "geste"
+          ]
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:tu|toi|te|ton|ta|tes)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:peux|veux|dois|pourras|sais|souhaites|préfères|appuies|vas|fais|mets|prends|tiens|reviens|écris|sois|aie|voudrais tu|as-tu|peux-tu|veux-tu)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:appuie|glisse|sélectionne|choisis|maintiens|ouvre|saisis|essaie|essaye|vérifie|ajoute|clique|tape|relâche|déplace|commence|lance|réessaie|coche|teste|crée|bascule|restaure|réinitialise|active|désactive|utilise|importe|exporte|supprime|configure|règle|ajuste|enregistre|définis) (?:sur|ici|deux fois|à nouveau|de nouveau|puis|une touche|la touche|le bouton|n'importe|ton|ta|tes)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "vous-register: 'vous' 14, 'votre/vos' 25, -ez imperatives 40+ ('Appuyez' 7, 'Saisissez' 7, 'Importez' 4, 'Touchez' 3 …). No tu/ton/ta/tes/2sg forms. The 4 counter hits were 3sg descriptions ('Utilise des expressions courantes' = 'uses', 'Copie le texte' = 'copies') and the shell flag '--es'; -er-verb tu-imperatives are morphologically identical to 3sg, so pattern 3 only fires with an instruction-shaped complement (sur/ici/deux fois/…), never with a plain noun object. 'ton' is included although it can also mean 'tone' (0 occurrences today). AOSP fr: vous ('Appuyez', 'votre'). All patterns are guards (0 pre-existing hits)."
+      }
+    },
+    "hu": {
+      "matchAnywhere": true,
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "csúsztat"
+          ],
+          "forbidden": [
+            "húzás"
+          ],
+          "note": "csúsztatás (80) vs húzás (3 outliers, fixed 2026-09-29)."
+        },
+        "dictionary": {
+          "allowed": [
+            "szótár"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "javasl"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "tanul"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "vágólap"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "kiosztás"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "gesztus"
+          ]
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:te|téged|neked|veled|tőled|rólad|hozzád|nálad|tiéd|tied|rád|érted|benned|belőled|miattad|nélküled|általad)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])[\\p{L}]+(?:hatsz|hetsz|hasd|hesd|hatod|heted|hatnád|hetnéd|hatnál|hetnél)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:koppints|érintsd|húzd|csúsztasd|válaszd|válassz|kapcsold|engedélyezd|tiltsd|tartsd|nyisd|használd|írj|írd|adj|próbáld|lépj|menj|ellenőrizd|állítsd|állíts|módosítsd|igazítsd|engedd|mentsd|importáld|exportáld|töröld|tisztítsd|kattints|jelöld|nyomd|nézd|töltsd|vedd|kezdd|indítsd|hozd|hozz|másold|illeszd|tedd|emeld|győződj|ügyelj|tölts|frissítsd|mozgasd|válts|váltsd|keresd|légy|szerkeszd|aktiváld|kapcsolj|készíts|olvasd|tanítsd|gépelj|gépeld|csúsztass|érints|tudod|látod|törlöd|használod|kapcsolod|választod|beállítod|megnézed|tudsz|akarsz|szeretnéd|szeretnél|kérlek)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:eszközöd|eszközödet|eszközödön|eszközödre|eszközödről|készüléked|készülékedet|billentyűzeted|billentyűzetedet|billentyűzeteden|szótárad|szótáradat|szavaid|szavaidat|adataid|adataidat|kifejezéseid|kifejezéseidet|beállításaid|beállításaidat|kiosztásod|témád|gesztusaid|vágólapod|előzményeid|fiókod|nyelved|szöveged|profilod|neved|jelszavad|mintáid|szokásaid|stílusod|stílusodhoz|kedvenceid|beállításod|gépelésed|gépelésedből|gépelésedhez|szavadat)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "Ön-register: explicit 'Ön' 4, 3sg-imperative (Ön) forms 'Koppintson' 7, 'Húzza' 3, 'Hagyja' 3, 'Adja/Adjon' 4, 'Próbálja' 2, 'Kapcsolja' 2, 'Érintse' 2, 'Válasszon', 'Állítsa', 'Gépeljen', 'Csúsztasson', 'Rendelje', 'Töltse', 'Használja', 'Írjon' … (45 strings) plus '-hatja/-heti' potentials; te-register only in 2 strings: privacy_section_intro ('eszközödet', 'megnézhesd', 'exportálhasd', 'törölhesd') and privacy_delete_data_body ('törlöd'). Suffix scans over every word (-sz/-od/-ed/-öd/-d/-j/-hasd/-hesd) found no other 2sg form ('vagy' = or, 'kell' = impersonal must, 'majd', 'mind' are not verbs). AOSP hu: Ön ('Koppintson', 'Írjon', 'Állítson', 'Ön'). Both strings corrected (eszközét / megnézhesse, exportálhassa, törölhesse / törli). Pattern 2 and 4 matched the two strings before; 1 and 3 are guards."
+      }
+    },
+    "in": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "geser",
+            "menggeser",
+            "digeser"
+          ],
+          "forbidden": [
+            "usap",
+            "mengusap"
+          ],
+          "note": "geser (79) vs usap (1 outlier, fixed 2026-09-29)."
+        },
+        "dictionary": {
+          "allowed": [
+            "kamus"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "saran"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "dipelajari",
+            "pembelajaran",
+            "belajar",
+            "mempelajari"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "clipboard"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "tata letak"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "gestur"
+          ]
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:kamu|kau|engkau|kalian|dirimu|punyamu)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?!ilmu|tamu|jamu|temu|ramu|kamu)[\\p{L}]{3,}mu(?![\\p{L}\\p{M}])"
+        ],
+        "note": "Anda-register (Indonesian UI standard): 'Anda' in 29 strings, capitalised; zero kamu/-mu/kau. Pattern 2 catches the enclitic possessive -mu ('perangkatmu') with the common non-pronoun -mu words excluded; slang lo/lu/gue are not included because 'Lo-Fi'-style tokens would false-positive. AOSP in: Anda (11). Both guards."
+      }
+    },
+    "it": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "scorr"
+          ],
+          "forbidden": [
+            "swip"
+          ]
+        },
+        "dictionary": {
+          "allowed": [
+            "dizionari"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "suggeriment"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "appre"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "appunti"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "layout"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "gest"
+          ]
+        }
+      },
+      "register": {
+        "register": "informal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:tocchi|prema|scorra|selezioni|tenga|apra|digiti|scelga|inserisca|provi|vada|faccia|aggiunga|verifichi|configuri|trascini|rilasci|elimini|cancelli|rimuova|consulti|controlli|torni|riprovi|sposti|modifichi|avvii|ripristini|crei|incolli|imposti|mantenga|sollevi|lasci|scarichi|attivi|disattivi|abiliti|disabiliti) (?:il|lo|la|i|gli|le|l'|un|una|uno|per|qui|su|di nuovo|due volte|questo|questa|questi|queste|a|al|alla|in|nel|nella|sul|sulla)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:la preghiamo|la invitiamo|le consigliamo|le suggeriamo|gentile utente|se lo desidera|se vuole)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "tu-register: 2sg imperatives dominate (Tocca 7 sentence-initial, Abilita 13, Usa 8, Seleziona 8, Aggiungi 8, Inserisci 7 …), 'tuo/tua' 6, 'puoi/hai/vuoi' 8, 'tu' 1: 100 strings with tu-markers vs 0 Lei-imperatives. The 33 'formal' counter hits are articles at sentence start ('La password…', 'Le importazioni…') and 3sg descriptions ('può', 'ha', 'deve'). 'Lei/Suo/Sua' cannot be forbidden case-insensitively (lei = she, suo = its: 'delle sue parole' refers to the language pack), so the guard is the Lei-imperative list with an instruction-shaped complement ('attivi'/'usi' are excluded as adjective/noun collisions) plus courtesy formulas. AOSP it: tu ('Tocca', 'tuo', 'Vuoi'). Both patterns are guards."
+      }
+    },
+    "ja": {
+      "matchAnywhere": true,
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "スワイプ"
+          ],
+          "forbidden": [
+            "なぞり"
+          ]
+        },
+        "dictionary": {
+          "allowed": [
+            "辞書"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "候補"
+          ],
+          "forbidden": [
+            "サジェスト"
+          ],
+          "note": "候補 (26) vs サジェスト (1 outlier, fixed 2026-09-29); AOSP LatinIME ja also uses 候補."
+        },
+        "learn": {
+          "allowed": [
+            "学習"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "クリップボード"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "レイアウト"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "ジェスチャー"
+          ]
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?<!ま)(?<!で)(?:する|した|できる|できない|ない|だ|である|になる|される|れる|ある|いる|なる|しよう|だろう|しろ|するな)(?=[。！？])",
+          "(?:君|お前|あんた|きみ|おまえ|てめえ)"
+        ],
+        "note": "です/ます (polite) for every sentence: 'ます。' 87, 'ません。' 29, 'ください。' 18, 'です。' 16, 'ました' 11 (186 strings); dictionary-form labels ('設定を開く') are the normal neutral label style and are not sentences. The counter's 19 'plain' hits were the last kana of 'ください。' and 'でした。' (pattern refined with lookbehinds). 'あなた' (1 string) is acceptable polite usage; 君/お前 are the informal pronouns and are guarded. AOSP ja: です/ます ('ます' 33, 'ください' 5). Both patterns are guards."
+      }
+    },
+    "ko": {
+      "matchAnywhere": true,
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "스와이프"
+          ]
+        },
+        "dictionary": {
+          "allowed": [
+            "사전"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "추천"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "학습"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "클립보드"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "레이아웃"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "제스처"
+          ]
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?:한다|된다|있다|없다|이다|겠다|해라|하라|해 봐|해봐|하지 마|하지마|해 줘|해줘)(?=[.!?…]|$)",
+          "(?:하니|되니|있니|없니|이니|겠니|냐)\\?",
+          "(?<![가-힣])(?:너|너의|네가|너를|너에게|너한테|니가)(?![가-힣])"
+        ],
+        "note": "Polite (존댓말) throughout: sentence-final -습니다/-합니다/-됩니다 (150+), -세요 (28), -입니다 (12); no 반말 (-한다/-해/-야) and no 너. The counter's 24 'informal' hits were nouns ending in 자/어/지 (관리자, 언어, 페이지, 감지, 메시지) and '%1$d자'. Both 합쇼체 and 해요체 are polite, so mixing them is not a T/V error and is not flagged. AOSP ko: same (-습니다 15, -합니다 9, -세요 6). All three patterns are guards."
+      }
+    },
+    "lv": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "vilk"
+          ]
+        },
+        "dictionary": {
+          "allowed": [
+            "vārdnīc"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "ieteikum"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "apgūt",
+            "mācīš"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "starpliktuv"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "izkārtojum"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "žest"
+          ]
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:tu|tev|tevi|tevis|tevī|tavs|tava|tavi|tavas|tavu|tavā|tavus|tavām|tavos|tavās|tavai|tavam)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:vari|vēlies|varēsi|esi|gribi|redzēsi|zaudēsi|saņemsi|būsi|atradīsi|izvēlies|pieskaries|pārliecinies|atceries|ieskaties)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:nospied|velc|ievadi|mēģini|pārbaudi|iestati|atlaid|dzēs|notīri|sāc|maini|atcel|uzspied|turi|aizpildi|apstiprini|uzsit|piesit|izmēģini)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "jūs-register: 2pl imperatives in 46 strings ('Pieskarieties' 6+, 'Velciet' 5, 'Ievadiet' 4, 'Iestatiet', 'Atstājiet', 'Importējiet' …), 'jūsu/jums', 'varat/vēlaties'; zero tu/tavs/2sg. Latvian 2sg imperatives of many verbs equal the 3sg present ('atver', 'ieslēdz', 'noņem', 'izmanto' appear as descriptions), so pattern 3 lists only forms that differ from 3sg; 'atlasi' (noun: selection, 5 strings), 'skati', 'raksti', 'ieraksti' are excluded as noun collisions. AOSP lv: jūs ('varat', 'Ievadiet', 'Jūsu'). All patterns are guards."
+      }
+    },
+    "nl": {
+      "matchAnywhere": true,
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "veeg",
+            "vegen",
+            "geveegd"
+          ],
+          "forbidden": [
+            "swip"
+          ],
+          "note": "veeg/vegen (80) vs swipen (5 outliers, fixed 2026-09-29)."
+        },
+        "dictionary": {
+          "allowed": [
+            "woordenboek"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "suggesti"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "leer",
+            "leren",
+            "geleerd"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "klembord"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "lay-out",
+            "indeling"
+          ],
+          "note": "established split (lay-out 19 / indeling 11); not touched by recent strings — native review."
+        },
+        "gesture": {
+          "allowed": [
+            "gebaar",
+            "gebar"
+          ]
+        }
+      },
+      "register": {
+        "register": "informal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:u|uw|uzelf)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "je-register: 'je/jij/jou/jouw' in 26 strings, 'u/uw' 0. Dutch imperatives are identical in both registers, so the pronoun is the whole signal. AOSP nl: je ('je' 22). Guard only."
+      }
+    },
+    "pl": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "gest"
+          ],
+          "forbidden": [
+            "przesuw",
+            "przesunię"
+          ],
+          "note": "pisanie gestem / gest* is the swipe term (AOSP: 'pisanie gestami'); przesuwanie was a 2026-09-26 outlier (przesuń stays correct for cursor keys, which are not keyed here)."
+        },
+        "dictionary": {
+          "allowed": [
+            "słowni"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "podpowi"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "wyucz",
+            "ucz"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "schow"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "układ"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "gest"
+          ]
+        }
+      },
+      "register": {
+        "register": "informal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:pan|pani|państwo|pana|panu|panią|państwa|państwu|proszę|należy pan)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:możecie|macie|chcecie|musicie|jesteście|wasz|wasza|wasze|waszego|waszej|waszych|waszym)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "2sg ty-register (Polish software convention): 2sg imperatives in 166 strings (Usuń 14, Włącz 13, Wpisz 8, Wybierz 7, Dotknij 6, Przeciągnij 5 …), 'Twój/Twoja/Twoje' capitalised, 'możesz/chcesz/będziesz'; zero 'Pan/Pani/Proszę' and zero 2pl. AOSP pl: same ('Dotknij', 'Twój', 'możesz'). Both patterns are guards. 'Państwo' also means 'state'; not present."
+      }
+    },
+    "pt": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "desliz"
+          ],
+          "forbidden": [
+            "swip"
+          ]
+        },
+        "dictionary": {
+          "allowed": [
+            "dicionário"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "sugest"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "aprend"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "área de transferência"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "layout"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "gesto"
+          ]
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:tu|te|ti|contigo|teu|tua|teus|tuas|vós|vosso|vossa|vossos|vossas|convosco)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:podes|poderás|tens|queres|precisas|desejas|estás|deves|deverias|sabes|preferes|és|vais|fazes|tinhas|escolhes|importaste|exportaste|digitaste|iniciaste|tocaste)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "Brazilian você-register (3sg forms): 'você' 12, 'seu/sua/seus/suas' 23, 3sg imperatives 'Toque' 13, 'Digite' 5, 'Arraste' 4, 'Ajuste' 3, 'pode' 12, 'precisa' 4; zero tu/teu/2sg-'-s' forms (the single counter hit 'Copia o texto' is a 3sg description). Vocabulary is pt-BR (senha 21, tela 10, arquivo 15, aplicativo 6, salvar 3) with a few pt-PT leaks ('arranque', 'predefinido', 'guardar' 1) that are terminology, not register. 'Formal' here means the você/3sg form; pt-BR has no separate polite form in UI. Imperatives cannot be used as markers (tu-imperative = 3sg indicative for -ar/-er/-ir verbs, e.g. 'Copia', 'adiciona' appear as descriptions), so only pronouns/possessives/2sg verb endings are forbidden. AOSP pt (values-pt = pt-BR): você ('Adicione', 'seus', 'Você'). Both patterns are guards."
+      }
+    },
+    "ro": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "glis"
+          ],
+          "forbidden": [
+            "swip"
+          ]
+        },
+        "dictionary": {
+          "allowed": [
+            "dicționar"
+          ],
+          "forbidden": [
+            "dicţionar"
+          ],
+          "note": "comma-below ț/ș are correct Romanian; cedilla ţ/ş are forbidden."
+        },
+        "suggestion": {
+          "allowed": [
+            "sugest"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "învăța",
+            "învăț"
+          ],
+          "forbidden": [
+            "învăţ"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "clipboard"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "aranjament"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "gest"
+          ]
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:tu|te|îți|ți|ție|tine|tău|ta|tăi|tale|vouă|vostru|voastră|voștri|voastre)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:poți|vei|ești|vrei|dorești|vezi|găsești|știi|folosești|scrii|tastezi|atingi|apeși|alegi|activezi|dezactivezi|deschizi|introduci|încerci|adaugi|verifici|salvezi|ștergi|începi|creezi|setezi|editezi|muți|consulți|reîncerci|glisezi|copiezi|importezi|exporți|elimini|resetezi|confirmi|anulezi|lași|ții|introdu)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:atinge|trage|apasă|glisează|ține|lasă|tastează|scrie|încearcă|alege|selectează|activează|dezactivează|setează|deschide|folosește|adaugă|șterge|verifică) (?:pentru|aici|de două ori|orice|o tastă|și ține|lung|scurt|din nou|tasta|butonul|apăsat|valoarea implicită)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])[\\p{L}]{3,}ezi(?![\\p{L}\\p{M}])"
+        ],
+        "note": "Formal (dumneavoastră) register decided on unambiguous markers: 'dvs.' 13 strings, 'vă/dumneavoastră' 3, 'puteți/veți/doriți' 5, 2pl instruction imperatives ~45 ('Ștergeți' 7, 'Introduceți' 6, 'Atingeți' 5, 'Importați' 4, 'Folosiți' 5, 'Tastați' 5, 'Lăsați' 2 …, plus 'în timp ce scrieți/glisați/tastați') versus 2sg-only markers in 11 strings ('tastatura ta' 2, 'a-ți/-ți' 2, 'vrei să ștergi', 'să setezi', 'Vezi' 2, 'Elimini', 'glisezi', 'afișezi', 'limitezi') and 2sg instruction imperatives in ~15 ('Atinge pentru…' 9, 'Trage pentru' 4, 'Atinge aici', 'Dezactivează pentru', 'Lasă valoarea'). AOSP ro is formal everywhere ('Atingeți', 'Ștergeți', 'Anulați', 'dvs.'). Short command labels and setting summaries use the -ă/-ează form ('Adaugă', 'Șterge', 'Afișează 13', 'Activează 12'), which is morphologically identical to the 3sg indicative and is the file's label convention; those ~150 strings were NOT changed and are not matched by the patterns (pattern 3 only fires with an instruction-shaped complement). 26 strings (28 items incl. the layout_manager_hint plural) corrected to -ți forms / 'dvs.' / 'vă'. Pattern 4 is the generic 2sg '-ezi' ending (no Romanian noun in the file ends in -ezi). Patterns 1-4 matched 4, 6, 18 and 4 strings before the corrections."
+      }
+    },
+    "ru": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "свайп"
+          ],
+          "forbidden": [
+            "скольж"
+          ]
+        },
+        "dictionary": {
+          "allowed": [
+            "словар"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "подсказ"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "выучен",
+            "обучени"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "буфер"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "расклад"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "жест"
+          ]
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:ты|тебя|тебе|тобой|тобою|твой|твоя|твоё|твое|твои|твоего|твоей|твоих|твоим|твою|твоём|твоем|твоему|твоими)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?!лишь(?![\\p{L}\\p{M}]))[\\p{L}]+(?:ешь|ишь|ёшь|ешься|ишься)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:нажми|коснись|проведи|выбери|включи|отключи|выключи|удерживай|открой|используй|введи|попробуй|перейди|добавь|проверь|перетащи|отпусти|сохрани|импортируй|экспортируй|очисти|нажимай|смахни|начни|запусти|восстанови|создай|скопируй|вставь|отметь|задай|держи|потяни|сдвинь|проводи|выбирай|убедись|помни|заполни|подтверди|отмени|оставь|зайди|посмотри|обнови)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "вы-register: 2pl imperatives in 80 strings ('Введите' 8, 'Нажмите' 5, 'Выберите' 5, 'Перетащите' 5, 'Импортируйте' 4, 'Коснитесь' …), 'ваш/ваше/вами', 'можете'; zero ты/твой/-ешь/-ишь. Pattern 2 is the generic 2sg verb ending with 'лишь' excluded (the only common non-verb in -ишь); 'настрой' and 'удали' were dropped from the imperative list (noun 'настрой', past-tense reading). AOSP ru: вы ('Выберите', 'нажмите', 'можете'). All patterns are guards."
+      }
+    },
+    "tr": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "kaydır"
+          ]
+        },
+        "dictionary": {
+          "allowed": [
+            "sözlü"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "öneri"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "öğren"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "pano"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "düzen"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "hareket"
+          ]
+        },
+        "word": {
+          "allowed": [
+            "kelime"
+          ],
+          "forbidden": [
+            "sözcük"
+          ],
+          "note": "genuinely split (kelime 38 / sözcük 33); AOSP LatinIME tr uses kelime exclusively (15/0), so recent strings use kelime. Older sözcük strings left for native review."
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:sen|senin|sana|seni|seninle|sende|senden|kendin(?! yap))(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])[\\p{L}]*(?:ebilirsin|abilirsin|iyorsun|ıyorsun|uyorsun|üyorsun|eceksin|acaksın|malısın|melisin|misin|mısın|musun|müsün|mişsin|mışsın|muşsun|müşsün)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])[\\p{L}]+(?:diğin|dığın|duğun|düğün|tiğin|tığın|tuğun|tüğün|ceğin|cağın|eceğin|acağın)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])için[^.!?\\n]* (?-i:dokun|bas|yaz|gir|seç|sürükle|tut|bırak|kaydır|dene|tıkla|çek|basılı tut)(?:[.!…])"
+        ],
+        "note": "siz-register for text addressed to the user: 'dokunun' 10, 'girin' 5, 'kullanın' 5, 'yazın' 3, 'sürükleyin' 2, 'aktarın' 4, 'misiniz' 3, '-iniz/-ınız' possessives ('klavyeniz', 'kalıplarınız', 'Kopyaladığınız', 'aktardığınız', 'kendiniz') in 61 strings; 2sg 'sen/-sin/-diğin' 0 ('Kendin Yap' = the fixed term for DIY, excluded). Bare-stem imperatives in titles, buttons and setting summaries ('Sil', 'Tema Oluştur', 'Kaydırma İzini Etkinleştir', 'Klavyede GIF tuşunu göster', 'İmleci sola taşı') are the standard Turkish UI convention (AOSP tr: 'Hareket izini göster', 'Bölünmüş klavyeyi etkinleştir', but 'Kaydetmek için tekrar dokunun') and do not mark the T-register; they are untouched. The '-sin' words in the file are 3sg optatives ('silinsin', 'unutulsun'), not 2sg. One outlier corrected: gesture_double_space_period_desc 'boşluğa iki kez hızlıca dokun.' → 'dokunun.'. Pattern 4 catches an 'için …'-clause instruction that ends in a lowercase bare imperative plus a full stop (the '(?-i:…)' group is deliberately case-sensitive so Title-Case labels like 'Caps Lock için Shift'e Çift Dokun' are not flagged); it matched that one string before. Patterns 1-3 are guards."
+      }
+    },
+    "uk": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "свайп"
+          ],
+          "forbidden": [
+            "ковз"
+          ]
+        },
+        "dictionary": {
+          "allowed": [
+            "словник"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "підказ"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "вивчен",
+            "навчан"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "буфер"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "макет",
+            "розклад"
+          ],
+          "note": "established split (макет 26 / розкладка 4); not touched by recent strings — native review."
+        },
+        "gesture": {
+          "allowed": [
+            "жест"
+          ]
+        }
+      },
+      "register": {
+        "register": "formal",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:ти|тебе|тобі|тобою|твій|твоя|твоє|твої|твого|твоєї|твоїх|твоїм|твою|твоєму|твоїй|твоїми)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:можеш|хочеш|зможеш|бажаєш|побачиш|будеш|використовуєш|вводиш|натискаєш|пишеш|отримаєш|знайдеш|втратиш|маєш|мусиш|потребуєш|повинен)(?![\\p{L}\\p{M}])",
+          "(?<![\\p{L}\\p{M}])(?:натисни|торкнись|торкнися|проведи|вибери|обери|увімкни|вимкни|утримуй|відкрий|використовуй|введи|спробуй|перейди|додай|перевір|налаштуй|перетягни|відпусти|збережи|імпортуй|експортуй|очисти|почни|запусти|віднови|створи|скопіюй|познач|задай|тримай|потягни|посунь|проводь|вибирай|переконайся|заповни|підтверди|скасуй|залиш|зайди|подивись|онови|натискай)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "ви-register: 2pl imperatives in 74 strings ('Введіть' 8, 'Торкніться' 6+, 'Перетягніть' 5, 'Імпортуйте' 4, 'Задайте', 'Залиште' …), 'ваш/ваше/вами', 'можете'; zero ти/твій/-еш/-иш. The generic -еш/-иш ending is NOT used as a pattern because 'кеш' (cache) would match; 'зміни' (also noun 'changes'), 'видали' and 'встав' (past-tense readings) are left out of the imperative list. AOSP uk: ви ('Торкніться', 'Виберіть', 'ви'). All patterns are guards."
+      }
+    },
+    "vi": {
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "vuốt"
+          ],
+          "forbidden": [
+            "trượt"
+          ]
+        },
+        "dictionary": {
+          "allowed": [
+            "từ điển"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "gợi ý"
+          ]
+        },
+        "learn": {
+          "allowed": [
+            "học"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "bảng tạm",
+            "bộ nhớ tạm"
+          ],
+          "note": "established split (bộ nhớ tạm 17 / bảng tạm 11); not touched by recent strings — native review."
+        },
+        "layout": {
+          "allowed": [
+            "bố cục"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "cử chỉ"
+          ]
+        },
+        "correction": {
+          "allowed": [
+            "sửa lỗi"
+          ],
+          "forbidden": [
+            "sửa từ"
+          ],
+          "note": "the source label says 'Sửa lỗi vuốt'; the forget dialog's 'sửa từ vuốt' was aligned to it."
+        }
+      },
+      "register": {
+        "register": "neutral",
+        "forbidden": [
+          "(?<![\\p{L}\\p{M}])(?:mày|cậu|tớ|quý vị|quý khách|ngài)(?![\\p{L}\\p{M}])"
+        ],
+        "note": "'bạn' (33 strings) is the register-neutral standard for software; nothing else is used. The counter's 'Anh' and 'Bồ' hits are 'tiếng Anh' (English) and 'Bồ Đào Nha' (Portuguese). Kinship pronouns (anh/chị/em/ông/bà) are omitted from the guard because of those collisions; the guard only forbids the clearly wrong forms. AOSP vi: bạn (20) and 'mình' (reflexive). No rule strictly needed; guard is optional."
+      }
+    },
+    "zh-rCN": {
+      "matchAnywhere": true,
+      "terms": {
+        "swipe": {
+          "allowed": [
+            "滑动"
+          ],
+          "forbidden": [
+            "滑行"
+          ],
+          "note": "滑动 (86) vs 滑行 (1 outlier). AOSP LatinIME zh-rCN says 滑行输入, but the file is not split."
+        },
+        "dictionary": {
+          "allowed": [
+            "词典"
+          ],
+          "forbidden": [
+            "字典"
+          ]
+        },
+        "suggestion": {
+          "allowed": [
+            "候选"
+          ],
+          "forbidden": [
+            "建议栏"
+          ],
+          "note": "bar items are 候选/候选词 (15), bar is 候选栏 (3) vs 建议栏 (2 outliers, fixed). 建议 stays correct for the verb 'suggest'. AOSP uses 建议 for the abstract setting."
+        },
+        "learn": {
+          "allowed": [
+            "学"
+          ]
+        },
+        "clipboard": {
+          "allowed": [
+            "剪贴板"
+          ]
+        },
+        "layout": {
+          "allowed": [
+            "布局"
+          ]
+        },
+        "gesture": {
+          "allowed": [
+            "手势"
+          ]
+        },
+        "correction": {
+          "allowed": [
+            "纠正"
+          ],
+          "forbidden": [
+            "更正"
+          ],
+          "note": "纠正 (11) vs 更正 (1 outlier, fixed 2026-09-29). AOSP uses 更正, but the file is not split."
+        }
+      },
+      "register": {
+        "register": "informal",
+        "forbidden": [
+          "您"
+        ],
+        "note": "你 dominates: 25 occurrences in 21 strings vs 您 in 4 strings (short_swipe_instruction_body, theme_decorative_desc, test_keyboard_hint, clipboard_custom_rules_desc — the same 'batch' of strings that carries the odd register in ro/hu). Decision follows the dominant-usage rule; note that AOSP zh-rCN uses 您 (17) — the mainland Google convention — so if the maintainer prefers 您, the inverse edit is 21 strings and the forbidden pattern becomes 你. The 4 您 strings were corrected to 你."
+      }
+    }
+  }
+}

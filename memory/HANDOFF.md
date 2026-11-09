@@ -1,0 +1,873 @@
+# HANDOFF — updated 2026-10-31 (body last reconciled 2026-09-01; pruned 2026-10-23)
+
+**2026-10-31 pointer.** origin/main is `e3487b41` (everything through it pushed; the Persian
+work the 10-23 pointer below calls unpushed went out long ago). v2.0.0 is code-complete, not
+tagged; 2.0 now also carries on-device voice input with pause-based endpointing (`b243ce3d`,
+spec `docs/specs/voice-input.md`) and an in-app Open-source licenses screen (Settings → Help &
+FAQ; `legal/OpenSourceLicenses.kt`, assets generated from `NOTICE`/`LICENSE`/`LICENSES/` by
+`generateLicenseAssets`, pinned by `OpenSourceLicensesAssetDriftTest`). The release gate list is
+`docs/audit/2026-10-31-v2.0-release-readiness.md` (§5 + "Resolved"): every agent document item
+is done; what remains is the maintainer's soak sign-off (M1), the string-review decision (M2,
+todo 10) and the tag sequence (M4, with full pure/mock suites and an instrumented run at the tag
+commit). `metadata/fdroid/tribixbite.cleverkeys.yml` is now a verbatim copy of upstream
+fdroiddata (1.5.0, fetched 2026-10-31); checkupdates writes the 2.0.0 blocks and
+`CurrentVersion` itself — do not add them by hand. 2.1 roadmap: `memory/todo.md` "Open now"
+status block.
+
+**2026-10-23 pointer.** Persian, all local and NOT yet pushed (origin/main is `8039c6be`):
+half-space key right of the space bar on Persian PC (`9aac669d`, `PersianHalfSpaceKeyTest`);
+`langpack-fa.zip` from a Leipzig + wordfreq blend with a Lilak oracle (`479a7277`; 50,000 words,
+22.4 % with a half-space, `docs/eval/2026-10-23-fa-wordlist.md`); `WordChars` (U+200C is a word
+character only between Arabic-script letters), `ArabicScriptFold` (fa/ckb lookup fold) and
+`HalfSpaceVariants` in `e8f1d3ae` + `c87e2bfb` — `e8f1d3ae` was committed from an index read
+before `479a7277` landed and recorded the pack files as deleted; `4aa4f756` restored them
+byte-identical and history was NOT rewritten (lesson: CLAUDE.md "Shared git INDEX between
+sessions"); docs `ffed91ad`. Suites at `c87e2bfb`: pure 3,215 / mock 1,461. Same day: the
+2026-10-22 doc-freshness audit (scratchpad report, not committed) was acted on for the skills,
+CLAUDE.md, README and this file; two new skills, `theme-system.md` and
+`keyboard-tile-and-minimize.md`. Still waiting on the maintainer: the Persian device half
+(todo 2), the string review (todo 10), and the items below.
+
+**2026-10-22 pointer.** New: settings search lands on the revealing switch for a hidden
+setting (`fb3695b8`, 56 gated controls; device PASS on the Pixel); the tile needs NO overlay
+permission to summon a hidden keyboard (`be586c84`, todo 15 — only roadmap 4.3's floating
+button, docketed for a later release in `7e010989`, needs it); Hebrew prefix typo device PASS
+(todo item on line "(1) Hebrew prefix typo"); Persian research for todo 2 (`9ed56564`);
+translation audit + `TranslationFormatParityTest` (`0a8fc939`, `4b99f15d`); release record and
+CHANGELOG caught up and the release skill documents the record (`40e4014f`, `643cd3bb`).
+Waiting on the maintainer: the Persian decisions (todo 2), the string review (todo 10, with the
+audit's leads), and whether to add this release-docs line to the manual checklist's Sign-off
+(the checklist is the maintainer's file, so it was not edited):
+`- [ ] Release docs: docs/RELEASE_RECORD.md v2.0.0 covers every claim in fastlane 200002.txt and
+CHANGELOG 2.0.0; ReleaseRecordDriftTest and ReleaseMetadataDriftTest green. At tag time: publish
+date in the header, v2.0.0 out of PENDING_RELEASES, hash into versionBlockSha256
+(.claude/skills/release-process.md § Release Record).`
+
+**2026-10-21 pointer.** Everything through `a05ce50f` is PUSHED (maintainer authorized pushes
+2026-10-21); CI green at `fd7a4155` including the Security Scan (vite CVE fixed in `5bdf60ad`).
+New: #175 clipboard swipe-to-delete with a 5 s Undo (`2787468d`, History tab device-checked);
+Short-Swipe Reset-all label redraw (`9c909048`); prefix-length eval (todo 16, default 0 stays);
+Termux D2 / Termux undo / Compose-field editor commands device-checked (todo 1, 5, 7). Lesson:
+IME-side InputConnection results are IPC success, never the editor's answer (CLAUDE.md).
+Later on 10-21: audit LOW rows L2–L16 merged (`39fea185`…`e998f35d`, upgrade-install smoke on the
+Saga); Starting Letter wording shipped (`63b1731a`). The scheduled UI-test run hung on API 24
+(emulator, 1 h 42 min); cancelled, a 30-min job timeout added (`4c3673da`), manual re-run
+39607105887 green (API 24 in 2.5 min). That workflow runs on PRs, a 06:00 schedule and manual
+dispatch only — a push does not re-run it.
+Waiting on the maintainer: Persian half-space plan (todo 2, `docs/research/2026-10-21-persian-zwnj.md`),
+overlay-permission summon (todo 15), the string review (todo 10).
+
+**2026-10-20 pointer.** (Local `main` reached `3e863819`, 79 commits past the then
+origin/main `a40ce7d0`; all of it was pushed on 10-21, see above.) New since 10-18:
+- **Autocorrect ranking is now the noisy-channel rule** (default since `353003c6`; weights from
+  pre-registered rounds 1–5, `docs/eval/2026-10-18-channel-autocorrect-ranking.md`): shipped
+  s₁ 2 · g 1.5 · g₂ 1.0 · τ 1.2 · λ 0.005 · β 0.25 · γ 1 · Hebrew-scoped δ 0.5 · κ 3.0. Every
+  weight is a setting (Auto-Correction → Ranking & Tuning; `autocorrect/AutocorrectTuning.kt`
+  `Keys` is the single key/default/range definition). The band ranking stays selectable. All
+  four corpora's DEV/TEST halves and the three Hebrew rank bands are now SEEN; any further
+  round needs fresh data. Verified: pure/mock/full instrumented (1,606, API 34) green at
+  `4d1e8c10`; Saga device typing pass `build/oct20b-saga/`.
+- **Foldable inner-screen height** (`a6f870d6`, spec `docs/specs/foldable-keyboard-height.md`):
+  an unset inner-screen height follows the outer one; two new Appearance sliders. Not yet
+  device-checked (no foldable test phone; disabled-state rendering pending).
+- `#99` CSV word lists (`b5772e87`).
+- **Merged 2026-10-20 afternoon** (all on local main, suites green, instrumented 1,607/1,607 at
+  `4f70eb7e`): #154, #139, #190, #187, #147/#87, swipe typing into inline fields (`c4152999`),
+  QS tile show/minimize (`f47d5f3f` + `4f70eb7e`; a third round fixes the home-screen state),
+  code-quality fixes (todo 13c). Device passes on the first Saga: inline-field swipe, #147,
+  #190, foldable sliders, tile in a native field.
+- **Agent branches: all merged** (worktrees under `.claude/worktrees/`). They went in by
+  cherry-pick, so `git log main..<branch>` still lists commits; `git cherry -v main <branch>`
+  marks each one already on main except two whose picks resolved conflicts (#187 `30f205d9`, the
+  #147 docs row `2f67a7b0`; `git range-diff` shows only test-list context differing).
+- **Evening 2026-10-20** (todo 13c has the evidence): device passes on the Saga for the tile
+  (home-screen picker), #139, #154 and #187. The #139 check found that the Enter key kept the
+  FIRST field's action label everywhere (LayoutModifier cache keyed on Config.version, which a
+  field start never bumps) — fixed `ea88d975`. H2 (two theme maps; Monet (Auto) magnifier dark
+  in light mode) fixed `ddac0605`, and the magnifier's white direction names `22b35f71`.
+  Then the settings-slider off-by-one (about 40 sliders; `SettingsSlider` takes an increment,
+  `e7c94474`) and the private-copy defaults (`cf395b12`). Suites: 3,141 pure / 1,368 mock green
+  at `e7c94474`; instrumented 1,607/1,607 on `bf4fbde4` (`~/ew-output/oct20-final/`), not
+  re-run for the last two commits.
+  Pixel: no Hebrew layout enabled any more, so the `לןא`→`ללא` device check waits on the
+  maintainer re-adding one.
+- GitHub reconciliation (read-only audit of all 64 issues + 6 PRs, 2026-10-20) is summarised in
+  `docs/audit/gh-issue-resolution.md` "2026-10-20 reconciliation".
+- Devices: home Wi-Fi only (the phone was on Android Auto Wi-Fi mid-day 10-20). Maintainer:
+  leave CleverKeys as the DEFAULT keyboard on test phones; any phone but the Seeker (PIN lock).
+
+**2026-10-18 pointer.** HEAD `05a36547` plus the docs commit that follows it is pushed and equals
+origin/main; pushes are authorized (2026-10-07), tag/version bump/release/GitHub posts are not.
+The prioritized, owner-tagged open list lives at the top of [`memory/todo.md`](todo.md) ("Open
+now", 20 items) and is authoritative; this file is the **reference** for state, evidence and
+rules. The sections below are dated 2026-09-01..09-30 and were not re-verified on 2026-10-18: an
+item that is still open here also appears in todo.md's "Open now" (e.g. the native-speaker string
+review, i18n device checks, the `finger_occlusion_offset` decision, es LM); anything not listed
+there was closed by the October commits recorded in todo.md's history — 2026-10-07/08 sections
+and "Done 2026-10-10 → 10-17" (theme binding, style layouts, editor commands, blind fields, DD-M
+autocorrect, pack-swap safety; user-visible summary in CHANGELOG.md's 2.0.0 section).
+
+Read this first, then `docs/specs/ctc-architecture-and-multiscript-guide.md` (architecture,
+routing rule, multi-script recipe, full audit table). Where they overlap, the guide wins on
+technical detail and todo.md's "Open now" on priority.
+
+**Completed work is DELETED from this file, not struck through.** Git history is the record of
+what was done; this file is only what is left.
+
+## State after the 2026-08-30..09-02 full-backlog campaign (all pushed through `e87c5b97`+)
+
+### 2026-09-10 Java-heap OOM: retention cause reproduced and mitigated
+
+- **Full audit & root-cause report:** `docs/audit/2026-09-10-memory-oom-root-cause.md`. Pure-Python HPROF analyzer: `tools/hprof_analyzer.py`.
+- **Proven emulator root:** native global → WindowOnBackInvokedDispatcher callback wrapper →
+  CallbackRef.mStrongRef → InputMethodService callback → destroyed CleverKeysService.
+  Two retired services retained **82,002,810 bytes** through that root. They still owned
+  their old CTC adapter/tries and the unused Keyboard2View predictor reference.
+  [Corrected pre-fix run](https://emulator.wtf/o/64da92b3-67fb-427a-b56d-11e62fff8751/r/7d1a7a62-152d-4577-9ce9-0aaed3f9ef5d),
+  report `build/memory-shark-corrected.txt`, heap under `build/ew-memory-corrected/`.
+- **Fix:** Keyboard2View no longer stores its unused Predictor argument; InputCoordinator
+  shutdown is terminal, detaches both adapters, clears swipe capture, and guards delayed
+  warm-up, cursor, fallback and result callbacks. Running workers retain their own adapter
+  until they finish; no main-thread clearing of a worker's mutable trie. Native shutdown's
+  existing 250 ms safety timeout is unchanged. Canonical lifecycle: `docs/specs/ctc-swipe-engine.md`.
+- **Post-fix proof:** the SAME native callback root still retains two retired services, but
+  their retained bytes drop to **1,107,881 total** (~554 kB each), from ~41 MB each.
+  [Fixed run](https://emulator.wtf/o/64da92b3-67fb-427a-b56d-11e62fff8751/r/4e41ac4a-1b68-4e2b-980d-c838189bfb60)
+  passed the new 16 MiB recreation-growth gate. Java bytes first show 60,197,712 →
+  replacements 1..5: 60,817,656 / 61,387,328 / 61,906,040 / 62,434,408 / 62,997,400;
+  all five retired services still alive, so this verifies disposal independently of GC.
+  15-second swipe held 63,038,520 → released 63,094,784. Report `build/memory-shark-fixed.txt`;
+  raw XML/logcat/heap under `build/ew-memory-fixed/` (ignored, synthetic emulator data only).
+- **Validation:** guarded debug app/test builds and Kotlin compilation passed;
+  runPureTests **2,371** and runMockTests **730** passed (7m total). MockK emitted four
+  backing-field warnings in existing SuggestionTapAddAndIWordTest stubs (String versus
+  StringBuilder); no assertion failures. The fixed cloud log confirms all six English
+  trie builds completed, so the recreation memory gate did not pass by skipping loading.
+  `git diff --check` passed. Independent delegated review found no blocking issue.
+- **Phone evidence / remaining verification:** Samsung SM-S938U1 v2.0.0/200002 OOM at
+  11:25:54 (PID 8348) exhausted its 256 MiB Java heap; allocation failed in keyCellIsEmpty,
+  not a swipe-path owner census. Later PID 28699 logs onDestroy/onCreate at 13:18:54 with
+  init.enter already 242.5 MiB, another OOM during dictionary/CTC rebuild at 13:19:04–05,
+  then GC freed 111 MiB at 13:20:05. Latest sampled Java alloc 197,332 KiB (~192.7 MiB),
+  PSS 342,383 KiB. User reports the issue on screen-on. This matches recreation retention,
+  but the exact native root has not been captured on the phone. No app installation,
+  settings changes, or restarts performed; ADB disconnected again during the latest round.
+  TODO: test a release build on the phone after explicit install/restart authorization.
+- Installed APK equals local arm64 release byte-for-byte, SHA-256
+  `ed953fad6d8f3d74d1cd45031e1ed3c4235ad5f589e7ce7b879a6e038d1a6ffd` (pre-fix).
+  Logs/package/APK retained under `build/memory-phone-*`. am dumpheap denied (non-debuggable);
+  Perfetto attempt returned a 786-byte trace without heap graph. Last ADB serial 100.82.17.127:38893.
+- **Logging/swipes:** LOCAL_BUILD=true enables verbose release logging; debug always enables
+  it. All cloud runs had logging enabled. Isolated EN+IT predictor/CTC retained ~87 MiB;
+  100 additional decodes added 2,424 bytes. Ordinary show/hide and a 15-second swipe were stable.
+  Logging alone / growing swipe paths are NOT supported explanations for the phone's heap.
+- **Probe correction:** first recreation results were contaminated by a Java-local root
+  on the instrumentation thread. Service and weak-reference reads were moved onto main,
+  returning primitives; the corrected dump then proved the distinct native callback root.
+  Do not use the first report `build/memory-shark-analysis.txt` as app-leak proof.
+- **2026-09-10 audit follow-up:** fixed primary/secondary task lifetime and guarded
+  publication, staged custom/casing/alias metadata, terminal predictor disposal,
+  cooperative binary/CTC parsing, and both height helpers' unclosed fold listeners.
+  The helpers reuse the service tracker already closed by CleanupHandler. Audit now
+  distinguishes proven emulator roots from phone inference and removes unsupported
+  bilingual budgets/census and the obsolete static OptimizedVocabulary proposal.
+  Guarded app/test compilation + 2,377 pure / 731 mock tests passed (4m55s).
+  Cloud run `e401aeb0-a5c7-44d9-8db6-e390b1abc031`: four tests passed; ten retired
+  owners had zero stale callbacks, live replacement loaded 98,140 words; five service
+  replacements added 2.67 MiB; bilingual decode heap stayed ~87 MiB. Logs under
+  `build/ew-memory-audit-fixes/`; full detail and limitations in the audit report.
+- **v1.5 comparison (2026-09-11):** tagged old neural engine used a static
+  SwipePredictorOrchestrator owning OptimizedVocabulary; cleanup preserved that
+  singleton/vocabulary. New CTC tries are per adapter/service, so the pre-fix retained
+  adapter reference duplicated swipe payload across retired services. Several smaller
+  lifecycle bugs already existed in v1.5. No matched old/new phone heap A/B exists;
+  bounded process-wide reuse remains an optional optimization, not a proven requirement.
+- Framework still temporarily retains lightweight service/view objects (~0.5 MiB/service);
+  the mitigation releases heavy dictionaries, not Android's native callback itself.
+- **Authorization:** maintainer grants permanent ongoing emulator.wtf APK upload approval
+  (captured in CLAUDE.md); do not re-ask for routine rebuilt diagnostic/test runs.
+  PAL external consultation was rejected by auto-review; independent local delegated review
+  completed and approved the targeted teardown diff. No release/tag/push authorization granted.
+
+**The executable backlog is CLEARED.** Every ARC item that did not require maintainer input is
+closed — see `docs/audit/2026-08-28-archive-verification.md` (waves R1/R2/R3, D, G, J, K
+sections; every closure cites its commit) and `docs/plans/2026-08-30-full-backlog-campaign.md`
+(final wave table). Highlights: ARC-001..102 resolved or dispositioned except the
+maintainer-gated set below; el wired (langpack-sourced, synthesis-holdout tier, unannounced);
+21-locale ARC-067 complete with lint-enforced coverage (zero MissingTranslation suppressions);
+ARC-072 slices 1-3 done (`wiring/KeyboardComponentGraph`, root 158→101); French verb
+inversions shipped PAIRED-only; geo OQs closed as measured declines with re-runnable sweeps;
+uk/bg/mk/he langpacks built (ARC-056) and their CTC wiring landed 2026-09-03 (`1b17c318` —
+all six table scripts ROUTED).
+
+**Verification**: `runPureTests` **2104+**, `runMockTests` **343**, lintDebug/lintVitalRelease
+green (release lint enabled and exercised); Wave J full ew-cli run **1,466 tests** — only the
+2 permanent bench reds remain (3 first-run reds were all TEST bugs, fixed `86d77a16`, zero
+production bugs); Wave K Saga device pass complete
+(`docs/eval/2026-09-02-wave-k-device-verification.md`): ARC-070 closed no-leak, warm-up
+non-issue (61 ms), #79 non-reproducing, decode e2e verified, restore verified. Fresh verbose
+release v1.6.0 (sha `6894b2cc…`) is INSTALLED on the Saga awaiting the maintainer soak.
+
+**Rounds 9-10 (2026-09-09/10) — v2.0.0 prepped + APK diet 44.2 → 21.27 MB arm64.**
+Re-versioned 1.6.0→2.0.0 (maintainer call); release notes announce uk/bg/mk/he +
+Android 7+ (493B fastlane ×3); NO fdroiddata MR needed (tree made scanner-clean:
+11 wordlists deleted per PROVENANCE refetch procedure, web-demo vocab base64'd).
+Privacy & Data overhauled (collection toggle was gated on a hidden dev flag — fixed
++ drift-pinned; n-gram stores surfaced; intro reworded ×22 — on-device training is
+IMPOSSIBLE in shipped ORT, verdict recorded). APK diet: marketing art was PACKAGED
+(6.4MB), noCompress waste, legacy JNI packaging, resConfigs 85→21, logo 44dB-PSNR
+recompress (original in art/), SwipeMLTrainer deleted, six script encoders moved
+into their langpacks with in-app sha256 pins (CtcScriptSupport.ScriptWiring).
+**Round 11 (2026-09-24) — learning-consent migration (maintainer chose "C + both riders").**
+Context: the maintainer feared pre-2.0 learned data (word freq, bigrams) was collected
+ungated. The v1.5.0 code audit showed otherwise — both stores sat behind LABELED,
+user-visible switches ("Context-Aware Predictions — learn from typing patterns",
+"Personalized Learning"), default ON, on-device only; the ONLY genuinely ungated store
+was selection history (recorded even with learning off, v1.0–v1.5; write+read gating
+fixed in the 2.0 tree). Decision: no dialog/banner (the Privacy section's counts under
+the toggles ARE the disclosure), no headline framing; plus two riders, shipped in
+`350f11b0`: (1) `Defaults.ON_DEVICE_LEARNING_ENABLED=false` — opt-in on FRESH installs;
+upgrades seeded explicit `true` via Config.migrate v4 (CONFIG_VERSION 3→4; fresh-vs-
+upgrade = `prefs.contains("version")`); (2) one-time selection-history wipe on upgrade
+(`selection_history_reset_pending` INTERNAL_KEYS flag, consumed by
+UserAdaptationManager.consumePendingReset). Settings-reset now lands learning-OFF by
+design. Decision rules in `LearningMigration` (Config.kt), matrix-tested in
+LearningMigrationTest; full pure suite 2,377 green. NOTE FOR TAGGING: commits landed
+after the 09-13 soak sign-off (GPT-6 memory fixes + this migration) — a short smoke
+pass on a fresh build before tagging is the maintainer's call.
+
+**ALL tag blockers DISCHARGED (2026-09-21): (1) soak completed per the checklist
+(bb232465, 2026-09-13); (2) langpacks re-upload done 2026-09-10 and independently
+VERIFIED 2026-09-21 (all six release assets byte-size-identical to the committed zips;
+langpack-ru.zip sha256 hash-compared identical); (3) first-ever device pass of the three
+owed classes on Pixel7/API34 — CtcEmissionModelParityTest + CtcMultiLanguageInstrumentedTest
+green (ew run 17e7abc9), CtcImportedPackInstrumentedTest 12/12 (ew run 39a11493) after its
+rotation fixture learned to carry the real pinned encoder (32f3e554). Also 2026-09-21:
+the auto-close stale bot REMOVED from community-health.yml; nine bot-closed-but-resolved
+issues reopened for the maintainer's manual close-as-completed (#67 #99 #130 #134 #141
+#146 #148 #149 #154; #158/#89 deliberately closed, #128/#133/#137/#140/#143 are unbuilt
+feature asks and stay closed); FAQ corrected for pack-carried encoders + the re-import
+requirement. The v2.0.0 tag then waited only on the maintainer's word; the October work that
+followed re-opened the gates listed in `memory/todo.md` "Open now" items 8–12 (soak of the
+current build, pre-tag checks, string review, GitHub triage, targetSdk).**
+Final gates 2026-09-10: 2,371 pure / 730 mock / lint 0.
+
+**Round 8 (2026-09-08) — ALL five maintainer forks implemented per decisions** (D-1
+reword / G-3 import-wins+preview / F-8 surface-except-error-collection / H-4 all nine
+theme fields wired / I-7 once-per-boot+opt-out) **plus the UserDictionaryObserver case
+bug fixed comprehensively** (both parse paths + incremental original-case delivery).
+Commit map in the audit doc's "Maintainer forks — ALL RESOLVED" section. Remaining from
+round 8: device-visual pass on a custom theme (adb/ew-cli, pure-tier only so far); the
+one accepted corner (case-only respelling, unchanged freq → next full load) is pinned.
+
+**Round 7 (2026-09-07) — comprehensive-audit remediation COMPLETE.** All 69 findings of
+`docs/audit/2026-09-06-comprehensive-audit.md` fixed or explicitly deferred (its
+Resolution section holds the commit map). All 8 P1s fixed. Gates: 2,329 pure / 703 mock /
+lint clean. Five maintainer forks remain (D-1 usage-stats permission posture, G-3
+short-swipe merge collision, F-8 writerless keys, H-4 dead theme-editor fields, I-7
+default-IME-prompt session semantics) — all ratchet-pinned where mechanical. One open
+code note: `UserDictionaryObserver.checkCustomWordsChanges` lowercases the JSON key
+before `optInt` (case-carrying custom words read 1000 on the incremental path). Device-
+tier pins (GIF scale suite additions, media-path backup test) await the next ew-cli run.
+
+**Still open after round 2 (2026-09-03) — the complete list (ledger "Round 2 closure"
+section is authoritative for what closed; pruned 2026-10-23):**
+- **ARC-060 rider 2 (training box)**: one-shot ru real-probe with the new geometry —
+  |result − 85.30| must sit within ±0.207. Everything else about the swap is DONE
+  (rider 1: replica agreement now exact 0.0). Until it runs, every published ru accuracy
+  number predates the shipped geometry.
+- Translation NATIVE REVIEW: still machine-era after the multi-source QA pass (52 fixes,
+  21 locales fully swept 2026-09-03); highest-value locales first: **tr, vi**.
+- `finger_occlusion_offset` A/B: the capture mechanism now EXISTS (Swipe Debug Log
+  playground: per-key geometry + ranking + latency traces, export/share) — swipe in the
+  playground and export when ready; the A/B analysis follows your traces.
+- ARC-114 (LOW): #79 A17 inset-strip observable. Import-preview "Invalid/skipped" label
+  wording (the skips are intentional categories, "Invalid" oversells) — cosmetic.
+- The `langpack-en*.zip` variants are pre-determinism builds (real mtimes, unsorted entries,
+  no `hasPrefixBoost` key); every other pack is `version: 2`
+  (`CtcPackModelTest.theSixScriptPacksAgreeOnTheirManifestVersion`). They cannot ride a bulk
+  rebuild — `build_all_languages.py` refuses to regenerate English — so they normalize only if
+  `en` is rebuilt deliberately.
+- uk apostrophe forms (`м'ясо` — wordfreq uses U+02BC, rejected by the Cyrillic gate) and uk
+  ї/ґ serving both need the corner-alias input mode — a different feature, unscheduled. Was
+  recorded only in `memory/language-support-todo.md` §C; listed here so it lives in a tracker.
+- Evidence-beyond-holdout for el/uk/bg/mk/he: real-swipe probes are an ML-repo/device
+  question; synthesis-holdout levels stay unquotable as accuracy. Per-script LATENCY is
+  now measured and published (guide, `55da93fb`).
+- **GitHub issues (round-4 squash 2026-09-03 — see ledger Round 4):** FIXED: #171, #161,
+  #169, #160, #167(half), #152, #179 (prior round). ALREADY-FIXED (recommend closing after
+  reporter retest on v1.6.0): #151, #145, #35, #71. NOT-REPRO/BY-DESIGN (recommend closing
+  with explanation): #162 (neural-era; CTC rank-1 proven + replay instrument), #83
+  (boundary by design; remedy = max-distance setting). Residuals owed: #167's
+  `Keyboard2View._insets_bottom` staleness half (ARC-114-adjacent pass); #151's
+  trailing-space-dropped-by-editor half (needs new pending-space state + device confirm);
+  #152 wall-clock feel on a real 130k pack (your soak). Features still awaiting your priority
+  (2026-10-23; `docs/audit/gh-issue-resolution.md` has the rows): #163 background image,
+  #165 Korean, #175 part 3 (toolbar, same as #80 part 3), #177 Pinyin (contributor PR #183 to
+  review), #156 at-rest encryption (design only; ask 1, private copy, shipped as schema V5).
+  Shipped since this list was written: #168 `clear_clipboard`, #175 parts 1/2 (minimize +
+  `hide_keyboard`, tile show/minimize, batch selection, swipe-to-delete). Closing/commenting
+  on GitHub is YOURS — nothing was posted.
+- Round-5 residuals (2026-09-06): #167 part-2 (pwd-manager button unresponsive —
+  untriaged); #130 visual residue (edit-field white text, search-highlight colors — soak);
+  media-delete one-tap soak check (copy image → expand → delete); `ClipboardPinView` is
+  DEAD legacy — deletion candidate next cleanup pass; Chrome test-history traces on both
+  phones (test queries in omnibox history — harmless, noted for transparency).
+- M2 FUTO-official-test final read; send `FUTO_PRESET_NOTE.md` or not; `EW_API_TOKEN`
+  laptop-side (unchanged standing decisions).
+- CLOSED this round (see ledger): ARC-054 (announced), ARC-104 (policy replaced), ARC-107,
+  ARC-111 (code + device-verified), ARC-113 (minSdk 24 + ORT 1.21.1), ARC-112 rider items,
+  langpacks release, B2 latency, Pixel Wave-K residue.
+
+---
+
+## Before you trust an entry below
+
+Three claims inherited by the 2026-08-20 session were investigated and **all three were false**
+(`SwipeResampler` "consumer-less", `CoroutineScopeLifecycleTest` "flakes in combined runs",
+`ctc_bench` "never packaged"). Inherited claims decay; the cheap experiment beats the plausible
+story. Two habits came out of it and are worth keeping:
+
+- **Read the `N) <test>(<class>)` failure header, never the noisiest stack trace.**
+  `CoroutineScopeLifecycleTest` throws "boom" ON PURPOSE to prove `SupervisorJob` isolation, which
+  made it the loudest thing in every red log and got it blamed for a year of flakes it never
+  caused. Note the header does not always start a line — stdout and stderr interleave, so anchor
+  the search with `[0-9]+\)` rather than `^[0-9]+\)`.
+- **Verify a quiet machine by LOAD, not by grepping for one process name.** `uptime` reads
+  `sysinfo()` and works on Android even though `/proc/loadavg` is SELinux-denied (which is
+  separately why the JVM's `getSystemLoadAverage()` returns -1 here). A "clean box" check that
+  grepped for `java` missed 23 leaked `bash` CPU burners and produced eight bogus benchmark
+  numbers plus two commits that had to be reverted.
+
+---
+
+## Open work, in priority order
+
+### -3. Subkey popover (hold-then-select), 2026-09-30
+
+Spec: `docs/specs/subkey-popover.md`.
+
+What it does:
+- Holding a text key opens a 3×3 grid of its subkeys, showing what a short swipe in each direction would do.
+- Sliding to a slot and letting go types or runs it.
+- Letting go in the neutral centre (width and height are % of the key size, set by the user) does nothing.
+- An empty slot opens the assign screen when released on.
+- Resting 3 s on an assigned slot opens the edit screen (Reassign / Remove / Restore default).
+
+Settings:
+- Toggle under Gesture tuning. Default ON for fresh installs; existing installs are seeded OFF by the config v5 `SubkeyPopoverMigration`.
+- On the keys it covers, it replaces key repeat. Backspace, space/nav, modifiers and voice/IME keys keep their own hold.
+
+Code:
+- `popover/`: Geometry, Slots, State, Renderer, `SubkeyAssignActivity`.
+- `Pointers`: `FLAG_P_POPOVER_MODE`, plus `emitSubkeyValue` shared with the short-swipe path.
+- `ShortSwipeAssignment` is the save / remove / restore used by both the per-key activity and the popover.
+- Removal reuses the `removed` command (`ShortSwipeMapping.removal`).
+
+Tests:
+- pure: `SubkeyPopoverGeometryTest`, `SubkeyPopoverSlotsTest`;
+- mock: `PointersSubkeyPopoverTest`, `SubkeyPopoverMigrationTest`.
+
+Seeker check, 2026-09-30 (release build, fa/en):
+- The upgrade migration left the toggle OFF.
+- Holding `e` (top row) opens the clamped grid.
+- NE types `3`.
+- An empty SW slot opens the palette; assigning `@` saves it (toast), and it then shows on the key and in the popover.
+- A 3 s dwell on NE opens the edit screen: Reassign / Remove, and no Restore for a layout default.
+- Fixed there:
+  - the enlarged selected cell is nudged back inside the view (it was clipped at the keyboard's top edge);
+  - settings search now waits for the target's position to SETTLE before scrolling. Section expand animations reported in-flight positions (the new toggle read −931 px, so it never scrolled), and positions are now relative to the scroll viewport (every result used to overshoot by the status bar plus padding). All Gesture Tuning results had silently failed to scroll.
+
+State at handoff: pushed through `d8ddbc32`, CI green (CI, APK build, UI & Performance). The
+Seeker is back to its pre-test state (popover toggle OFF as the upgrade migration left it, test
+`@` mapping removed through the popover's own edit screen, font scale 1.0, no per-app locale,
+Android Settings focused).
+
+Round 2, 2026-10-01 (owner screenshots of the palette and edit screen):
+- The dwell progress is now a border around the WHOLE popover (the cell ring sat under the finger).
+- Palette: compact header with key · direction; search fixed; Custom text / Intent / Timestamp
+  are one scroll-away tile row; sticky category headers; 96 % × 94 % dialog.
+- Edit screen shows the action itself (command name + description, full text, intent fields,
+  timestamp pattern + preview) and has **Edit**: `CommandPaletteDialog(initialMapping = …)`
+  opens that action's own editor filled in. Settings' per-key screen uses the same path.
+- Wiring bugs fixed: `shareText` only copied; modifier / dead-key / compose / timestamp / macro
+  / slider commands did nothing as custom mappings (now `CommandRouting` → key pipeline).
+  `CommandRoutingTest` guards the whole catalogue.
+- Full pure (2727) and mock (899) suites green; release build green.
+- NOT device-verified: the Seeker was off the network (192.168.0.170 no route; the only adb
+  host on the LAN was an unrelated Fire TV — touched read-only, disconnected). Re-check the
+  palette, the edit screen and the dwell border on the Seeker.
+- One new string `subkey_edit_layout_default` (22 locales) wants native review with the others.
+
+Open:
+- Feel on a real finger (the timing was only driven by adb). The animation constants are in `SubkeyPopoverRenderer`; the dwell and arming values are in `SubkeyPopoverState` / `SubkeyPopoverGeometry`.
+- TalkBack: the popover is not exposed to accessibility (explore-by-touch users keep the per-key settings screen).
+- Native review of the 17 new strings (translator notes: inflected toasts in cs/lv/pl/ru/uk/hu; "slot" word in in/tr; hu "Újra hozzárendelés").
+
+### -2. i18n follow-ups from the 2026-09-29 fa/hu device run (code items CLOSED 2026-09-30)
+
+Done 2026-09-29: the hardcoded-UI sweep (guard `HardcodedUiStringTest`), RTL arrows, section-title
+wrap, per-locale address register (hu formal), language-pack delete confirmation and the NOTICE
+layout. See `docs/i18n/2026-09-29-hardcoded-ui-sweep.md` and `docs/i18n/2026-09-29-register.md`.
+
+Closed 2026-09-30 (resolution table in the sweep doc):
+- Stale FAQ — `721c757d` (`FaqContentDriftTest`).
+- GIF/clipboard pane ◀/▶ mirrored under RTL — `213e8d52` (`RtlMirroringDriftTest`).
+- Domain-layer error text → localized `IoFailureReason` / `PackImportFailure` / `SkipKind`;
+  encrypted imports stop re-prompting for newer/damaged/wrong-kind files — `cfc0eed2`
+  (`IoFailureLocalizationTest`).
+- Command catalog: 465 strings × 21 locales keyed by stable command id — `19d64857`
+  (`CommandCatalogLocalizationTest`).
+- Settings search in the UI language; scroll targets keyed by title resource names — `607da6df`
+  (`SettingsSearchLocalizationTest`).
+
+Still open:
+- Clipboard custom-rules status shows the rules parser's English detail (TODO(i18n)); combining
+  diacritic extra-key titles; headless backup result messages.
+- **Native review.** Owed for every locale, now including the 465 command-catalog strings (notes
+  per locale in the sweep doc). Earlier translator requests: short compass abbreviations
+  (fa, uk, fil, in); diacritic key names; AOSP register dissent for de (du) and zh-rCN (您); ro
+  short-label imperatives. The three app strings the catalog translators flagged were aligned to
+  the catalog's terms on 2026-09-30 (tr `key_descr_dead_key` "Ölü tuş"; hu `extra_key_accent_slash`/
+  `_bar` "Ferde vonal"/"Vízszintes vonal"; in Home/End/Page Up/Page Down keycap names back to Latin)
+  and stay flagged for the reviewer. **Review sheets:** `python3 scripts/export_translation_review.py
+  --out <dir> [--since <ref>]` writes one CSV per locale (English beside translation, open questions
+  pre-filled from `docs/i18n/review-flags.json`, flagged rows first) to hand to reviewers.
+- **Device verification.** Seeker, 2026-09-30, fa per-app locale: settings search shows fa titles
+  and scrolls to controls; FAQ answers are the corrected text; search-result chevrons mirror.
+  Found and fixed there: in-page search entries (Help & FAQ, all 8 FAQ questions, Privacy, GIF
+  import) expanded their section but never scrolled — nothing registered those ids
+  (`SettingsSearchCoverageTest.everyInPageHandEntryHasAScrollTarget`); a FAQ result now also opens
+  its answer. **Still owed:** the GIF/clipboard pane arrows under RTL — the IME window follows the
+  SYSTEM locale, not the per-app one, and the Seeker has no root to change it; check with the phone
+  set to Persian/Arabic. hu (search, headers, register) not re-run.
+
+### -1. Learning system audit (2026-09-26) — mostly RESOLVED same day
+
+`docs/audit/2026-09-26-learning-system-audit.md`. Two device reports: swipe `she'd`/`I'd`/`they'll`
+rank badly; swiped `git` never learned.
+
+**Landed (pushed through `79f0b464`, 2026-09-27):** contraction variants spliced beside/ahead of base with measured
+wordfreq pairing frequencies + 6-byte promotion margin (`4f83fde5`, `c528ce24`); learn-funnel
+bookkeeping — manual-only selection recording, rollback of rejected/undone words, last word on
+Enter/field exit, apostrophe/hyphen tokens, password never learns (`69ce8c21`); selection decay
+instead of 30-day wipe + debounced persistence (`d8846a98`); n-gram continuation budget
+(`6026217d`); typo hygiene `LearnableWordPolicy` + purge (`59bd4159`); review fixes (`c1a7c46b`
+bilingual purge deferral, `d7b06da1`, `c5d8d662`, `ee51fdff`, `608e797c`, `a36412d3`).
+
+**Swipe ranking from learned data — NOT shipped, measured:** usage-based prior failed the replay
+ship bar (errRatio ≥2.06; `docs/eval/2026-09-26-learned-unigram-swipe-replay.md`); correction-
+driven prior better but still fails and the corpus (~2 traces/word, many users) cannot measure the
+per-user case (`docs/eval/2026-09-26-correction-driven-swipe-prior-replay.md`). Primitive
+`CtcLearnedPrior` is committed UNWIRED. Context: guarded oracle headroom +4.67 pt exists but
+coverage is the limit; alternates-only mode inert on CTC
+(`docs/eval/2026-09-26-context-oracle-and-alternates-replay.md`).
+**Landed:** explicit "Prefer 'X' when swiping?" offer after 2 swipe corrections (adds to the
+personal dictionary; `7176eec4`..`8086f8d0`) + relabel of swipe-ML rows on correction, so on-device
+exports become a real per-user replay pool — the prerequisite for ever re-evaluating the prior.
+**Closed 2026-09-26:** whys/why's + natl/nat'l measured into `contraction_pairings.json`
+(bin-only sweep pinned in `BundledContractionDataTest`; `etoo -> eto'o` subsequently fixed by `b82dd386`);
+the global n-gram cap now prunes by frequency discounted by age on a persisted language-wide commit
+clock (`ContinuationBudget.globalVictims`). 
+**Round 2 (same day):** typo-tolerant tap bar (`f8fa86f6`, layout-aware adjacency, up to 2
+reserved fuzzy slots — never slot 0); tappable "Added … to dictionary" with tap-again undo
+(`4ca6c499`); deferred "Prefer" offers after re-swipe/Enter/field exit; shipped static English
+context LM `assets/lm/en.cklm` (Leipzig CC BY 4.0 + Tatoeba CC BY 2.0 FR, 439 KB, +333 KB APK,
+0.67 MB heap) — tap gate PASSED (+10.5 pt top-3 at prefix 1, OOD), swipe replay FAILED (no swipe
+wiring; `docs/eval/2026-09-26-static-lm-replay.md`). Typo-tolerant bar entries now carry their
+own `SuggestionOrigin.TYPO_CORRECTION` (purple marker, "Typo correction" label + "Correction of
+typed “x”" note in all 22 locales; whole-word corrections included) instead of AUTOCORRECT.
+Possessive placement is resolved by `341b4847`: splice after a confident top base, otherwise
+retain at the tail.
+
+**Round 3 (2026-09-29, pushed through `4a4f9b30`, CI + APK + deploy green):**
+- Static LM: REPLACE contraction keys resolve to their display form inside `StaticContextLm`
+  (`c957d31a`; en contraction targets 0% → 32.7% top-3 at prefix 1). One re-evaluation with the
+  unchanged pre-registered gates → **de/fr/it SHIPPED** (`4775300e`, +968 KB APK); **es/pt/sv
+  FAIL** (prefix-1 +4.69/+4.19/+4.59 vs +5; sv prefix-2 +1.92 vs +2) and stay unshipped.
+  `docs/eval/2026-09-29-static-lm-multilingual.md`. Next-word admits contraction display forms
+  via their apostrophe-free key (`b5456285`). Help credits name en/de/fr/it (`4a4f9b30`).
+- Translations: per-locale glossary unification + `TranslationGlossaryTest`/`TranslationLengthTest`
+  (`4871c7e5`, `a91aad5a`), blind back-translation review fixed 33 strings
+  (`docs/i18n/2026-09-29-back-translation-review.md`), `privacy_forget_learned_body` names swipe
+  corrections, debug-only pseudolocales en-XA/ar-XB (`b430b386`).
+- Pack attribution UI (`269d8bb1` — that commit also carries the i18n review doc; `6fed1b12`
+  explains the sweep; history NOT rewritten because it is pushed).
+
+**Open (in priority order; completed items removed 2026-10-23, their standing decisions kept):**
+1. Static LM ship state (decided 2026-09-29): **pt and sv SHIPPED** (`807c56bd`, pre-registered
+   `25145b63`; pt = Portugal web + Brazilian news 0.5/0.5, +5.41; sv = news 2023 + Tatoeba ×2,
+   +5.98 / prefix-2 +2.95); **es FAILED twice** (+4.96 vs +5) — do not retry without a new
+   stated reason (e.g. a larger test population; todo "Open now" item 11).
+2. Static-LM ratio shape (decided 2026-09-29, `baff9bf1`, `f596faef`, `14d403f2`): production
+   stays `RAW` — `FLOOR_ONE` lost English 0.15 pt on dev (rule: no cell may regress > 0.05); on
+   TEST it was ahead everywhere (+0.46 mean prefix-1; es +6.08) — recorded, NOT acted on (would
+   be choosing on test). Learned boost ≥ 1 always, so `both` never applies a static penalty;
+   only `static_only` users see `RAW`. Adopting `FLOOR_ONE` needs a new pre-registration + fresh
+   dev evidence (second English dev set, or a per-language rule registered up front).
+3. Device checks — PARTLY DONE on the Seeker test phone (address in `memory/todo.md` "Open now";
+   it was 192.168.0.170 on 2026-09-30; recipe in the auto-memory
+   `seeker-test-device`), release builds of `abced4c0` and `59b2da2e`: tap "pka"/"pkay" → play; next-word
+   after "I" shows don't; swipes shed → Shed + She'd, ill → I'll, teams → Teams + Team's; fa RTL settings
+   + privacy; hu long titles wrap; pack attribution UI + NOTICE dialog; crash buffer empty. Found and
+   fixed in `59b2da2e`: hardcoded English, unmirrored arrows, title/chevron collision, hu register mix,
+   no delete confirmation, NOTICE wrap. Still owed: native-speaker review; TalkBack; large font;
+   en-XA/ar-XB pseudolocales (debug build only); re-check of the 2026-09-30 i18n fixes (§-2).
+4. Two mock tests are load-sensitive (W6 persistence, fuzzy latency) — contention, not bugs.
+   (A joiner user word is a DISPLAY preference honoured by ContractionOverlay — `1bb0ddb4`,
+   contraction skill §6d; system UserDictionary joiner entries count too.)
+**licensing:** repo side DONE 2026-09-26 — see `docs/audit/2026-09-26-data-licensing-audit.md`
+(Norvig pack removed: no redistribution grant; OpenSubtitles packs are FrequencyWords CC BY-SA 4.0
+and stay; every pack now carries `NOTICE.txt` + manifest `license`/`attribution`/`source`).
+**Completed with maintainer authorization, 2026-09-27:** removed the Norvig release asset,
+replaced all 22 packs and the release description, and verified SHA-256 of every downloaded
+asset. Pack attribution UI landed 2026-09-29.
+Local wiki build and TypeScript check pass; use `cd site && bun run build:termux`.
+Legacy wiki HTML paths redirect to canonical Astro pages during deployment.
+
+### 0. Full-backlog campaign continuation (2026-09-01)
+
+The live execution plan is `docs/plans/2026-08-30-full-backlog-campaign.md`. Waves A–C are
+implementation-complete; device-only acceptance remains in Wave J/K. Wave D has ARC-066 and
+ARC-087 complete, with ARC-067 still open. Wave E has ARC-089 and ARC-076 complete; its other
+items remain open. Implementation is committed locally at `5fb58037`; this documentation
+consolidation follows it. Nothing was pushed, tagged, or released.
+
+**Release/maintainer gates (pruned 2026-10-23; ARC-054 announced 2026-09-03/09-09):**
+- ARC-053: the 2026-09-13 soak was signed off, but the October work landed after it — a
+  daily-use soak of the CURRENT minified build is `memory/todo.md` "Open now" item 8.
+- ARC-063: narrow blanket R8 keeps only after that soak.
+- Nonzero `finger_occlusion_offset` default still needs maintainer device-trace A/B evidence.
+
+**Highest-value executable work (closed items removed 2026-10-23: ARC-067, Wave E, ARC-072
+slices 1–3 incl. `wiring/KeyboardComponentGraph` and the `gesture/` move — see the ledger):**
+- ARC-067 follow-ons still open: ARC-103 (`<plurals>` conversion for count strings) and the
+  native review of every machine translation (todo "Open now" item 10).
+- Later Config/SettingsActivity decomposition slices (ARC-072 continuation).
+- Evidence-gated geometric OQs ARC-027/028/029: do not change defaults unless local-corpus replay
+  shows a non-regressing improvement. ARC-030 floors are already present.
+- Web: ARC-071 Astro 6 migration and ARC-046 regression gate + Tailwind vendoring.
+- ML repo: ARC-060 ru layout regeneration, ARC-061 golden-path fix. (ARC-056 uk/bg/mk/he
+  lexicons/langpacks CLOSED 2026-09-01 — `538a1633` toolchain + `86156ea3` artifacts.)
+- ARC-044 remainder: strengthen the non-curated instrumented tests without adding Truth to
+  androidTest dependency configurations.
+
+**Verification still owed:**
+- Wave J full ew-cli run for the newly compiled ARC-058/064/074/077/091/092/095 coverage plus
+  prior owed instrumented items. The ARC-058 rotation test is the second-session memory gate.
+- Wave K on both authorized phones per the plan: preserve/restore current IME and properties;
+  never framework-restart Saga. Includes ARC-068/069/070 evidence.
+- Final Wave L ledger/HANDOFF consolidation and maintainer-input report.
+
+**Do not reopen as pending:** ARC-055 wiring, ARC-059, ARC-062, ARC-065, ARC-066, ARC-074,
+ARC-075, ARC-076, ARC-086–096 (except maintainer/device gates above), ARC-099–102 are implemented
+in local commits. ARC-087 extraction is implemented; its locale work is intentionally counted
+under ARC-067.
+
+### 1. Contraction follow-ups, all deferred deliberately
+
+- **Owed translations** for `collision_warning_title/body/examples` — English-only behind
+  `tools:ignore="MissingTranslation"`.
+- **RESOLVED 2026-08-29 — the user-word guard is now case-TOTAL** via a read-side fold
+  (`DictionaryManager.isUserWordIgnoringCase`, invalidated on every set mutation); the persisted
+  `userWords` keeps its exact case-sensitive add/remove/dedup semantics, pinned by
+  `ContractionUserWordGuardTest.storedUserWordsStayCaseSensitive`. Commit
+  `fix(contractions): make the user-word REPLACE guard case-total via a read-side fold`.
+- **RESOLVED 2026-09-01 — verb inversions shipped as a PAIRED-only closed family** (commit
+  `bd8984fe`): 272 subject-pronoun inversions (`est-elle`, `a-t-on`, `va-t-il` …) generated from
+  the person-keyed `FRENCH_INVERSION_VERBS` table into `contraction_pairs_fr.json` (183 → 455),
+  forced-append at classification so regeneration cannot flip them to REPLACE. The named
+  landmines are pinned in `BundledContractionDataTest`: `estelle` (native @16343) and `aton`
+  (ASK-attested) survive in-slot through the real overlay and are REPLACE-forbidden forever;
+  `entretemps` stays out of both files and sits in `FORCED_APPEND["fr"]` as defence in depth
+  against a future extraction misfire. Zero new REPLACE keys, sidecars byte-identical.
+
+### 2. Context-LM: rescoring CLOSED; next-word is the consumer
+
+**DECIDED 2026-08-26 (maintainer): `swipe_context_rescoring` stays default-OFF permanently; no
+shadow mode; the investigation is closed.** The learned-context data's consumer is **next-word
+prediction** (tap-to-accept) instead of swipe rescoring (silent auto-insert, which the offline
+eval showed overturning correct decodes: 0 fixed / 6 broken on the no-eviction device corpus,
+no (WEIGHT,R_MIN) grid point passing, tune winners losing on held-out).
+
+Everything is in git history and these references — do not re-derive:
+
+- **The eval + its 13-entry retraction ledger**: `docs/eval/2026-08-22-context-rescoring-first-replay.md`.
+  Numbers are PINNED to a commit; the decoder moved twice under the measurement.
+- **Drift canary**: `CtcReplayEngineSmokeTest.slateShapeHasNotDrifted` — red means RE-BASELINE
+  the eval, not "decoder broken". Skips without the local trace corpus.
+- **Harness**: `ContextRescoringReplayTest` (+ `CtcReplayEngine`, pure-JVM real CTC decode via
+  `extractOrtNative`). Knobs: `-PreplayCorpus={device|ubuntu} -PreplayDecoys -PreplayMaxCtx`.
+  Corpora live in `~/.cache/cleverkeys-corpora/` and are NEVER committed.
+- **Next-word audit landed 2026-08-26** (`b9355be1`, `ececaa73`): `context_aware_predictions_enabled`
+  is now a REQUIRED `NextWordPredictor.shouldShow` param and gates the cursor-park editor read;
+  dependent settings controls (next-word switch, personalization strength, learning aggression)
+  are visible-but-disabled, never hidden; search entries open the Advanced-Prediction panel.
+  Pinned by `LearningWiringDriftTest` + `SettingsSearchCoverageTest` source-scans.
+
+**Open (only if someone reopens rescoring)**: hub-confusable decoy rule; a second language.
+**Open (next-word, minor)**: nothing known; feature remains opt-in default-OFF behind
+`next_word_prediction_enabled` + the master learning gate + the context-LM pref.
+
+### 3. Smaller, ride-along
+
+- **Doc claims found but deliberately not fixed** during the 2026-08-21 deleted-class sweep —
+  **all four re-verified against live code 2026-09-01 (ARC-073/§3):**
+  - `core-keyboard-system.md` invented API signatures (`CleverKeysService.switchLayout`,
+    `KeyEventHandler.handleKeyDown`) — ALREADY CORRECT. The 2026-08-21 pass replaced them with
+    an explicit "none of those methods exist" note plus the real event-driven flow. All six
+    live signatures re-verified at HEAD (`current_layout`, `current_layout_unmodified`,
+    `setTextLayout`, `incrTextLayout`, `setSpecialLayout`, `loadLayout`), as was
+    `KeyEventHandler.key_up → recv.handle_event_key`. No edit needed.
+  - `testing-strategy.md` self-contradicting inventory — the contradiction was already removed;
+    the COUNTS were stale. Re-measured and rewritten: pure **2093** and mock **343**
+    (both run 2026-09-01 on this device), instrumented 1395 carried as the last recorded ew-cli
+    sweep (2026-08-18) and explicitly labelled as a floor, since ew-cli was not re-run.
+  - `ARCHITECTURE_MASTER.md` §9 `SwipeDetector` box + §7.2 `DATABASE_VERSION` — both already
+    corrected (the box states no such class exists; `DATABASE_VERSION` reads 5, not 1, and the
+    live constant IS 5). Only the line anchor was stale: `ClipboardDatabase.kt:1828` → `:1869`.
+  - `settings-system.md` file tree + "~3000 lines" — tree re-derived from
+    `git ls-tree HEAD`: SettingsActivity 801→**845** lines, `ui/settings/io/` 8→**9** files
+    (`CreateBackupDocument.kt` was missing). `ui/settings/` 10 and `sections/` 20 confirmed.
+    CLAUDE.md's architecture block carried the same drift and was refreshed with it.
+- Translation debt is consolidated under ARC-067: the same 384 default entries are missing
+  from every locale, including `pref_secondary_prediction_weight`, backup/private-copy copy,
+  pack refusal reasons, and the new provenance sheet. `swipe_engine_mode_desc` itself is now
+  deliberately dynamic and translated in all 21 locales; `processDebugResources` passes.
+- `finger_occlusion_offset` ships at default 0. A nonzero default needs a device-trace A/B at
+  {0, 8, 12.5, 16}% — the old 12.5% was never measured anywhere in this repo's history.
+
+---
+
+## The geometric-removal question
+
+The **language** dimension is closed for Latin — including, since `05c0c25d`, the imported-pack
+cell that used to be the loudest counterexample: a user with `langpack-nl.zip` got geometric for a
+language CTC decodes fine. **All six table scripts are ROUTED since 2026-09-03** (ru `da012ded`,
+el `5fb58037`, uk/bg/mk/he `1b17c318` after ARC-056's lexicons). What remains for geometric is
+the long tail with no model or lexicon (kk/sr/hy/ka), Turkish (DECIDED permanent tap+geometric —
+dotless ı, 73.34 % projectable), and layout.
+
+Layout census (`src/main/layouts/`, 86 XML — the tree `copyLayoutDefinitions` ships;
+`srcs/layouts/` is divergent and read by no build task):
+
+| bucket | count | routing |
+|---|---|---|
+| `script="latin"` and a–z-complete | 46 | CTC — for the eight table languages AND for any imported Latin pack that measures a–z-typeable (`05c0c25d`); a pack that does not (Turkish: 73 %) stays geometric, deliberately |
+| `script="latin"` but a–z-incomplete | 2 | geometric, via the alphabet gate |
+| `script="cyrillic"` | 11 | **CTC at gate 1** since 2026-08-29; only `ru` is served, so ten of the eleven fall through at the LANGUAGE gate |
+| other non-Latin declared (14 scripts) | 25 | geometric at gate 1 |
+| no `script` attribute | 2 | `numeric.xml`, `pin.xml` — not letter layouts |
+
+**"Non-Latin can only be served by geometric" is false, and is now also disproven in the app.**
+Per-script models are required — a Latin-trained encoder does not zero-shot another script well
+enough on its own, because motor statistics and the learned character-transition prior are
+trained even though geometry is an input — but they are cheap and proven: ~94k steps of
+`resbn:80`, under an hour on one GPU, from a word list and layout geometry alone.
+`phaseIB-ru-synth` saw zero real Cyrillic rows and decoded real Russian at 77.41 in-dict top-1;
+the generation-4 successor (`ru_synth_v3_ch80`, learned-generator synthesis, Phase Q) reads
+**85.07** on the same eval-only probe.
+
+"The ALPHABET is hardcoded a–z" **was** true of two constants in one adapter file and false of
+everything else. Both are gone (`1561dbaf`).
+
+### As built — 2026-08-29, `1561dbaf` + `da012ded`
+
+The infrastructure is generic and Russian is routed end to end. What exists now:
+
+- **`swipe/ctc/CtcScriptSupport.kt`** — THE per-script table: alphabet (codepoint-sorted, the
+  model's emission slot order), layout XML, `script` attribute, model asset, golden fixture,
+  status, and for the unrouted five the exact gap and its unblocking condition. All six scripts
+  have a row. Only `Status.ROUTED` widens the router, and the row's `init` refuses ROUTED unless
+  both artifacts are named — rule 4 as a type invariant.
+- **`swipe/ctc/CtcScriptProjection.kt`** — PHASE_O §3.4 mirrored exactly, for all six scripts,
+  unit-tested (ru/bg/mk folds and NO NFD, el mark-strip + final sigma, uk ї/ґ rejection, he
+  niqqud). It also owns the single collision-resolving lexicon loop `CtcAzProjection` now
+  delegates to.
+- **Adapter** — per-language alphabet, per-language model asset, per-ASSET ONNX session and
+  failure latch (a dead script graph can no longer disable English), `supportsLayout(…,
+  language)`, a `hasLexiconSource` gate, an alphabet-scoped `CtcFuzzyRescue`, and a
+  layout-derived finger-occlusion row count.
+- **`presetFor`** returns `tunedRuCkdt` for any language with a script row. It was unreachable
+  for months, so the constants all six script models were gated and fixture-generated at could
+  not be selected. λ/γ/β and both prune terms are unchanged.
+- **Router** — gate 1 consults `CtcScriptSupport.ROUTABLE_SCRIPTS`, not `isLatinScript`. Routing
+  stays per SCRIPT; serving stays per LANGUAGE, and that division is test-pinned.
+
+### Imported Latin packs — `05c0c25d`, 2026-08-29
+
+`CtcLanguageSupport.sourceFor` consults the static table first and the installed packs on a miss,
+so an imported pack that measures a–z-typeable resolves to `CKDT_LANGPACK` and everything
+downstream follows with **no new branch** — dispatcher, prewarm, `presetFor`'s λ,
+`hasLexiconSource`, settings card. The precedent is it/pt/sv verbatim: the encoder never sees a
+language, and λ calibrates to the lexicon's frequency SCALE, which an imported pack shares exactly
+with the bundled six.
+
+The gate is **measured a–z projectability**, not a manifest field (the manifest has no script), and
+it is not ceremonial. Over every `scripts/dictionaries/langpack-*.zip`: nl/id/ms/sw/tl **100.00 %**,
+ru/el **0.00 %**, tr **73.34 %** overall and **81.7 %** of the frequency head — dotless `ı` has no
+NFD decomposition, so a quarter of Turkish cannot be spelled on an a–z board. Those words ARE
+typeable on geometric, so serving Turkish would be a regression, not a gap. Thresholds 0.98 / 0.99
+(head, top 1,000 by rank) sit in a 25-point empty band; the 1,000-word floor is a power floor on
+the ratio.
+
+State to respect: the verdict is cached in the single pref `ctc_langpack_verdicts`, keyed by the
+pack file's length+mtime, and an UNMEASURED pack answers false and schedules the read — so the
+first swipe after an import can go to geometric and every later one to CTC. `INTERNAL_KEYS`
+excludes the pref from backups (a per-device measurement of per-device files). Tier: `PROVISIONAL`
+by construction and permanently; **no accuracy number may ever be quoted for an imported pack**,
+because there is no corpus and not even a fixed vocabulary.
+
+**Russian, exactly.** Ship bytes `src/main/assets/models/ru_synth_v3_ch80_fp16w.onnx`
+sha `8fffa75c…` (589,406 B), fixture `ru_synth_v3_ch80_fp16w_golden.json` sha `8951d7a3…`
+(159,778 B, ARC-060 regenerated geometry, two byte-identical copies), preset `tunedRuCkdt`, layout `cyrl_jcuken_ru.xml`,
+alphabet `абвгдежзийклмнопрстуфхцчшщыьэюя` (31 — ё and ъ are CORNER values and are folded away by
+the projection, never emission slots).
+
+**The ru lexicon is the imported langpack, not a bundled asset.** `LexiconSource.CKDT_LANGPACK`
+reads `filesDir/langpacks/ru/dictionary.bin`, which is byte-identical (sha `2bd8f244…`,
+2,088,865 B, CKDT v2, 50,000 words) to `scripts/dictionaries/ru/ru_enhanced.bin` and to
+`langpack-ru.zip`'s payload — the file `eval_cyrillic.build_trie` reads, so every published
+Russian number is on exactly this lexicon. Consequence to state plainly: **Russian CTC only
+works once the user imports `langpack-ru.zip`**; without it ru is not even selectable, and the
+`hasLexiconSource` gate hands the swipe to geometric if a backup import sets the pref anyway.
+
+**Evidence tier — say it exactly this way.** 85.07 in-dict top-1, measured on the Yandex
+valid-10k, which is **eval-only by licence**. Russian CTC is **val-only permanently**: the
+test-2400 seal is spent and no Cyrillic model was ever decoded on it, so no Russian number may
+ever be called "test-validated". The model is license-clean synthesis (learned generator, MIT
+data only) and saw zero real Cyrillic rows; a sealed twin puts the upper bound at 85.95 and
+produced one number and no bytes. The model arm is three seeds (85.30 ± 0.207) and the shipped
+s1234 bytes are the LOWEST of the three; the generator and the ceiling arms are single-seed.
+**Per-script LATENCY has never been measured** (ru/el; open in
+`memory/language-support-todo.md` §B). Memory is no longer unmeasured: the ARC-058 3-language
+rotation test bounds the trie memo and the second ORT session with ru primary, and it ran green
+in the Wave J full ew-cli run (2026-09-02, Pixel7 API 34).
+λ = 2.0 carries a measured, unconfirmed −0.63 t1 shortfall; γ, β and the prune terms are E1's.
+
+### What is left, per script
+
+`el` **IS ROUTED** (ARC-055, wired in `5fb58037`, 2026-09-01): `el_synth_v3_ch80_fp16w.onnx`
+(sha `7083794c…`) + its fixture (sha `d08d5501…`) ship, the `CtcScriptSupport` row is `ROUTED`,
+`el` is in `SUPPORTED` (langpack-sourced, `PROVISIONAL` tier). Still true and permanent:
+**Greek has no real-swipe probe at any tier** — its 92.12 is a synthesis-holdout level and may
+never be quoted as accuracy; the device parity/latency run is its only runtime bar. ru + el
+were announced 2026-09-03 (ARC-054, honest tiers, pack-gated).
+
+`uk`, `bg`, `mk`, `he` are ROUTED too (2026-09-03, `1b17c318`): lexicons from ARC-056
+(2026-09-01: `538a1633` hebrew `_is_script_word` branch + the four `LANG_CONFIG` entries,
+`86156ea3` the CKDT v2 langpacks `scripts/dictionaries/langpack-{uk,bg,mk,he}.zip`), and the
+generation-4 `*_synth_v3_ch80_fp16w.onnx` models + byte-identical golden fixtures copied in
+with all eight sha256s verified. All four are `PROVISIONAL`; none has a real-swipe probe at
+any tier. `CtcScriptSupport` is the live list, not this paragraph.
+
+**The 32-frame budget IS checked against every script lexicon** —
+`CtcBundledLexiconEmitBudgetTest` (ARC-057, `eac7594f`, 2026-08-29) sweeps en + the CKDT six +
+ru through their exact production projections plus every alias table (zero surfaces over
+budget, ru worst `высококвалифицированных` at 24 of 32), and since `e99bccc1` (2026-09-03) the
+script list is derived from `CtcScriptSupport.SCRIPTS`, so el/uk/bg/mk/he are swept
+automatically. **The Latin imported-pack half is also closed**
+(`CtcImportedPackSupportTest`, 2026-08-29): zero words over budget in nl/id/ms/sw/tl, worst case
+`gemeenteraadsverkiezingen` at 27 of 32 frames — which is why imported-pack eligibility gates on
+spelling and not on length.
+
+Geometric is removable **script by script**, ~an hour of GPU each plus a lexicon plus wiring. It
+cannot be removed first: deleting it today does not downgrade a Bulgarian user, it removes their
+swipe.
+
+**Tier note**: Colemak and arbitrary user XML were never benchmarked. Covered by design; the
+worst *measured* layout is german at 81.30 against geometric's ~77, so the expected-value case is
+strong — but "Colemak ≥ geometric" is an inference, not a measurement. Say it that way.
+
+---
+
+## Rules that must not be broken
+
+1. **No Yandex data** in any training run or shipped artifact — eval-only by licence. `ru-real`
+   at 89.64 is better than everything else and permanently unusable.
+2. **No FUTO weights or outputs** in anything we train or ship. Corpus + decode-algorithm lineage
+   are the permitted inheritance; `NOTICE:46-64` states it correctly — do not "improve" it.
+3. **Respect evidence tiers in prose.** "test-validated" = decoded on a sealed split whose read
+   was spent from the ledger; everything else is val-only. Russian is val-only permanently,
+   it/pt/sv are `PROVISIONAL`. Quoting a val-only finalist's number as the ship model's is exactly
+   how the `sw2345` misattribution happened — twice.
+4. **Never route a non-Latin script to CTC** without all three of: a per-script model, a
+   per-script trie at the app's own frequency scale, and a golden fixture.
+5. **Do not touch λ, γ, β, γ_prune, β_prune.** Corpus-fitted; the published-preset control
+   measured −2.3 pt top-1. λ is per-lexicon-SCALE (4.0 en-JSON / 2.0 CKDT), so a raw user knob
+   would be wrong by 2× on the wrong asset; expose only a bounded offset if ever.
+6. **Testing policy** (rewritten 2026-09-03, see CLAUDE.md "TESTING POLICY"): ew-cli
+   instrumented or pure JVM first; ADB testing IS allowed on the dedicated phones (Saga, Seeker,
+   Pixel) — never UI-test the Termux host phone, never framework-restart the Saga, leave no trace.
+7. **CI emulator steps**: `reactivecircus/android-emulator-runner` runs each `script:` LINE as a
+   separate `sh -c` (dash, no `pipefail`). Keep every `script:` a ONE-LINE call into
+   `.github/scripts/emulator-ci.sh`; inline multi-line bash silently dies on line 1 and reports
+   a misleading `adb: device offline`. That kept the workflow red for ~32 consecutive runs.
+8. **`sh gradlew`**, not `./gradlew`. Temp files in the session scratchpad, never
+   `$TMPDIR`/`$PREFIX/tmp`. `rg`, not `grep`. **Rebuild BOTH APKs before an ew-cli run** — a stale
+   app APK gives `NoSuchMethodError` for code you just wrote.
+9. **Consult Fable** when stuck, unsure of the optimal approach, on complex tasks, and to audit
+   new architectures or risky changes. It has caught: the `sw2345` misattribution, the layout
+   census, `finger_occlusion_offset` classified by filename rather than behaviour, and a bulk
+   hyphen extraction that would have destroyed 73 native French words.
+
+## Verification owed
+
+- **Added by waves R1+R2 (2026-08-29), for the NEXT ew-cli run**: `PointersGestureRoutingTest`
+  T13 (`configChangeMidGesture_doesNotAffectTheGestureInFlight`); the ARC-083 rider's
+  `onDecodeFailure` assertion in `CtcMultiLanguageInstrumentedTest`; an instrumented pass
+  through the injectable `userDictionarySource` seam (ARC-081 adapter wiring is source-scan
+  pinned only today); an end-to-end typing test for the case-total user-word guard.
+
+- **The ru CTC path — UPDATE 2026-09-02**: the Wave J full ew-cli run (1,466 tests, Pixel7
+  API 34) executed the instrumented suite green, discharging the emulator-reachable steps
+  below ((1)–(3), and the ARC-058 rotation memory bound). Still owed: the langpack-import
+  device half (step 4, maintainer's device) and per-script LATENCY (step 5 — timed for no
+  script model yet; `memory/language-support-todo.md` §B). Original list, for the record:
+  `da012ded` ships the Russian encoder and routes
+  Cyrillic; the ew-cli run had to confirm, in this order: (1)
+  `CtcEmissionModelParityTest` passes its NEW ru row, i.e. the packaged
+  `ru_synth_v3_ch80_fp16w.onnx` actually loads through ORT and reproduces the fixture's emission
+  matrices within 2e-3 and its top-k within 1e-3 — this is the only gate that executes the graph,
+  and a stale-matrix fixture passes everything else; (2)
+  `CtcMultiLanguageInstrumentedTest.theLayoutGateIsPerLanguage` — the deliberate flip: a Cyrillic
+  board is now eligible for ru and still rejected for en, and no script board is eligible for
+  another script's language; (3) `everyRoutedScriptShipsItsModelAssetInTheApk` — that aapt really
+  packaged the new asset (589,406 B of ONNX is easy to lose to a packaging rule); (4) a ru decode
+  end to end WITH `langpack-ru.zip` imported, which no emulator has today — the pack-installed
+  path is unreachable on a clean emulator, so this half needs the maintainer's device; (5) the
+  latency gate on a ru swipe, because **no script model has ever been TIMED** (memory is now
+  bounded by ARC-058's rotation test, executed green in Wave J)
+  — the graph is a fifth of the Latin encoder's bytes so the expectation is favourable, and
+  expectation is not measurement. Also worth watching: the trie memo evicts at `size > 2`, and a
+  ru primary now pulls a SECOND ORT session alongside the Latin one.
+- **The imported-pack CTC path has never run on a device.** `05c0c25d` ships it and every
+  hardware-free gate is green. The next ew-cli run must confirm
+  `CtcImportedPackInstrumentedTest` (4 cases, written 2026-08-29, never executed): it builds a
+  real CKDT v2 pack for the unassigned code `zz`, imports it through the shipping
+  `LanguagePackManager`, and checks (1) the file lands where `candidateLangpackRelativePath` says,
+  (2) `CtcInstalledPacks` measures it out of the real `filesDir` and the verdict reaches the
+  STATIC `CtcEngineAdapter.supportsLanguage` gate, (3) the production merge path builds a trie
+  from it, (4) deleting the pack unserves the language in the same process, and (5) a reimport
+  with different content is re-measured. Watch for: `Uri.fromFile` through `contentResolver`
+  (works in-process, but it is the one assumption that is device-shaped), and the trie memo
+  evicting at `size > 2` if a pack language is active alongside two others.
+- **The collision-warning dialog has still never been SEEN — but its precondition is now
+  reachable in CI.** `CtcImportedPackInstrumentedTest.theCollisionScanSeesAnImportedPacksContractions`
+  builds a fixture pack whose `contractions.json` rewrites a real English word (`were` → `we're`)
+  and asserts `ContractionCollisionScanner.scan(…).hasPackCollisions`, which is the exact branch
+  the dialog gates on and which no emulator could reach before (none has ever had a pack
+  installed). What is still owed on the maintainer's device is the DIALOG itself — Compose
+  rendering after a language re-selection with a real pack (nl is the bundled-adjacent one)
+  alongside a bundled language.
+- **Manual, on the maintainer's device**: the 2026-08-26 disabled-not-hidden settings rendering
+  (Settings → Input → Advanced Prediction Settings: Next-Word remains enabled when
+  Context-Aware is off, per the September 26 static/learned tier split; toggle Personalized Learning off → strength slider + aggression dropdown
+  should dim, and the dropdown must not open). Pure-JVM cannot see Compose rendering. Also still
+  owed: Italian swipe (moved neural→geometric→CTC in one day);
+  first-swipe warm-up now that neural preload is gone; a pre-v1.6.0 backup import (no `neural_*`
+  rows written); a pre-v1.1.86 upgrade (`migrateToLanguageSpecific` moved into
+  `DictionaryManager.init`, ordering test-pinned but the migration untested end to end).
+- **`docs/ARCHITECTURE_MASTER.md` §1/§4/§5** and the data-flow diagram were substantially
+  rewritten from code by an agent whose bulk find/replace corrupted six settings docs mid-run
+  (caught and redone by hand). Worth a read.
