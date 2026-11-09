@@ -1,5 +1,21 @@
 # CleverKeys Agent & Developer Handbook
 
+## Estonian Swipe fork: publication overrides
+
+This repository is the `tehisaru-git/estonian-swipe-keyboard` GPLv3 source
+snapshot derived from CleverKeys, **not** the upstream release repository.
+The fork's Android application ID is `io.github.tehisaru.estonianswipe` and its
+version starts at `0.1.0`. Publish one signed arm64 APK and the separately
+attributed `langpack-et.zip` in a GitHub Release here when requested. Preserve
+the same package ID and signing certificate while increasing versionName and
+versionCode for updates. The signing key lives outside Git; never publish it.
+The upstream GitHub Actions release/deploy/nightly workflows and committed debug
+keystore were deliberately excluded. `UPSTREAM_README.md`, upstream `fastlane/`
+and `metadata/fdroid/` describe **CleverKeys**, not this fork's release channels.
+Do not follow the upstream v2.0.0 tag/F-Droid automation instructions for this
+fork or push to `tribixbite/CleverKeys`. Test on an ARM64 phone before calling it
+production-ready; an emulator smoke test only validates basic integration.
+
 This document serves as a high-level guide for AI agents and developers working on the CleverKeys project. It synthesizes the project's infrastructure, build system, and key architectural patterns.
 
 ## 1. Project Overview
