@@ -60,6 +60,100 @@ class KeyboardSurfaceViewTest {
         assertEquals(0, view.activeTrailPointCount)
     }
 
+    @Test fun heldMOpensItsHintWhileDownAndCommitsQuestionMarkOnlyOnRelease() {
+        val view = KeyboardSurfaceView(RuntimeEnvironment.getApplication())
+        view.layout(0, 0, 660, 500)
+        val events = mutableListOf<SurfaceGesture>()
+        view.onGesture = events::add
+        val m = view.geometry.keys.single { it.label == "m" }.bounds
+        fun touch(action: Int, x: Float, y: Float, time: Long) = MotionEvent.obtain(1, time, action, x, y, 0).also {
+            view.onTouchEvent(it); it.recycle()
+        }
+        touch(MotionEvent.ACTION_DOWN, m.centerX, m.centerY, 1)
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+            .idleFor(500, java.util.concurrent.TimeUnit.MILLISECONDS)
+        assertEquals("?", view.activeLongPressValue)
+        assertTrue(events.isEmpty())
+        touch(MotionEvent.ACTION_UP, m.centerX, m.centerY, 501)
+        assertEquals("?", (events.single() as SurfaceGesture.LongPress).value)
+        assertNull(view.activeLongPressValue)
+    }
+
+    @Test fun slidingHeldGSelectsAccentWithoutSwipingOrCommittingTwice() {
+        val view = KeyboardSurfaceView(RuntimeEnvironment.getApplication())
+        view.layout(0, 0, 660, 500)
+        val events = mutableListOf<SurfaceGesture>()
+        view.onGesture = events::add
+        val g = view.geometry.keys.single { it.label == "g" }.bounds
+        fun touch(action: Int, x: Float, y: Float, time: Long) = MotionEvent.obtain(1, time, action, x, y, 0).also {
+            view.onTouchEvent(it); it.recycle()
+        }
+        touch(MotionEvent.ACTION_DOWN, g.centerX, g.centerY, 1)
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+            .idleFor(500, java.util.concurrent.TimeUnit.MILLISECONDS)
+        assertEquals("&", view.activeLongPressValue)
+        val left = g.centerX - 54f * view.resources.displayMetrics.density
+        touch(MotionEvent.ACTION_MOVE, left, g.centerY, 510)
+        assertEquals("ğ", view.activeLongPressValue)
+        touch(MotionEvent.ACTION_UP, left, g.centerY, 520)
+        assertEquals("ğ", (events.single() as SurfaceGesture.LongPress).value)
+    }
+
+    @Test fun movingAcrossLettersBeforeHoldStillProducesSwipeAndNeverPopup() {
+        val view = KeyboardSurfaceView(RuntimeEnvironment.getApplication())
+        view.layout(0, 0, 660, 500)
+        val events = mutableListOf<SurfaceGesture>()
+        view.onGesture = events::add
+        val g = view.geometry.keys.single { it.label == "g" }.bounds
+        val h = view.geometry.keys.single { it.label == "h" }.bounds
+        MotionEvent.obtain(1, 1, MotionEvent.ACTION_DOWN, g.centerX, g.centerY, 0).also { view.onTouchEvent(it); it.recycle() }
+        MotionEvent.obtain(1, 80, MotionEvent.ACTION_MOVE, h.centerX, h.centerY, 0).also { view.onTouchEvent(it); it.recycle() }
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+            .idleFor(500, java.util.concurrent.TimeUnit.MILLISECONDS)
+        assertNull(view.activeLongPressValue)
+        MotionEvent.obtain(1, 581, MotionEvent.ACTION_UP, h.centerX, h.centerY, 0).also { view.onTouchEvent(it); it.recycle() }
+        assertTrue(events.single() is SurfaceGesture.Swipe)
+    }
+
+    @Test fun crossingAKeyEdgeBeforeThresholdCannotTriggerOldKeysHold() {
+        val view = KeyboardSurfaceView(RuntimeEnvironment.getApplication())
+        view.layout(0, 0, 660, 500)
+        val emitted = mutableListOf<SurfaceGesture>()
+        view.onGesture = emitted::add
+        val g = view.geometry.keys.single { it.label == "g" }.bounds
+        val y = g.centerY
+        fun send(action: Int, x: Float, time: Long) = MotionEvent.obtain(1, time, action, x, y, 0).also {
+            view.onTouchEvent(it); it.recycle()
+        }
+        send(MotionEvent.ACTION_DOWN, g.right - 2f, 1)
+        send(MotionEvent.ACTION_MOVE, g.right + 1f, 80)
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+            .idleFor(500, java.util.concurrent.TimeUnit.MILLISECONDS)
+        assertNull(view.activeLongPressValue)
+        send(MotionEvent.ACTION_UP, g.right + 1f, 600)
+        assertEquals("g", (emitted.single() as SurfaceGesture.Tap).key.label)
+    }
+
+    @Test fun deliberateFarSwipeAfterPopupStillReachesRecognizer() {
+        val view = KeyboardSurfaceView(RuntimeEnvironment.getApplication())
+        view.layout(0, 0, 660, 500)
+        val emitted = mutableListOf<SurfaceGesture>()
+        view.onGesture = emitted::add
+        val g = view.geometry.keys.single { it.label == "g" }.bounds
+        val l = view.geometry.keys.single { it.label == "l" }.bounds
+        fun send(action: Int, x: Float, time: Long) = MotionEvent.obtain(1, time, action, x, g.centerY, 0).also {
+            view.onTouchEvent(it); it.recycle()
+        }
+        send(MotionEvent.ACTION_DOWN, g.centerX, 1)
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+            .idleFor(500, java.util.concurrent.TimeUnit.MILLISECONDS)
+        assertEquals("&", view.activeLongPressValue)
+        send(MotionEvent.ACTION_MOVE, l.centerX, 510)
+        assertNull(view.activeLongPressValue)
+        send(MotionEvent.ACTION_UP, l.centerX, 520)
+        assertTrue(emitted.single() is SurfaceGesture.Swipe)
+    }
+
     @Test fun backspaceHoldRepeatsWhileFingerIsDownAndStopsOnRelease() {
         val view = KeyboardSurfaceView(RuntimeEnvironment.getApplication())
         view.layout(0, 0, 330, 250)

@@ -25,6 +25,15 @@ but must not render the shipped keyboard or handle its input.
   light/dark rounded key faces, and a short bottom row with `?123`, comma,
   emoji, space/language switch, period, and Enter. Include the symbol layer,
   long-press characters and word-delete/cursor gestures without crowding faces.
+  In the active Estonian Swipe surface, holding an alphabetic key presents its
+  visible corner symbol while the finger remains down; sliding across a
+  multi-choice popup selects an accent, releasing inserts exactly one choice,
+  and a deliberate swipe must cancel the hold. The pictured `m` offers `?`,
+  `g` offers `ğ`, `&`, `ǵ`, and Estonian `s`/`z` retain `š`/`ž` alongside
+  `#`/`*`. Use original drawn geometry, not Gboard artwork. Keep three long
+  candidate words in the same fixed-height row: adapt type size, never wrap
+  onto the number row, ellipsize only if needed, and expose the full text to
+  accessibility while preserving all three tap targets.
 - Dark reference supplied by the user: a flat near-charcoal keyboard surface,
   slate rounded number/letter keys, slightly lighter Shift/Backspace/punctuation,
   high-contrast off-white labels, and one pale-blue Enter key. Use an original

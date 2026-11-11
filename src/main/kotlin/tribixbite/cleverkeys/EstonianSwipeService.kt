@@ -27,6 +27,7 @@ import tribixbite.cleverkeys.estonianui.KeyKind
 import tribixbite.cleverkeys.estonianui.KeyboardGeometry as SurfaceGeometry
 import tribixbite.cleverkeys.estonianui.KeyboardLanguage
 import tribixbite.cleverkeys.estonianui.KeyboardSurfaceView
+import tribixbite.cleverkeys.estonianui.CandidateLabelView
 import tribixbite.cleverkeys.estonianui.SurfaceGesture
 import tribixbite.cleverkeys.estonianstudy.SwipeStudyBridge
 import tribixbite.cleverkeys.estoniantelemetry.TelemetryRuntime
@@ -61,7 +62,7 @@ class EstonianSwipeService : InputMethodService() {
     private var toolbarArrowButton: TextView? = null
     private var forceToolbar = false
     private var toolbarCompact = false
-    private var suggestionButtons: List<TextView> = emptyList()
+    private var suggestionButtons: List<CandidateLabelView> = emptyList()
     private var ownedConnection: InputConnection? = null
     private var ownedEditor: EditorInfo? = null
     private var ownedWordSink: OwnedWordSink? = null
@@ -89,8 +90,7 @@ class EstonianSwipeService : InputMethodService() {
     private fun renderSuggestions() {
         val words = suggestions.words
         suggestionButtons.forEachIndexed { index, button ->
-            button.text = words.getOrNull(index) ?: ""
-            button.visibility = if (index < words.size) View.VISIBLE else View.INVISIBLE
+            button.bind(words.getOrNull(index))
         }
         val showCandidates = words.isNotEmpty() && !forceToolbar
         candidatesRow?.visibility = if (showCandidates) View.VISIBLE else View.GONE
@@ -277,9 +277,7 @@ class EstonianSwipeService : InputMethodService() {
             if (index > 0) candidates.addView(View(this).apply {
                 setBackgroundColor(if (view.darkMode) 0xff696b70.toInt() else 0xffc6cbd3.toInt())
             }, LinearLayout.LayoutParams((1 * dp).toInt().coerceAtLeast(1), (24 * dp).toInt()))
-            TextView(this).apply {
-                gravity = Gravity.CENTER
-                textSize = 18f
+            CandidateLabelView(this).apply {
                 setTextColor(view.palette.label)
                 visibility = View.INVISIBLE
                 setOnClickListener {
@@ -565,6 +563,21 @@ class EstonianSwipeService : InputMethodService() {
                 clearSuggestions()
                 manualLetterGesture = true
                 try { taps.acceptHold(gesture) } finally { manualLetterGesture = false }
+            }
+            is SurfaceGesture.LongPress -> {
+                if (gesture.language != taps.language) return
+                epoch++
+                val letter = gesture.value.length == 1 && gesture.value[0].isLetter()
+                if (!letter) {
+                    finalizeLoggedWord()
+                    finishUndoneWord()
+                    afterSwipeWord = null
+                    manualPolicy.reset()
+                }
+                clearSuggestions()
+                manualLetterGesture = letter
+                try { taps.acceptLongPress(gesture.value, gesture.language) }
+                finally { manualLetterGesture = false }
             }
             is SurfaceGesture.DeleteWord -> {
                 if (gesture.language != taps.language) return
@@ -1085,6 +1098,12 @@ internal class EstonianTapInput(
     fun switchLanguage() {
         language = if (language == KeyboardLanguage.ESTONIAN) KeyboardLanguage.ENGLISH else KeyboardLanguage.ESTONIAN
         resetShift()
+    }
+    fun acceptLongPress(value: String, activeLanguage: KeyboardLanguage) {
+        if (activeLanguage != language || value.isEmpty() || value.length > 4 ||
+            value.any { it.code < 32 || it.code == 127 }) return
+        commit(if (shifted && value.length == 1 && value[0].isLetter()) value.uppercase() else value)
+        shifted = false
     }
     fun acceptHold(hold: SurfaceGesture.Hold) {
         if (hold.language != language || language != KeyboardLanguage.ESTONIAN) return

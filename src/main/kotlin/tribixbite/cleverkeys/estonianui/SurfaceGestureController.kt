@@ -5,6 +5,7 @@ data class SurfaceSample(val x: Float, val y: Float, val timeMs: Long, val key: 
 sealed class SurfaceGesture {
     data class Tap(val key: SurfaceKey, val language: KeyboardLanguage) : SurfaceGesture()
     data class Hold(val key: SurfaceKey, val language: KeyboardLanguage) : SurfaceGesture()
+    data class LongPress(val value: String, val language: KeyboardLanguage) : SurfaceGesture()
     data class DeleteWord(val language: KeyboardLanguage) : SurfaceGesture()
     data class RepeatBackspace(val language: KeyboardLanguage) : SurfaceGesture()
     data class Swipe(val samples: List<SurfaceSample>, val language: KeyboardLanguage) : SurfaceGesture()

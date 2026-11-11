@@ -138,6 +138,17 @@ class EstonianSwipeServiceTest {
         assertTrue(controller.words.isEmpty())
     }
 
+    @Test fun longPressCommitsOnlyChosenCharacterInMatchingLanguageAndRespectsShift() {
+        val typed = mutableListOf<String>()
+        val input = EstonianTapInput(typed::add, {}, {})
+        input.acceptLongPress("?", KeyboardLanguage.ESTONIAN)
+        input.acceptLongPress("ğ", KeyboardLanguage.ENGLISH)
+        val geometry = KeyboardGeometry(330, 250, KeyboardLanguage.ESTONIAN)
+        input.accept(SurfaceGesture.Tap(geometry.keys.first { it.kind == KeyKind.SHIFT }, KeyboardLanguage.ESTONIAN))
+        input.acceptLongPress("ğ", KeyboardLanguage.ESTONIAN)
+        assertEquals(listOf("?", "Ğ"), typed)
+    }
+
     @Test fun emojiBrowseAndSearchReuseKeyboardHeightWithoutHidingEditor() {
         val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
         val layout = service.onCreateInputView() as LinearLayout
@@ -158,6 +169,28 @@ class EstonianSwipeServiceTest {
         panel.visibility = View.GONE
         assertEquals(View.VISIBLE, bar.visibility)
         assertEquals(base, bar.layoutParams.height + keys.layoutParams.height)
+    }
+
+    @Test fun longCandidatesStayInOneStableRowAndAreFullyReachable() {
+        val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
+        val layout = service.onCreateInputView() as LinearLayout
+        val strip = layout.getChildAt(0) as FrameLayout
+        val row = strip.getChildAt(1) as LinearLayout
+        row.visibility = View.VISIBLE
+        val words = listOf("funktsionaalsus", "funktsionaalseid", "funktsionaalsuses")
+        val buttons = (0..2).map { row.getChildAt(it * 2 + 1) as CandidateLabelView }
+        buttons.zip(words).forEach { (button, word) -> button.bind(word) }
+        val width = View.MeasureSpec.makeMeasureSpec(720, View.MeasureSpec.EXACTLY)
+        val height = View.MeasureSpec.makeMeasureSpec(88, View.MeasureSpec.EXACTLY)
+        strip.measure(width, height)
+        strip.layout(0, 0, 720, 88)
+        buttons.forEachIndexed { index, button ->
+            assertEquals(words[index], button.contentDescription)
+            assertEquals(1, button.lineCount)
+            assertTrue(button.measuredHeight <= 88)
+            assertTrue(button.isClickable)
+        }
+        assertEquals(88, strip.measuredHeight)
     }
 
     @Test fun inputViewKeepsToolbarAndCandidatesInOneFixedHeightSlot() {

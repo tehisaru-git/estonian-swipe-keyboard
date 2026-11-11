@@ -62,6 +62,52 @@ class KeyboardSurfaceView @JvmOverloads constructor(
         repeatArmed = false
         repeatHandler.removeCallbacks(repeatTick)
     }
+    private val holdHandler = Handler(Looper.getMainLooper())
+    private var heldKey: SurfaceKey? = null
+    private var heldOptions: LongPressOptions? = null
+    private var heldIndex = 0
+    private var holdStartX = 0f
+    private var holdStartY = 0f
+    private var holdStartTimeMs = 0L
+    private var holdPointerX = 0f
+    private var holdPointerY = 0f
+    private val holdTick = Runnable {
+        val key = heldKey
+        val options = key?.takeIf { geometry.hit(holdPointerX, holdPointerY) == it }
+            ?.let { LongPressOptions.forKey(it, language, symbolMode) }
+        if (key != null && options != null) {
+            heldOptions = options
+            heldIndex = options.defaultIndex
+            controller.cancel() // A held symbol must not become a swipe or ordinary tap.
+            clearTrail()
+            invalidate()
+        }
+    }
+    internal val activeLongPressValue: String? get() = heldOptions?.values?.get(heldIndex)
+    private fun clearHold() {
+        holdHandler.removeCallbacks(holdTick)
+        heldKey = null
+        heldOptions = null
+        heldIndex = 0
+        invalidate()
+    }
+    private fun popupBounds(key: SurfaceKey, count: Int): RectF {
+        val d = resources.displayMetrics.density
+        val w = minOf(width - 8f * d, count * 54f * d).coerceAtLeast(1f)
+        val left = (key.bounds.centerX - w / 2).coerceIn(4f * d, (width - w - 4f * d).coerceAtLeast(4f * d))
+        val bottom = key.bounds.top + 15f * d
+        return RectF(left, (bottom - 64f * d).coerceAtLeast(4f * d), left + w, bottom)
+    }
+    private fun selectHeldChoice(x: Float, y: Float) {
+        val key = heldKey ?: return
+        val options = heldOptions ?: return
+        if (kotlin.math.abs(x - holdStartX) < 16f * resources.displayMetrics.density &&
+            y >= key.bounds.top) return
+        val box = popupBounds(key, options.values.size)
+        val index = ((x - box.left) / (box.width() / options.values.size)).toInt()
+            .coerceIn(options.values.indices)
+        if (index != heldIndex) { heldIndex = index; invalidate() }
+    }
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val trailPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -142,6 +188,13 @@ class KeyboardSurfaceView @JvmOverloads constructor(
                 setBoundsInParent(Rect(b.left, b.top, b.right, b.bottom))
                 setBoundsInScreen(Rect(location[0] + b.left, location[1] + b.top, location[0] + b.right, location[1] + b.bottom))
                 addAction(AccessibilityNodeInfo.ACTION_CLICK)
+                LongPressOptions.forKey(key, language, symbolMode)?.let { options ->
+                    addAction(AccessibilityNodeInfo.ACTION_LONG_CLICK)
+                    options.values.forEachIndexed { index, value ->
+                        addAction(AccessibilityNodeInfo.AccessibilityAction(0x01020000 + index,
+                            "Insert $value"))
+                    }
+                }
                 addAction(if (focusId == virtualViewId) AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS
                     else AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS)
             }
@@ -151,6 +204,12 @@ class KeyboardSurfaceView @JvmOverloads constructor(
             return when (action) {
                 AccessibilityNodeInfo.ACTION_CLICK -> {
                     onGesture?.invoke(SurfaceGesture.Tap(key, language))
+                    sendVirtualEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_CLICKED)
+                    true
+                }
+                AccessibilityNodeInfo.ACTION_LONG_CLICK -> {
+                    val options = LongPressOptions.forKey(key, language, symbolMode) ?: return false
+                    onGesture?.invoke(SurfaceGesture.LongPress(options.defaultValue, language))
                     sendVirtualEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_CLICKED)
                     true
                 }
@@ -167,7 +226,14 @@ class KeyboardSurfaceView @JvmOverloads constructor(
                         invalidate(); true
                     }
                 }
-                else -> false
+                else -> {
+                    val index = action - 0x01020000
+                    val options = LongPressOptions.forKey(key, language, symbolMode)
+                    val value = options?.values?.getOrNull(index) ?: return false
+                    onGesture?.invoke(SurfaceGesture.LongPress(value, language))
+                    sendVirtualEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_CLICKED)
+                    true
+                }
             }
         }
     }
@@ -208,6 +274,7 @@ class KeyboardSurfaceView @JvmOverloads constructor(
     }
     private fun rebuild() {
         stopRepeat()
+        clearHold()
         clearTrail()
         repeatStarted = false
         controller.cancel()
@@ -275,6 +342,28 @@ class KeyboardSurfaceView @JvmOverloads constructor(
                 canvas.drawPath(trailSegment, trailPaint)
             }
         }
+        val key = heldKey
+        val options = heldOptions
+        if (key != null && options != null) {
+            val box = popupBounds(key, options.values.size)
+            paint.style = Paint.Style.FILL
+            paint.color = if (darkMode) 0xff343941.toInt() else 0xffdfe5ee.toInt()
+            canvas.drawRoundRect(box, box.height() / 2, box.height() / 2, paint)
+            val slot = box.width() / options.values.size
+            options.values.forEachIndexed { index, value ->
+                val x = box.left + (index + .5f) * slot
+                val y = box.centerY()
+                if (index == heldIndex) {
+                    paint.color = colors.enter
+                    canvas.drawCircle(x, y, minOf(slot * .43f, box.height() * .44f), paint)
+                }
+                paint.color = if (index == heldIndex) colors.enterLabel else colors.label
+                paint.textAlign = Paint.Align.CENTER
+                paint.typeface = Typeface.DEFAULT
+                paint.textSize = 25f * resources.displayMetrics.scaledDensity
+                canvas.drawText(value, x, y - (paint.ascent() + paint.descent()) / 2f, paint)
+            }
+        }
     }
     /** Geometry-only artwork: no copied vendor image assets or font-dependent glyphs. */
     private fun drawOriginalIcon(canvas: Canvas, key: SurfaceKey, density: Float) {
@@ -325,14 +414,52 @@ class KeyboardSurfaceView @JvmOverloads constructor(
         paint.style = Paint.Style.FILL
         canvas.restore()
     }
+    private fun movePointer(x: Float, y: Float, timeMs: Long) {
+        holdPointerX = x
+        holdPointerY = y
+        val key = heldKey
+        val options = heldOptions
+        if (key != null && options != null) {
+            val box = popupBounds(key, options.values.size)
+            val margin = 18f * resources.displayMetrics.density
+            val crossKey = geometry.hit(x, y)?.let { it != key && it.kind == KeyKind.LETTER } == true
+            val beyondPopup = x < box.left - margin || x > box.right + margin
+            if (crossKey && beyondPopup) {
+                // A far cross-key move after a pause is a real swipe, not a popup choice.
+                clearHold()
+                controller.down(holdStartX, holdStartY, holdStartTimeMs)
+                controller.move(x, y, timeMs)
+                trailStartX = holdStartX
+                trailStartY = holdStartY
+                appendTrailPoint(holdStartX, holdStartY)
+                addTrailPoint(x, y)
+            } else selectHeldChoice(x, y)
+            return
+        }
+        controller.move(x, y, timeMs)
+        addTrailPoint(x, y)
+        if (key != null && geometry.hit(x, y) != key) clearHold()
+        if (repeatArmed && geometry.hit(x, y)?.kind != KeyKind.BACKSPACE) stopRepeat()
+    }
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 stopRepeat()
+                clearHold()
                 clearTrail()
                 repeatStarted = false
                 controller.down(event.x, event.y, event.eventTime)
-                if (!symbolMode && geometry.hit(event.x, event.y)?.kind == KeyKind.LETTER) {
+                val touched = geometry.hit(event.x, event.y)
+                if (touched != null && LongPressOptions.forKey(touched, language, symbolMode) != null) {
+                    heldKey = touched
+                    holdStartX = event.x
+                    holdStartY = event.y
+                    holdPointerX = event.x
+                    holdPointerY = event.y
+                    holdStartTimeMs = event.eventTime
+                    holdHandler.postDelayed(holdTick, 450L)
+                }
+                if (!symbolMode && touched?.kind == KeyKind.LETTER) {
                     trailStartX = event.x
                     trailStartY = event.y
                     appendTrailPoint(event.x, event.y)
@@ -344,21 +471,31 @@ class KeyboardSurfaceView @JvmOverloads constructor(
             }
             MotionEvent.ACTION_MOVE -> {
                 for (i in 0 until event.historySize) {
-                    controller.move(event.getHistoricalX(i), event.getHistoricalY(i), event.getHistoricalEventTime(i))
-                    addTrailPoint(event.getHistoricalX(i), event.getHistoricalY(i))
+                    movePointer(event.getHistoricalX(i), event.getHistoricalY(i), event.getHistoricalEventTime(i))
                 }
-                controller.move(event.x, event.y, event.eventTime)
-                addTrailPoint(event.x, event.y)
-                if (repeatArmed && geometry.hit(event.x, event.y)?.kind != KeyKind.BACKSPACE) stopRepeat()
+                movePointer(event.x, event.y, event.eventTime)
             }
             MotionEvent.ACTION_UP -> {
                 stopRepeat()
-                if (repeatStarted) controller.cancel() else controller.up(event.x, event.y, event.eventTime)
+                val options = heldOptions
+                val key = heldKey
+                if (options != null && key != null) {
+                    selectHeldChoice(event.x, event.y)
+                    val box = popupBounds(key, options.values.size)
+                    val margin = 18f * resources.displayMetrics.density
+                    if (event.x in (box.left - margin)..(box.right + margin) &&
+                        event.y in (box.top - margin)..(key.bounds.bottom + margin)) {
+                        onGesture?.invoke(SurfaceGesture.LongPress(options.values[heldIndex], language))
+                    }
+                    controller.cancel()
+                } else if (repeatStarted) controller.cancel() else controller.up(event.x, event.y, event.eventTime)
+                clearHold()
                 repeatStarted = false
                 clearTrail()
             }
             MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_POINTER_DOWN -> {
                 stopRepeat()
+                clearHold()
                 repeatStarted = false
                 controller.cancel()
                 clearTrail()
@@ -369,6 +506,7 @@ class KeyboardSurfaceView @JvmOverloads constructor(
     }
     override fun onDetachedFromWindow() {
         stopRepeat()
+        clearHold()
         clearTrail()
         controller.cancel()
         super.onDetachedFromWindow()
