@@ -1,15 +1,11 @@
 package tribixbite.cleverkeys.ui.settings.sections
 
-import android.content.Intent
-import android.net.Uri
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Card
@@ -20,270 +16,40 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import tribixbite.cleverkeys.PerKeyCustomizationButton
 import tribixbite.cleverkeys.R
 import tribixbite.cleverkeys.SettingsActivity
-import tribixbite.cleverkeys.ShortSwipeCalibrationActivity
-import tribixbite.cleverkeys.ThemeSettingsActivity
 import tribixbite.cleverkeys.ui.settings.CollapsibleSettingsSection
 import tribixbite.cleverkeys.ui.settings.openDictionaryManager
-import tribixbite.cleverkeys.ui.settings.openExtraKeysConfig
 import tribixbite.cleverkeys.ui.settings.openLayoutManager
-import androidx.compose.foundation.layout.Box
 
+/** Only the navigation needed for typing; no power-user feature carousel. */
 @Composable
 internal fun SettingsActivity.ActivitiesSection() {
-            // Activities Section (Special Feature Managers) - at top for quick access
-            val activityContext = LocalContext.current
-            CollapsibleSettingsSection(
-                title = stringResource(R.string.activities_section_title),
-                expanded = activitiesSectionExpanded,
-                onExpandChange = { activitiesSectionExpanded = it }
-            ) {
-                // v1.2.7: Dictionary Manager Card (moved to top per user request)
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                        .clickable { openDictionaryManager() },
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "📖", fontSize = 28.sp)
-                        Spacer(Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.activities_dictionary_title),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
-                            Text(
-                                text = stringResource(R.string.activities_dictionary_desc),
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
+    CollapsibleSettingsSection(
+        title = stringResource(R.string.swipe_settings_keyboard),
+        expanded = activitiesSectionExpanded,
+        onExpandChange = { activitiesSectionExpanded = it }
+    ) {
+        SettingsDestination(stringResource(R.string.swipe_settings_layouts)) { openLayoutManager() }
+        SettingsDestination(stringResource(R.string.swipe_settings_dictionaries)) { openDictionaryManager() }
+    }
+}
 
-                // Theme Manager Card
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                        .clickable {
-                            val intent = Intent(activityContext, ThemeSettingsActivity::class.java)
-                            activityContext.startActivity(intent)
-                        },
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "🎨", fontSize = 28.sp)
-                        Spacer(Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.activities_theme_title),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
-                            Text(
-                                text = stringResource(R.string.activities_theme_desc),
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-
-                // Short Swipe Customization Card (Per-Key Actions) - shared component
-                Box(modifier = Modifier.padding(bottom = 8.dp)) {
-                    PerKeyCustomizationButton()
-                }
-
-                // Extra Keys Configuration Card
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                        .clickable { openExtraKeysConfig() },
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "➕", fontSize = 28.sp)
-                        Spacer(Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.activities_extra_keys_title),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
-                            Text(
-                                text = stringResource(R.string.activities_extra_keys_desc),
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-
-                // Layout Manager Card
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                        .clickable { openLayoutManager() },
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "🌐", fontSize = 28.sp)
-                        Spacer(Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.activities_layout_title),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
-                            Text(
-                                text = stringResource(R.string.activities_layout_desc),
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-
-                // Short Swipe Calibration Card
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                        .clickable {
-                            val intent = Intent(activityContext, ShortSwipeCalibrationActivity::class.java)
-                            activityContext.startActivity(intent)
-                        },
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "📐", fontSize = 28.sp)
-                        Spacer(Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.activities_calibration_title),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
-                            Text(
-                                text = stringResource(R.string.activities_calibration_desc),
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-
-                // What's New Card - opens GitHub releases page
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/tribixbite/CleverKeys/releases/latest"))
-                            activityContext.startActivity(intent)
-                        },
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "✨", fontSize = 28.sp)
-                        Spacer(Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.activities_whats_new_title),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
-                            Text(
-                                text = stringResource(R.string.activities_whats_new_desc),
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            }
+@Composable
+private fun SettingsDestination(title: String, onClick: () -> Unit) {
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            Text(title, modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
 }

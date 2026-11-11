@@ -1,6 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name" translatable="false">CleverKeys</string>
+    <string name="app_name" translatable="false">Estonian Swipe</string>
+    <string name="swipe_setup_intro" translatable="false">A calm keyboard for Estonian and English. Your words stay on your device.</string>
+    <string name="swipe_setup_enable" translatable="false">Enable keyboard</string>
+    <string name="swipe_setup_enable_detail" translatable="false">Turn on Estonian Swipe in Android settings</string>
+    <string name="swipe_setup_select" translatable="false">Select keyboard</string>
+    <string name="swipe_setup_select_detail" translatable="false">Choose Estonian Swipe as your keyboard</string>
+    <string name="swipe_setup_try" translatable="false">Try it out</string>
+    <string name="swipe_setup_try_hint" translatable="false">Tap or swipe a word here</string>
+    <string name="swipe_setup_languages" translatable="false">Languages and preferences</string>
+    <string name="swipe_setup_import_pack" translatable="false">Import updated language pack</string>
+    <string name="swipe_setup_github" translatable="false">Source code</string>
+    <string name="swipe_setup_privacy" translatable="false">Private by design · Open source</string>
+    <string name="swipe_setup_done" translatable="false">Ready</string>
+    <string name="swipe_settings_title" translatable="false">Preferences</string>
+    <string name="swipe_settings_description" translatable="false">Make this keyboard yours.</string>
+    <string name="swipe_settings_keyboard" translatable="false">Keyboard</string>
+    <string name="swipe_settings_layouts" translatable="false">Languages and layouts</string>
+    <string name="swipe_settings_dictionaries" translatable="false">Dictionaries</string>
+    <string name="swipe_preview_intro" translatable="false">An offline keyboard for Estonian and English. Swipe or tap to type, then choose a suggested word.</string>
+    <string name="swipe_preview_languages" translatable="false">Languages</string>
+    <string name="swipe_preview_languages_detail" translatable="false">Tap the ET/EN key on the keyboard to switch recognition and layout. The Estonian word list is included in the app.</string>
+    <string name="swipe_preview_dictionaries" translatable="false">Offline dictionaries</string>
+    <string name="swipe_preview_dictionaries_detail" translatable="false">The included Estonian and English word lists work without a network connection. You can import an updated language pack later.</string>
+    <string name="swipe_preview_import" translatable="false">Import language pack</string>
+    <string name="swipe_preview_emoji" translatable="false">Emoji</string>
+    <string name="swipe_preview_emoji_detail" translatable="false">Tap the emoji key, then type an English or Estonian search word on the keyboard. Search stays on your device.</string>
+    <string name="swipe_preview_appearance" translatable="false">Appearance</string>
+    <string name="swipe_preview_appearance_detail" translatable="false">The keyboard follows your device\'s light or dark mode.</string>
+    <string name="swipe_preview_privacy" translatable="false">Privacy</string>
+    <string name="swipe_preview_privacy_detail" translatable="false">Swipe recognition and emoji search run on your device. This keyboard does not learn typed words, including in password fields.</string>
+    <string name="swipe_preview_warning" translatable="false">Experimental preview · Check important text before sending.</string>
+    <string name="swipe_emoji_query_description" translatable="false">Emoji search query</string>
+    <string name="swipe_emoji_search_hint" translatable="false">Search emoji · type below</string>
+    <string name="swipe_emoji_backspace" translatable="false">Remove search letter</string>
+    <string name="swipe_emoji_close" translatable="false">Close emoji search</string>
     <string name="pref_layout_e_system">System settings</string>
     <string name="pref_layout_e_custom">Custom layout</string>
     <string name="pref_layouts_add">Add an alternate layout</string>
@@ -2119,6 +2153,7 @@
     <string name="swipe_debug_clear_traces_all">All swipe data</string>
     <string name="swipe_debug_clear_traces_message">Delete recorded swipe traces from this device?\n\n“%1$s” removes traces recorded on this screen; “%2$s” also removes traces from the global ML collection.</string>
     <string name="manifest_ime_service_label">CleverKeys Keyboard</string>
+    <string name="estonian_swipe_ime_label" translatable="false">Estonian Swipe Keyboard</string>
     <string name="manifest_backup_restore_label">Backup &amp; Restore</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">Cleared %1$d trace</item>

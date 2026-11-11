@@ -1,0 +1,11 @@
+{
+  "code": "et",
+  "name": "Estonian",
+  "version": 1,
+  "author": "tehisaru-git (experimental adaptation)",
+  "wordCount": 95000,
+  "hasPrefixBoost": false,
+  "license": "CC-BY-4.0",
+  "attribution": "Leipzig Corpora Collection (University of Leipzig), processed in HeliBoard aosp-dictionaries by Helium314; top 95000 selected/quantized by tehisaru-git. CC BY 4.0.",
+  "source": "https://codeberg.org/Helium314/aosp-dictionaries/src/branch/main/wordlists/main_et__experimental.combined"
+}

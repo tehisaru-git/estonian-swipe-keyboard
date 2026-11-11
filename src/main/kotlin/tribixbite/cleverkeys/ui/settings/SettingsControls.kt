@@ -62,7 +62,7 @@ internal fun SettingsActivity.CollapsibleSettingsSection(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(18.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -121,7 +121,7 @@ internal fun SettingsActivity.SettingsSection(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(18.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

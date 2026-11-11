@@ -416,7 +416,12 @@ class LayoutsPreference(ctx: Context, attrs: AttributeSet?) : ListGroupPreferenc
         private const val THEME_FIELD = "theme"
         /** JSON field of a modified copy's built-in origin ([CustomLayout.origin]). */
         private const val ORIGIN_FIELD = "origin"
-        val DEFAULT: List<Layout> = listOf(SystemLayout())
+        // The bundled offline et dictionary makes Estonian usable on first launch.
+        // Existing saved layout choices remain untouched across upgrades.
+        val DEFAULT: List<Layout> = listOf(
+            NamedLayout("latn_qwerty_et"),
+            NamedLayout("latn_qwerty_us_gboard_style")
+        )
         val SERIALIZER: ListGroupPreference.Serializer<Layout> = Serializer()
 
         /** Obtained from [res/values/layouts.xml]. */

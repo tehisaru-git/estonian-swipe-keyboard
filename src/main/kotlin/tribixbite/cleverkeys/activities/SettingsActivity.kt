@@ -25,7 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import tribixbite.cleverkeys.autocorrect.AutocorrectTuning
-import tribixbite.cleverkeys.theme.KeyboardTheme
+import tribixbite.cleverkeys.theme.EstonianSwipeTheme
 import tribixbite.cleverkeys.langpack.LanguagePackManifest
 import tribixbite.cleverkeys.ui.settings.SearchableSetting
 import tribixbite.cleverkeys.ui.settings.expanderFor
@@ -85,16 +85,9 @@ class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPreferen
         const val ACTION_SANITIZATION_RULES_CHANGED =
             "tribixbite.cleverkeys.action.SANITIZATION_RULES_CHANGED"
 
-        /**
-         * The GitHub `langpacks` pre-release carrying every prebuilt language-pack ZIP
-         * (bg, de, el, he, mk, nl, ru, sv, tr, uk, ... — 23 assets). Users download a ZIP
-         * here and import it via SAF — the app has no INTERNET permission, so this only
-         * opens the browser. The same zips are committed under `scripts/dictionaries/`,
-         * but the release page is the download surface phones can actually use (raw
-         * per-file downloads, no repo browsing).
-         */
+        /** Public Estonian dictionary ZIP for offline swipe; opens in browser (no INTERNET permission). */
         const val LANGUAGE_PACKS_URL =
-            "https://github.com/tribixbite/CleverKeys/releases/tag/langpacks"
+            "https://github.com/tehisaru-git/estonian-swipe-keyboard/releases/download/v0.1.0/langpack-et.zip"
 
         /** Intent extra naming a section to expand on launch (see the `scroll_to` handling). */
         const val EXTRA_SCROLL_TO = "scroll_to"
@@ -730,7 +723,9 @@ class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPreferen
             // screen they open, in the UI language.
             searchEntry(R.string.activities_theme_title, listOf("color", "dark mode", "light", "appearance", "theme"), "activities", ThemeSettingsActivity::class.java),
             searchEntry(R.string.activities_dictionary_title, listOf("words", "custom", "disabled", "vocabulary"), "activities", DictionaryManagerActivity::class.java),
+            searchEntry(R.string.swipe_settings_dictionaries, listOf("dictionary", "words", "vocabulary"), "activities", DictionaryManagerActivity::class.java),
             searchEntry(R.string.activities_layout_title, listOf("keyboard layout", "qwerty", "azerty"), "activities", LayoutManagerActivity::class.java),
+            searchEntry(R.string.swipe_settings_layouts, listOf("languages", "layouts", "keyboard", "estonian", "english"), "activities", LayoutManagerActivity::class.java),
             // GH #186/#61: per-layout language binding lives on each Layout Manager row.
             searchEntry(R.string.layout_language_title, listOf("language", "layout language", "per layout", "bind", "switch language", "autocorrect"), "activities", LayoutManagerActivity::class.java),
             searchEntry(R.string.calibration_customize_title, listOf("short swipe", "gesture", "actions", "commands", "per-key"), "activities", ShortSwipeCustomizationActivity::class.java, gatedBy = "short_gestures", settingId = "per_key_customization"),
@@ -801,9 +796,12 @@ class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPreferen
                 w.isStatusBarContrastEnforced = false
                 w.isNavigationBarContrastEnforced = false
             }
+            val dark = (resources.configuration.uiMode and
+                android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
             androidx.core.view.WindowCompat.getInsetsController(w, w.decorView)?.apply {
-                isAppearanceLightStatusBars = false
-                isAppearanceLightNavigationBars = false
+                isAppearanceLightStatusBars = !dark
+                isAppearanceLightNavigationBars = !dark
             }
             // Clear backgrounds on all window views to prevent white bar
             w.decorView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
@@ -874,7 +872,7 @@ class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPreferen
         try {
             setContent {
                 // #35: Follow system dark/light mode instead of forcing dark
-                KeyboardTheme {
+                EstonianSwipeTheme {
                     SettingsScreen()
 
                     // Backup & Restore preview/result dialogs + loading overlay.

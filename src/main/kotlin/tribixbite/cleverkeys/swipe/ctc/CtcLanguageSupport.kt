@@ -130,6 +130,8 @@ object CtcLanguageSupport {
         "it" to LexiconSource.CKDT_BIN,
         "pt" to LexiconSource.CKDT_BIN,
         "sv" to LexiconSource.CKDT_BIN,
+        // Offline fallback for fresh installs. An eligible installed et pack wins in sourceFor.
+        "et" to LexiconSource.CKDT_BIN,
         // 2026-08-29, the first NON-LATIN language — see [VAL_ONLY] before quoting any number
         // for it, and [CtcScriptSupport] for the alphabet, the layout and the model.
         "ru" to LexiconSource.CKDT_LANGPACK,
@@ -282,6 +284,11 @@ object CtcLanguageSupport {
      */
     fun sourceFor(language: String?): LexiconSource? {
         val code = normalize(language)
+        // et alone has both an APK fallback and a user-installable pack. Preserve the
+        // user's measured eligible pack; other bundled languages keep their original source.
+        if (code == "et" && CtcImportedPackSupport.servesImportedPack(code)) {
+            return LexiconSource.CKDT_LANGPACK
+        }
         SUPPORTED[code]?.let { return it }
         return if (CtcImportedPackSupport.servesImportedPack(code)) {
             LexiconSource.CKDT_LANGPACK

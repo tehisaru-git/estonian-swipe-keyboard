@@ -406,6 +406,21 @@ parameters (2026-06-07). The complete modified file, with its history, is in
 this repository at the path above, which is the source of every APK.
 
 ================================================================================
+Bundled offline Estonian dictionary (et)
+================================================================================
+src/main/assets/dictionaries/et_enhanced.bin is byte-identical to dictionary.bin
+in the published langpack-et.zip (SHA-256:
+9b4e79ad7ebefb59d7a23b3d719fcc62d8d8b33afa5d2638461e8a7fdfe9abe2).
+Its original manifest and attribution ship alongside it as
+src/main/assets/estonian/manifest.json and src/main/assets/estonian/NOTICE.txt.
+Source: Leipzig Corpora Collection (University of Leipzig), processed in
+HeliBoard aosp-dictionaries by Helium314; the top 95,000 forms were selected,
+filtered and frequency-quantized into CKDT V2 by tehisaru-git.
+License for the adapted dictionary: Creative Commons Attribution 4.0 (CC BY 4.0).
+Source URL: https://codeberg.org/Helium314/aosp-dictionaries/src/branch/main/wordlists/main_et__experimental.combined
+No network access or ZIP import is required to use this bundled fallback.
+
+================================================================================
 Emoji search keywords (emojibase-data and Unicode CLDR)
 ================================================================================
 src/main/assets/emoji_keywords.tsv (keyword -> emoji index used by emoji search)

@@ -144,7 +144,7 @@ dependencies {
 // =============================================================================
 // UPDATE ONLY THESE THREE VALUES FOR A NEW RELEASE:
 ext.VERSION_MAJOR = 0
-ext.VERSION_MINOR = 1
+ext.VERSION_MINOR = 2
 ext.VERSION_PATCH = 0
 // =============================================================================
 // DERIVED VALUES (auto-calculated, do not edit):
@@ -475,7 +475,7 @@ android {
       // Translation QA (2026-09-29): generate en-XA (accented, ~30% longer) and ar-XB (RTL)
       // pseudolocales for visual long-text/RTL checks. DEBUG ONLY — release stays false.
       pseudoLocalesEnabled true
-      resValue "string", "app_name", "CleverKeys (Debug)"
+      resValue "string", "app_name", "Estonian Swipe (Debug)"
       resValue "bool", "debug_logs", "true"
       buildConfigField "boolean", "ENABLE_VERBOSE_LOGGING", "true"
       signingConfig signingConfigs.debug
@@ -1702,6 +1702,7 @@ tasks.register('runMockTests', JavaExec) {
     'tribixbite.cleverkeys.LayoutLanguageBindingConfigTest',
     // iOS-/Gboard-/SwiftKey-style predefined layouts through the real layout parser.
     'tribixbite.cleverkeys.StyleLayoutsTest',
+    'tribixbite.cleverkeys.EstonianKeyboardLayoutTest',
     // Per-layout theme binding through the real Config, ConfigurationManager (re-inflate only on an
     // effective-theme change), the layouts serializer (backup blob) and the XML `theme` attribute.
     'tribixbite.cleverkeys.LayoutThemeBindingConfigTest',

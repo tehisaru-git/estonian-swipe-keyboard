@@ -14,6 +14,7 @@ import tribixbite.cleverkeys.theme.KeyboardLooks
  */
 object PredefinedLayoutThemes {
     val DECLARED: Map<String, String> = mapOf(
+        "latn_qwerty_et" to KeyboardLooks.GBOARD,
         "latn_qwerty_us_ios_style" to KeyboardLooks.IOS,
         "latn_qwerty_us_gboard_style" to KeyboardLooks.GBOARD,
         "latn_qwerty_us_swiftkey_style" to KeyboardLooks.SWIFTKEY,

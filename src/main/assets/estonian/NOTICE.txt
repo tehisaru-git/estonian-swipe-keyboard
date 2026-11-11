@@ -1,0 +1,25 @@
+CleverKeys language pack: Estonian (et) -- langpack-et.zip
+https://github.com/tribixbite/CleverKeys
+
+Pack licence: CC-BY-4.0
+
+The word list in this pack (dictionary.bin, unigrams.txt and, where present,
+prefix_boost.bin, which is computed from the same list) is an adaptation of
+the third-party data credited below.
+
+========================================================================
+Third-party data
+========================================================================
+
+Leipzig Corpora Collection (University of Leipzig), processed in HeliBoard aosp-dictionaries by Helium314; top 95000 selected/quantized by tehisaru-git. CC BY 4.0.
+
+========================================================================
+Changes
+========================================================================
+Modified: converted to a CleverKeys frequency list.
+Words were selected, filtered and ranked, and their frequencies quantised
+into CleverKeys' binary dictionary format; the selection and ranking differ
+from the upstream lists.
+
+contractions.json (where present) and manifest.json are CleverKeys work,
+GPL-3.0-only.

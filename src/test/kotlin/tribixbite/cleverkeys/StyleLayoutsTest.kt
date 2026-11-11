@@ -395,7 +395,9 @@ class StyleLayoutsTest {
             f.name.removeSuffix(".xml") to LayoutThemeBinding.declaredThemeOfXml(f.readText())
         }.filterValues { it != null }
         assertThat(declared).containsExactlyEntriesIn(PredefinedLayoutThemes.DECLARED)
-        assertThat(PredefinedLayoutThemes.DECLARED).containsExactlyEntriesIn(LOOKS)
+        assertThat(PredefinedLayoutThemes.DECLARED).containsAtLeastEntriesIn(LOOKS)
+        assertThat(PredefinedLayoutThemes.DECLARED["latn_qwerty_et"])
+            .isEqualTo(tribixbite.cleverkeys.theme.KeyboardLooks.GBOARD)
     }
 
     @Test
