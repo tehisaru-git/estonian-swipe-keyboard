@@ -24,6 +24,23 @@
     <string name="swipe_study_export" translatable="false">Export JSON</string>
     <string name="swipe_study_saved" translatable="false">Study JSON saved locally</string>
     <string name="swipe_study_save_failed" translatable="false">Could not save study JSON</string>
+    <string name="telemetry_title" translatable="false">Swipe diagnostics</string>
+    <string name="telemetry_intro" translatable="false">Optional Estonian-only diagnostics. While ON, this keyboard stores swipe paths, suggested and inserted words, and corrections that it can verify, including words typed in normal chat fields. Private words may be included. Passwords, email addresses, URLs, number fields, incognito and no-learning fields are excluded. Data is encrypted on this device; nothing is uploaded. Export writes a readable file only after you choose a location. You can stop and erase it at any time.</string>
+    <string name="telemetry_off" translatable="false">Collection: OFF · %1$d swipes · %2$d corrections</string>
+    <string name="telemetry_on" translatable="false">Collection: ON · %1$d swipes · %2$d corrections</string>
+    <string name="telemetry_unavailable" translatable="false">Collection unavailable. Check or clear encrypted data.</string>
+    <string name="telemetry_start" translatable="false">Start local collection</string>
+    <string name="telemetry_stop" translatable="false">Stop collection</string>
+    <string name="telemetry_export" translatable="false">Export JSONL file</string>
+    <string name="telemetry_clear" translatable="false">Erase local data</string>
+    <string name="telemetry_consent_title" translatable="false">Store Estonian swipe diagnostics?</string>
+    <string name="telemetry_consent_body" translatable="false">This may include personal words typed in ordinary apps. Data remains encrypted here until you choose to export it. Password and private fields are excluded. Start recording?</string>
+    <string name="telemetry_clear_title" translatable="false">Erase encrypted diagnostics?</string>
+    <string name="telemetry_clear_body" translatable="false">This stops recording and permanently removes this app’s local diagnostic data. Previously exported files are not deleted.</string>
+    <string name="telemetry_confirm" translatable="false">Confirm</string>
+    <string name="telemetry_cancel" translatable="false">Cancel</string>
+    <string name="telemetry_exported" translatable="false">Diagnostic file saved locally</string>
+    <string name="telemetry_failed" translatable="false">Diagnostic operation failed; no successful export was confirmed</string>
     <string name="swipe_study_empty" translatable="false">No captured swipes to export. Start a new session.</string>
     <string name="swipe_toolbar_toggle" translatable="false">Toggle keyboard toolbar</string>
     <string name="swipe_toolbar_emoji" translatable="false">Search emoji</string>
@@ -49,9 +66,10 @@
     <string name="swipe_preview_appearance" translatable="false">Appearance</string>
     <string name="swipe_preview_appearance_detail" translatable="false">The keyboard follows your device\'s light or dark mode.</string>
     <string name="swipe_preview_privacy" translatable="false">Privacy</string>
-    <string name="swipe_preview_privacy_detail" translatable="false">Swipe recognition and emoji search run on your device. This keyboard does not learn typed words, including in password fields.</string>
+    <string name="swipe_preview_privacy_detail" translatable="false">Swipe recognition and emoji search run on your device. Optional Swipe diagnostics stores eligible Estonian swipe paths and corrections only after you turn it on; passwords and private fields are excluded. Nothing is uploaded.</string>
     <string name="swipe_preview_warning" translatable="false">Experimental preview · Check important text before sending.</string>
     <string name="swipe_emoji_query_description" translatable="false">Emoji search query</string>
+    <string name="swipe_emoji_browse_search" translatable="false">Search emoji</string>
     <string name="swipe_emoji_search_hint" translatable="false">Search emoji · type below</string>
     <string name="swipe_emoji_backspace" translatable="false">Remove search letter</string>
     <string name="swipe_emoji_close" translatable="false">Close emoji search</string>

@@ -14,6 +14,7 @@ class SurfaceGestureController(
     private val geometry: KeyboardGeometry,
     private val dispatch: (SurfaceGesture) -> Unit,
 ) {
+    companion object { const val MAX_SAMPLES = 8_192 }
     private val samples = mutableListOf<SurfaceSample>()
     private var origin: SurfaceKey? = null
     fun down(x: Float, y: Float, timeMs: Long) {
@@ -60,6 +61,22 @@ class SurfaceGestureController(
         samples.clear()
     }
     private fun sample(x: Float, y: Float, timeMs: Long) {
+        if (samples.size >= MAX_SAMPLES) {
+            // Keep endpoints and key-boundary transitions before thinning ordinary moves.
+            // Normal gestures never reach this limit; this prevents unbounded raw paths.
+            val reduced = ArrayList<SurfaceSample>(MAX_SAMPLES / 2 + 32)
+            for (i in samples.indices) {
+                val boundary = i == 0 || i == samples.lastIndex ||
+                    samples[i].key != samples[i - 1].key || samples[i].key != samples[i + 1].key
+                if (boundary || i % 2 == 0) reduced.add(samples[i])
+            }
+            samples.clear()
+            if (reduced.size > MAX_SAMPLES / 2) {
+                reduced.forEachIndexed { i, point ->
+                    if (i == 0 || i == reduced.lastIndex || i % 2 == 0) samples.add(point)
+                }
+            } else samples.addAll(reduced)
+        }
         samples.add(SurfaceSample(x, y, maxOf(timeMs, samples.lastOrNull()?.timeMs ?: timeMs), geometry.hit(x, y)))
     }
 }

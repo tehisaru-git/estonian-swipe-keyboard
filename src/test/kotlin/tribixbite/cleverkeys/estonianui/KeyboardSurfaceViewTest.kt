@@ -27,6 +27,39 @@ class KeyboardSurfaceViewTest {
         down.recycle(); move.recycle(); up.recycle()
     }
 
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test fun longSwipeKeepsRecentTailVisibleAndEvictsOldPoints() {
+        val view = KeyboardSurfaceView(RuntimeEnvironment.getApplication())
+        view.layout(0, 0, 660, 500)
+        view.darkMode = false
+        val start = view.geometry.rows[1][0].bounds
+        val oldX = start.centerX + 75f
+        val oldY = start.centerY.toFloat()
+        val newX = view.geometry.rows[1][6].bounds.centerX.toFloat()
+        val newY = view.geometry.rows[2][3].bounds.centerY.toFloat()
+        val baseline = Bitmap.createBitmap(660, 500, Bitmap.Config.ARGB_8888)
+        view.draw(Canvas(baseline))
+        fun send(action: Int, x: Float, y: Float, time: Long) {
+            MotionEvent.obtain(1, time, action, x, y, 0).also {
+                view.onTouchEvent(it)
+                it.recycle()
+            }
+        }
+        send(MotionEvent.ACTION_DOWN, start.centerX.toFloat(), oldY, 1)
+        send(MotionEvent.ACTION_MOVE, oldX, oldY, 2)
+        for (i in 0 until 300) {
+            send(MotionEvent.ACTION_MOVE, oldX + 20f + (i % 12) * 8f, oldY, i + 3L)
+        }
+        send(MotionEvent.ACTION_MOVE, newX, newY, 303)
+        val image = Bitmap.createBitmap(660, 500, Bitmap.Config.ARGB_8888)
+        view.draw(Canvas(image))
+        assertTrue("trail memory must stay bounded", view.activeTrailPointCount <= 128)
+        assertEquals("old path must be erased", baseline.getPixel(oldX.toInt(), oldY.toInt()), image.getPixel(oldX.toInt(), oldY.toInt()))
+        assertNotEquals("new tail must be painted", baseline.getPixel(newX.toInt(), newY.toInt()), image.getPixel(newX.toInt(), newY.toInt()))
+        send(MotionEvent.ACTION_CANCEL, newX, newY, 304)
+        assertEquals(0, view.activeTrailPointCount)
+    }
+
     @Test fun backspaceHoldRepeatsWhileFingerIsDownAndStopsOnRelease() {
         val view = KeyboardSurfaceView(RuntimeEnvironment.getApplication())
         view.layout(0, 0, 330, 250)

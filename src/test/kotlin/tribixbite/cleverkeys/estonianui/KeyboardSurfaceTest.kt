@@ -86,6 +86,26 @@ class KeyboardSurfaceTest {
         assertEquals(geometry.rows[1][0], (emitted.single() as SurfaceGesture.Tap).key)
     }
 
+    @Test fun extremelyLongGestureBoundsDecoderSamplesWithoutFreezingItsRecentTail() {
+        val geometry = KeyboardGeometry(330, 250, KeyboardLanguage.ESTONIAN)
+        val emitted = mutableListOf<SurfaceGesture>()
+        val input = SurfaceGestureController(geometry, emitted::add)
+        val q = geometry.rows[1][0].bounds
+        val w = geometry.rows[1][1].bounds
+        input.down(q.centerX, q.centerY, 1)
+        repeat(12_000) { i ->
+            val fraction = (i + 1).toFloat() / 12_000
+            input.move(q.centerX + (w.centerX - q.centerX) * fraction, q.centerY, i.toLong() + 2)
+        }
+        input.up(w.centerX, w.centerY, 12_003)
+        val swipe = emitted.single() as SurfaceGesture.Swipe
+        assertTrue(swipe.samples.size in 100..SurfaceGestureController.MAX_SAMPLES)
+        assertEquals(q.centerX, swipe.samples.first().x, 0.001f)
+        assertEquals(w.centerX, swipe.samples.last().x, 0.001f)
+        assertTrue(swipe.samples.zipWithNext().all { it.first.timeMs <= it.second.timeMs })
+        assertTrue(swipe.samples.any { it.key?.label == "w" })
+    }
+
     @Test fun liftDispatchesRawSwipeWithMonotonicTimesAndLanguage() {
         val geometry = KeyboardGeometry(330, 250, KeyboardLanguage.ESTONIAN)
         val emitted = mutableListOf<SurfaceGesture>()

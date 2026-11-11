@@ -68,26 +68,50 @@ class KeyboardSurfaceView @JvmOverloads constructor(
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
     }
-    private val trail = Path()
+    private companion object { const val MAX_TRAIL_POINTS = 128 }
+    // Visual samples only; the gesture controller separately receives every raw historical/move point.
+    private val trailX = FloatArray(MAX_TRAIL_POINTS)
+    private val trailY = FloatArray(MAX_TRAIL_POINTS)
+    private val trailSegment = Path()
+    private var trailHead = 0
+    private var trailPoints = 0
     private var trailStartX = 0f
     private var trailStartY = 0f
-    private var trailPoints = 0
     internal val activeTrailPointCount get() = if (trailVisible) trailPoints else 0
     private var trailVisible = false
     private fun clearTrail() {
-        trail.reset()
         trailPoints = 0
+        trailHead = 0
         trailVisible = false
         invalidate()
     }
+    private fun appendTrailPoint(x: Float, y: Float) {
+        val index = (trailHead + trailPoints) % MAX_TRAIL_POINTS
+        trailX[index] = x
+        trailY[index] = y
+        if (trailPoints == MAX_TRAIL_POINTS) trailHead = (trailHead + 1) % MAX_TRAIL_POINTS
+        else trailPoints++
+    }
     private fun addTrailPoint(x: Float, y: Float) {
-        if (trailPoints == 0 || trailPoints >= 256) return
+        if (trailPoints == 0) return
         val threshold = (geometry.width / geometry.rows[1].size * .55f).coerceAtLeast(12f)
         if (!trailVisible && Math.hypot((x - trailStartX).toDouble(), (y - trailStartY).toDouble()) >= threshold) {
             trailVisible = true
         }
-        trail.lineTo(x, y)
-        trailPoints++
+        val last = (trailHead + trailPoints - 1) % MAX_TRAIL_POINTS
+        val dx = x - trailX[last]
+        val dy = y - trailY[last]
+        val distance = Math.hypot(dx.toDouble(), dy.toDouble()).toFloat()
+        if (!distance.isFinite()) return
+        // Long event jumps get evenly spaced segments; coalesce tiny jitter without growing memory.
+        val spacing = 10f * resources.displayMetrics.density
+        val steps = (distance / spacing).toInt().coerceIn(1, MAX_TRAIL_POINTS)
+        if (distance < spacing / 3f) return
+        val fromX = trailX[last]
+        val fromY = trailY[last]
+        for (step in 1..steps) {
+            appendTrailPoint(fromX + dx * step / steps, fromY + dy * step / steps)
+        }
         if (trailVisible) invalidate()
     }
     private val rect = RectF()
@@ -231,12 +255,25 @@ class KeyboardSurfaceView @JvmOverloads constructor(
             }
         }
         if (trailVisible) {
-            trailPaint.color = if (darkMode) 0x558ebaff else 0x557398d6
-            trailPaint.strokeWidth = 11f * resources.displayMetrics.density
-            canvas.drawPath(trail, trailPaint)
-            trailPaint.color = if (darkMode) 0xffa8c7fa.toInt() else 0xff4c7dcc.toInt()
-            trailPaint.strokeWidth = 4f * resources.displayMetrics.density
-            canvas.drawPath(trail, trailPaint)
+            val glow = if (darkMode) 0x558ebaff else 0x557398d6
+            val core = if (darkMode) 0xffa8c7fa.toInt() else 0xff4c7dcc.toInt()
+            // Draw oldest first so the moving head stays bright and the evicted tail vanishes.
+            for (i in 1 until trailPoints) {
+                val previous = (trailHead + i - 1) % MAX_TRAIL_POINTS
+                val current = (trailHead + i) % MAX_TRAIL_POINTS
+                trailSegment.reset()
+                trailSegment.moveTo(trailX[previous], trailY[previous])
+                trailSegment.lineTo(trailX[current], trailY[current])
+                val fade = (i.toFloat() / (trailPoints - 1)).coerceIn(0f, 1f)
+                trailPaint.color = glow
+                trailPaint.alpha = (0x55 * fade).toInt()
+                trailPaint.strokeWidth = 11f * density
+                canvas.drawPath(trailSegment, trailPaint)
+                trailPaint.color = core
+                trailPaint.alpha = (0xff * fade).toInt()
+                trailPaint.strokeWidth = 4f * density
+                canvas.drawPath(trailSegment, trailPaint)
+            }
         }
     }
     /** Geometry-only artwork: no copied vendor image assets or font-dependent glyphs. */
@@ -298,8 +335,7 @@ class KeyboardSurfaceView @JvmOverloads constructor(
                 if (!symbolMode && geometry.hit(event.x, event.y)?.kind == KeyKind.LETTER) {
                     trailStartX = event.x
                     trailStartY = event.y
-                    trail.moveTo(event.x, event.y)
-                    trailPoints = 1
+                    appendTrailPoint(event.x, event.y)
                 }
                 if (geometry.hit(event.x, event.y)?.kind == KeyKind.BACKSPACE) {
                     repeatArmed = true

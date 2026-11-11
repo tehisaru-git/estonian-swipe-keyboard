@@ -29,6 +29,14 @@ import tribixbite.cleverkeys.estonianui.KeyboardLanguage
 import tribixbite.cleverkeys.estonianui.KeyboardSurfaceView
 import tribixbite.cleverkeys.estonianui.SurfaceGesture
 import tribixbite.cleverkeys.estonianstudy.SwipeStudyBridge
+import tribixbite.cleverkeys.estoniantelemetry.TelemetryRuntime
+import tribixbite.cleverkeys.estoniantelemetry.SwipeTrace
+import tribixbite.cleverkeys.estoniantelemetry.TelemetryPoint
+import tribixbite.cleverkeys.estoniantelemetry.TelemetryKey
+import tribixbite.cleverkeys.estoniantelemetry.TelemetryGeometry
+import tribixbite.cleverkeys.estoniantelemetry.TelemetryPolicy
+import android.os.SystemClock
+import java.util.UUID
 import tribixbite.cleverkeys.swipe.CtcEngineAdapter
 import tribixbite.cleverkeys.swipe.GeometricEngineAdapter
 import tribixbite.cleverkeys.a11y.KeyboardGeometry as AdapterGeometry
@@ -59,6 +67,16 @@ class EstonianSwipeService : InputMethodService() {
     private var ownedWordSink: OwnedWordSink? = null
     private var expectedOwnSelection: Pair<Int, Int>? = null
     private var writingSuggestion = false
+    private var writingManual = false
+    private var manualLetterGesture = false
+    private var afterSwipeWord: String? = null
+    private val manualPolicy = ManualTypingPolicy()
+    private data class LoggedSwipe(val id: String, val info: EditorInfo, val connection: InputConnection, var word: String)
+    private var loggedSwipe: LoggedSwipe? = null
+    private var undoneSwipe: LoggedSwipe? = null
+    private var undoAnchor: String? = null
+    private val replacementText = StringBuilder()
+    private val correctionTracker = SwipeCorrectionTracker()
 
     private fun clearSuggestions() {
         suggestions.clear()
@@ -97,8 +115,38 @@ class EstonianSwipeService : InputMethodService() {
         ownedWordSink = sink
         suggestions.start(sink, isSwipeAllowed(info))
     }
+    private fun commitManualValue(value: String) {
+        val connection = currentInputConnection ?: return
+        val previous = loggedSwipe
+        val ownSwipeSuffix = previous != null && afterSwipeWord == previous.word && verifiedSuffix(previous)
+        if (!manualLetterGesture && value.isNotEmpty() && value != " " && value != "\n") {
+            finishUndoneWord() // A punctuation mark can close a manually retyped correction.
+        } else if (value == " ") finishUndoneWord()
+        writingManual = true
+        try {
+            val success = when {
+                manualLetterGesture -> manualPolicy.commitLetterAfterSwipe(connection, afterSwipeWord, value)
+                value == " " && editor?.let(::isSwipeAllowed) == true -> manualPolicy.space(connection)
+                else -> { manualPolicy.reset(); connection.commitText(value, 1) }
+            }
+            if (!success) return
+            if (manualLetterGesture && undoneSwipe?.connection === connection &&
+                value.length == 1 && value[0].isLetter() && replacementText.length < 40) {
+                replacementText.append(value)
+            }
+            if (ownSwipeSuffix && previous != null) {
+                val suffix = if (manualLetterGesture) previous.word + " " + value else previous.word + " "
+                if (connection.getTextBeforeCursor(suffix.length, 0)?.toString() == suffix) {
+                    TelemetryRuntime.recordFinalization(this, previous.id, previous.info, previous.word)
+                    loggedSwipe = null
+                }
+            }
+            afterSwipeWord = null
+        } finally { writingManual = false }
+    }
+
     private val taps = EstonianTapInput(
-        { currentInputConnection?.commitText(it, 1) },
+        ::commitManualValue,
         { currentInputConnection?.let { connection -> deleteBackward(connection) } },
         {
             val info = editor
@@ -114,6 +162,7 @@ class EstonianSwipeService : InputMethodService() {
         val prefs = DirectBootAwarePreferences.get_shared_preferences(this)
         Config.initGlobalConfig(prefs, resources, null, false)
         tribixbite.cleverkeys.swipe.CtcInstalledPacks.bind(this)
+        TelemetryRuntime.initialize(this)
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
         emojiScope = scope
         scope.launch {
@@ -241,6 +290,25 @@ class EstonianSwipeService : InputMethodService() {
                         try { suggestions.choose(index) } finally { writingSuggestion = false }
                     } else false
                     if (selected && connection != null) {
+                        val newWord = suggestions.composingWord
+                        val previous = loggedSwipe
+                        if (newWord != null && previous != null && previous.info === info &&
+                            previous.connection === connection && previous.word != newWord) {
+                            val correction = correctionTracker.onSwipeReplacedFromBar(previous.word, newWord)
+                            correction?.rejected?.forEach { rejected ->
+                                rejected.traceId?.let { id ->
+                                    TelemetryRuntime.recordCorrection(this@EstonianSwipeService, id, info,
+                                        rejected.word, newWord, if (id == previous.id) "candidate" else "manual")
+                                    if (id != previous.id) TelemetryRuntime.recordFinalization(
+                                        this@EstonianSwipeService, id, info, newWord)
+                                }
+                            }
+                            previous.word = newWord
+                            correctionTracker.onSwipeAutoInserted(SwipeCorrectionTracker.SwipeRecord(
+                                newWord, suggestions.words, previous.id),
+                                connection.getTextBeforeCursor(96, 0)?.toString())
+                        }
+                        afterSwipeWord = newWord
                         ownSelectionAfterWrite(connection)
                         renderSuggestions()
                     } else if (info !== ownedEditor || connection !== ownedConnection) {
@@ -271,8 +339,11 @@ class EstonianSwipeService : InputMethodService() {
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
+        finishTelemetryField()
         epoch++
         clearSuggestions()
+        afterSwipeWord = null
+        manualPolicy.reset()
         ownedWordSink = null
         ownedConnection = null
         ownedEditor = null
@@ -285,9 +356,12 @@ class EstonianSwipeService : InputMethodService() {
     }
 
     override fun onFinishInput() {
+        finishTelemetryField()
         epoch++
         suggestions.end()
         renderSuggestions()
+        afterSwipeWord = null
+        manualPolicy.reset()
         ownedWordSink?.forget()
         ownedWordSink = null
         ownedConnection = null
@@ -339,9 +413,12 @@ class EstonianSwipeService : InputMethodService() {
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
+        finishTelemetryField()
         epoch++
         suggestions.end()
         renderSuggestions()
+        afterSwipeWord = null
+        manualPolicy.reset()
         ownedWordSink?.forget()
         ownedWordSink = null
         ownedConnection = null
@@ -357,7 +434,7 @@ class EstonianSwipeService : InputMethodService() {
     ) {
         val changed = oldSelStart != newSelStart || oldSelEnd != newSelEnd ||
             lastCandidatesStart != candidatesStart || lastCandidatesEnd != candidatesEnd
-        if (changed && !writingSuggestion) {
+        if (changed && !writingSuggestion && !writingManual) {
             val connection = currentInputConnection
             val composed = suggestions.composingWord
             val readback = if (connection === ownedConnection && editor === ownedEditor)
@@ -368,6 +445,12 @@ class EstonianSwipeService : InputMethodService() {
                 epoch++
                 suggestions.cursorChanged()
                 ownedWordSink?.forget()
+                afterSwipeWord = null
+                loggedSwipe = null
+                undoneSwipe = null
+                undoAnchor = null
+                replacementText.clear()
+                correctionTracker.clear()
                 expectedOwnSelection = null
                 renderSuggestions()
             }
@@ -379,6 +462,7 @@ class EstonianSwipeService : InputMethodService() {
     }
 
     override fun onDestroy() {
+        finishTelemetryField()
         epoch++
         emojiScope?.cancel()
         emojiScope = null
@@ -403,9 +487,30 @@ class EstonianSwipeService : InputMethodService() {
     }
 
     private fun deleteOnePress() {
+        afterSwipeWord = null
+        manualPolicy.reset()
+        val tracked = loggedSwipe
         val owned = ownedWordSink?.deleteOwnedWord()
+        if (owned == true && tracked != null && editor === tracked.info &&
+            currentInputConnection === tracked.connection) {
+            val anchor = tracked.connection.getTextBeforeCursor(SwipeCorrectionTracker.ANCHOR_WINDOW, 0)?.toString()
+            correctionTracker.onSwipeUndone(tracked.word, anchor)
+            TelemetryRuntime.recordUndo(this, tracked.id, tracked.info)
+            undoAnchor = anchor
+            undoneSwipe = tracked
+            replacementText.clear()
+            loggedSwipe = null
+        }
         clearSuggestions()
-        if (owned == null) currentInputConnection?.let(::deleteBackward)
+        if (owned == null) {
+            val connection = currentInputConnection
+            val deletingReplacement = undoneSwipe?.connection === connection && replacementText.isNotEmpty() &&
+                connection?.getTextBeforeCursor(1, 0)?.toString() == replacementText.last().toString()
+            if (connection != null && deleteBackward(connection)) {
+                if (deletingReplacement) replacementText.deleteCharAt(replacementText.lastIndex)
+                else if (tracked != null) { loggedSwipe = null; correctionTracker.clear() }
+            }
+        }
     }
 
     private fun handleGesture(gesture: SurfaceGesture) {
@@ -436,8 +541,17 @@ class EstonianSwipeService : InputMethodService() {
                     deleteOnePress()
                     return
                 }
+                if (gesture.key.kind != KeyKind.LETTER && gesture.key.kind != KeyKind.SPACE &&
+                    gesture.key.kind != KeyKind.SHIFT) {
+                    finalizeLoggedWord()
+                    finishUndoneWord()
+                    afterSwipeWord = null
+                    manualPolicy.reset()
+                    if (gesture.key.kind == KeyKind.LANGUAGE) correctionTracker.clear()
+                }
                 clearSuggestions()
-                taps.accept(gesture)
+                manualLetterGesture = gesture.key.kind == KeyKind.LETTER
+                try { taps.accept(gesture) } finally { manualLetterGesture = false }
                 if (gesture.key.kind == KeyKind.LANGUAGE) {
                     surface?.let { view ->
                         view.language = taps.language
@@ -449,12 +563,26 @@ class EstonianSwipeService : InputMethodService() {
                 if (gesture.language != taps.language) return
                 epoch++
                 clearSuggestions()
-                taps.acceptHold(gesture)
+                manualLetterGesture = true
+                try { taps.acceptHold(gesture) } finally { manualLetterGesture = false }
             }
             is SurfaceGesture.DeleteWord -> {
                 if (gesture.language != taps.language) return
                 epoch++
+                afterSwipeWord = null
+                manualPolicy.reset()
+                val tracked = loggedSwipe
                 val owned = ownedWordSink?.deleteOwnedWord()
+                if (owned == true && tracked != null && editor === tracked.info &&
+                    currentInputConnection === tracked.connection) {
+                    val anchor = tracked.connection.getTextBeforeCursor(SwipeCorrectionTracker.ANCHOR_WINDOW, 0)?.toString()
+                    correctionTracker.onSwipeUndone(tracked.word, anchor)
+                    TelemetryRuntime.recordUndo(this, tracked.id, tracked.info)
+                    undoAnchor = anchor
+                    undoneSwipe = tracked
+                    replacementText.clear()
+                    loggedSwipe = null
+                }
                 clearSuggestions()
                 if (owned == null) currentInputConnection?.let(::deletePreviousWord)
             }
@@ -463,16 +591,119 @@ class EstonianSwipeService : InputMethodService() {
                 epoch++
                 deleteOnePress()
             }
-            is SurfaceGesture.Swipe -> decode(gesture)
+            is SurfaceGesture.Swipe -> {
+                afterSwipeWord = null
+                manualPolicy.reset()
+                decode(gesture)
+            }
         }
     }
 
-    /** Emoji results reuse key-area height so the host editor never jumps or vanishes. */
-    private fun resizeForEmoji(expanded: Boolean) {
+    private fun verifiedSuffix(record: LoggedSwipe): Boolean =
+        editor === record.info && currentInputConnection === record.connection &&
+            record.connection.getSelectedText(0).isNullOrEmpty() &&
+            record.connection.getTextBeforeCursor(record.word.length, 0)?.toString() == record.word
+
+    private fun finalizeLoggedWord() {
+        val record = loggedSwipe ?: return
+        if (verifiedSuffix(record)) TelemetryRuntime.recordFinalization(this, record.id, record.info, record.word)
+        loggedSwipe = null // A moved cursor or unreadable editor is unresolved, never guessed.
+    }
+
+    private fun resolveCorrection(result: SwipeCorrectionTracker.Correction?) {
+        val info = editor ?: return
+        val chosen = result?.chosen ?: return
+        if (!TelemetryPolicy.word(chosen)) return
+        result.rejected.forEach { rejected ->
+            rejected.traceId?.let { id ->
+                if (TelemetryPolicy.word(rejected.word)) {
+                    TelemetryRuntime.recordCorrection(this, id, info, rejected.word, chosen, "manual")
+                    TelemetryRuntime.recordFinalization(this, id, info, chosen)
+                }
+            }
+        }
+    }
+
+    private fun finishUndoneWord() {
+        val record = undoneSwipe ?: return
+        if (editor !== record.info || currentInputConnection !== record.connection) {
+            undoneSwipe = null; undoAnchor = null; replacementText.clear(); correctionTracker.clear(); return
+        }
+        val replacement = replacementText.toString()
+        val before = record.connection.getTextBeforeCursor(
+            SwipeCorrectionTracker.ANCHOR_WINDOW + replacement.length + SwipeCorrectionTracker.RESOLUTION_SLACK, 0)?.toString()
+        if (replacement.isNotEmpty() && TelemetryPolicy.word(replacement) &&
+            before?.endsWith(replacement) == true) {
+            resolveCorrection(correctionTracker.onWordCommitted(replacement, before))
+        } else if (replacement.isEmpty()) {
+            if (undoAnchor != null &&
+                record.connection.getSelectedText(0).isNullOrEmpty() &&
+                record.connection.getTextBeforeCursor(SwipeCorrectionTracker.ANCHOR_WINDOW, 0)?.toString() == undoAnchor) {
+                TelemetryRuntime.recordFinalization(this, record.id, record.info, null)
+            }
+            correctionTracker.settleOrClear()
+        } else correctionTracker.clear()
+        undoneSwipe = null
+        undoAnchor = null
+        replacementText.clear()
+    }
+
+    private fun recordDecodedSwipe(info: EditorInfo, connection: InputConnection,
+                                   gesture: SurfaceGesture.Swipe, geometry: SurfaceGeometry,
+                                   words: List<String>, committed: String) {
+        if (!TelemetryRuntime.collecting || gesture.language != KeyboardLanguage.ESTONIAN ||
+            !TelemetryPolicy.editor(info) || !TelemetryPolicy.word(committed) || gesture.samples.size < 2) return
+        val samples = gesture.samples
+        val count = minOf(samples.size, 256)
+        val compressed = (0 until count).map { i -> samples[i * (samples.size - 1) / (count - 1)] }
+        val now = SystemClock.uptimeMillis()
+        val id = UUID.randomUUID().toString().replace("-", "")
+        val trace = SwipeTrace(id, "et", info,
+            compressed.map { sample -> TelemetryPoint(
+                (sample.x / geometry.width).coerceIn(0f, 1f),
+                (sample.y / geometry.height).coerceIn(0f, 1f), sample.timeMs) },
+            TelemetryGeometry(geometry.width, geometry.height, geometry.keys
+                .filter { it.kind == KeyKind.LETTER }.map { key ->
+                    TelemetryKey(key.label, key.bounds.left, key.bounds.top, key.bounds.right, key.bounds.bottom)
+                }),
+            words.filter(TelemetryPolicy::word).take(5), committed, samples.first().timeMs, now)
+        TelemetryRuntime.recordSwipe(this, trace)
+        loggedSwipe = LoggedSwipe(id, info, connection, committed)
+        val resolution = correctionTracker.onSwipeAutoInserted(
+            SwipeCorrectionTracker.SwipeRecord(committed, words.take(5), id),
+            connection.getTextBeforeCursor(SwipeCorrectionTracker.ANCHOR_WINDOW + committed.length +
+                SwipeCorrectionTracker.RESOLUTION_SLACK, 0)?.toString())
+        resolveCorrection(resolution)
+        undoneSwipe = null
+        undoAnchor = null
+        replacementText.clear()
+    }
+
+    private fun finishTelemetryField() {
+        finalizeLoggedWord()
+        finishUndoneWord()
+        correctionTracker.clear()
+    }
+
+    /** Hide the normal word bar while browsing; reuse exactly its 44dp for emoji content. */
+    internal fun resizeForEmoji(expanded: Boolean, search: Boolean = false) {
+        val dp = resources.displayMetrics.density
+        val keyHeight = (290 * dp).toInt()
+        val searchHeight = (100 * dp).toInt()
+        val envelope = (44 * dp).toInt() + keyHeight
+        (surface?.parent as? ViewGroup)?.getChildAt(0)?.visibility =
+            if (expanded) View.GONE else View.VISIBLE
+        emojiPanel?.let { panel ->
+            panel.layoutParams?.let { params ->
+                params.height = if (expanded && !search) envelope else searchHeight
+                panel.layoutParams = params
+            }
+        }
         surface?.let { view ->
             val params = view.layoutParams ?: return@let
-            params.height = ((if (expanded) 190 else 290) * resources.displayMetrics.density).toInt()
+            params.height = if (expanded && search) envelope - searchHeight else keyHeight
             view.layoutParams = params
+            view.visibility = if (expanded && !search) View.GONE else View.VISIBLE
         }
     }
 
@@ -483,23 +714,35 @@ class EstonianSwipeService : InputMethodService() {
         if (panel.visibility == View.VISIBLE) { closeEmojiPanel(); return }
         val connection = currentInputConnection ?: return
         val field = editor ?: return
+        epoch++ // An older decode must not commit behind the emoji browser.
+        clearSuggestions()
+        finalizeLoggedWord()
+        finishUndoneWord()
+        afterSwipeWord = null
+        manualPolicy.reset()
+        correctionTracker.clear()
         panel.setSearchIndex(emojiSearch)
+        panel.setSearchMode(false)
         panel.clearQuery()
+        panel.onSearchModeChanged = { searching ->
+            if (emojiPanel === panel && panel.visibility == View.VISIBLE) resizeForEmoji(true, searching)
+        }
         panel.onClose = ::closeEmojiPanel
         panel.onEmojiPicked = { emoji ->
-            if (panel.visibility == View.VISIBLE && editor === field &&
-                currentInputConnection === connection && surface === anchor) {
-                connection.commitText(emoji, 1)
-            }
-            closeEmojiPanel()
+            val inserted = panel.visibility == View.VISIBLE && editor === field &&
+                currentInputConnection === connection && surface === anchor && connection.commitText(emoji, 1)
+            if (inserted) closeEmojiPanel()
+            inserted
         }
-        resizeForEmoji(true)
+        resizeForEmoji(true, false)
         panel.visibility = View.VISIBLE
     }
 
     private fun closeEmojiPanel() {
         emojiPanel?.let { panel ->
             panel.visibility = View.GONE
+            panel.onSearchModeChanged = null
+            panel.setSearchMode(false)
             panel.clearQuery()
             panel.onEmojiPicked = null
             panel.onClose = null
@@ -521,24 +764,32 @@ class EstonianSwipeService : InputMethodService() {
         val connection = currentInputConnection ?: return
         val info = editor ?: return
         if (!isSwipeAllowed(info) || info !== ownedEditor || connection !== ownedConnection) return
+        if (undoneSwipe != null && replacementText.isNotEmpty()) finishUndoneWord()
+        finalizeLoggedWord()
         val ticket = suggestions.begin() ?: return
         renderSuggestions()
         val accept: (PredictionResult) -> Unit = { result ->
-            if (owner == epoch && editor === info && currentInputConnection === connection &&
+            if (owner == epoch && emojiPanel?.visibility != View.VISIBLE &&
+                editor === info && currentInputConnection === connection &&
                 surface === view && view.geometry === geometry && taps.language == gesture.language
             ) {
                 writingSuggestion = true
                 try {
                     SwipeStudyBridge.onSwipeDecoded(info, gesture.samples, geometry, result.words)
                     if (suggestions.accept(ticket, result)) {
+                        afterSwipeWord = suggestions.composingWord
                         ownSelectionAfterWrite(connection)
+                        afterSwipeWord?.let { committed ->
+                            recordDecodedSwipe(info, connection, gesture, geometry, result.words, committed)
+                        }
                         renderSuggestions()
                     }
                 } finally { writingSuggestion = false }
             }
         }
         val fallback = {
-            if (owner == epoch && editor === info && currentInputConnection === connection) {
+            if (owner == epoch && emojiPanel?.visibility != View.VISIBLE &&
+                editor === info && currentInputConnection === connection) {
                 val engine = geometric ?: GeometricEngineAdapter(this).also { geometric = it }
                 engine.decodeAsync(source, params, view.width.toFloat(), view.height.toFloat(),
                     points, times, language, accept)

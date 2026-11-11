@@ -138,6 +138,28 @@ class EstonianSwipeServiceTest {
         assertTrue(controller.words.isEmpty())
     }
 
+    @Test fun emojiBrowseAndSearchReuseKeyboardHeightWithoutHidingEditor() {
+        val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
+        val layout = service.onCreateInputView() as LinearLayout
+        val bar = layout.getChildAt(0)
+        val panel = layout.getChildAt(1) as EmojiPanelView
+        val keys = layout.getChildAt(2) as KeyboardSurfaceView
+        val base = bar.layoutParams.height + keys.layoutParams.height
+        panel.visibility = View.VISIBLE
+        service.resizeForEmoji(true, false)
+        assertEquals(View.GONE, bar.visibility)
+        assertEquals(View.GONE, keys.visibility)
+        assertEquals(base, panel.layoutParams.height)
+        service.resizeForEmoji(true, true)
+        assertEquals(View.GONE, bar.visibility)
+        assertEquals(View.VISIBLE, keys.visibility)
+        assertEquals(base, panel.layoutParams.height + keys.layoutParams.height)
+        service.resizeForEmoji(false)
+        panel.visibility = View.GONE
+        assertEquals(View.VISIBLE, bar.visibility)
+        assertEquals(base, bar.layoutParams.height + keys.layoutParams.height)
+    }
+
     @Test fun inputViewKeepsToolbarAndCandidatesInOneFixedHeightSlot() {
         val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
         val layout = service.onCreateInputView() as LinearLayout
