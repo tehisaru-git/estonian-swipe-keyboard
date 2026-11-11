@@ -5,6 +5,8 @@ data class SurfaceSample(val x: Float, val y: Float, val timeMs: Long, val key: 
 sealed class SurfaceGesture {
     data class Tap(val key: SurfaceKey, val language: KeyboardLanguage) : SurfaceGesture()
     data class Hold(val key: SurfaceKey, val language: KeyboardLanguage) : SurfaceGesture()
+    data class DeleteWord(val language: KeyboardLanguage) : SurfaceGesture()
+    data class RepeatBackspace(val language: KeyboardLanguage) : SurfaceGesture()
     data class Swipe(val samples: List<SurfaceSample>, val language: KeyboardLanguage) : SurfaceGesture()
 }
 
@@ -39,7 +41,11 @@ class SurfaceGestureController(
             timeMs - first.timeMs >= 450 &&
             geometry.language == KeyboardLanguage.ESTONIAN && !geometry.symbolMode &&
             start.kind == KeyKind.LETTER && start.label in setOf("s", "z")
+        val deleteWord = start.kind == KeyKind.BACKSPACE &&
+            first.x - x > maxOf(40f, geometry.width * 0.12f) &&
+            kotlin.math.abs(first.y - y) < (start.bounds.bottom - start.bounds.top) * 1.5f
         val result = when {
+            deleteWord -> SurfaceGesture.DeleteWord(geometry.language)
             qualifiedSwipe -> SurfaceGesture.Swipe(samples.toList(), geometry.language)
             heldAlternative -> SurfaceGesture.Hold(start, geometry.language)
             end == null -> null

@@ -3,11 +3,14 @@ package tribixbite.cleverkeys.estonianui
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
+import android.graphics.Typeface
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -21,10 +24,10 @@ class KeyboardSurfaceView @JvmOverloads constructor(
 ) : View(context, attrs) {
     data class Palette(val surface: Int, val letter: Int, val modifier: Int, val label: Int, val enter: Int, val enterLabel: Int) {
         companion object {
-            val DARK = Palette(0xff1f1f1f.toInt(), 0xff33383f.toInt(), 0xff444746.toInt(),
-                0xffe3e3e3.toInt(), 0xffa8c7fa.toInt(), 0xff152c4b.toInt())
-            val LIGHT = Palette(0xfff0f1f4.toInt(), 0xffffffff.toInt(), 0xffd9dce3.toInt(),
-                0xff252932.toInt(), 0xffa8c7fa.toInt(), 0xff152c4b.toInt())
+            val DARK = Palette(0xff202127.toInt(), 0xff444851.toInt(), 0xff5b606b.toInt(),
+                0xfff0f1f5.toInt(), 0xffa8c7fa.toInt(), 0xff102b50.toInt())
+            val LIGHT = Palette(0xffeef3fb.toInt(), 0xffffffff.toInt(), 0xffdfe3e7.toInt(),
+                0xff202124.toInt(), 0xff0b57d0.toInt(), 0xffffffff.toInt())
         }
     }
     var onGesture: ((SurfaceGesture) -> Unit)? = null
@@ -44,8 +47,51 @@ class KeyboardSurfaceView @JvmOverloads constructor(
     var geometry: KeyboardGeometry = KeyboardGeometry(1, 1, language)
         private set
     private var controller = SurfaceGestureController(geometry) { onGesture?.invoke(it) }
+    private val repeatHandler = Handler(Looper.getMainLooper())
+    private var repeatArmed = false
+    private var repeatStarted = false
+    private val repeatTick = object : Runnable {
+        override fun run() {
+            if (!repeatArmed) return
+            repeatStarted = true
+            onGesture?.invoke(SurfaceGesture.RepeatBackspace(language))
+            repeatHandler.postDelayed(this, 85L)
+        }
+    }
+    private fun stopRepeat() {
+        repeatArmed = false
+        repeatHandler.removeCallbacks(repeatTick)
+    }
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val trailPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
+        strokeJoin = Paint.Join.ROUND
+    }
+    private val trail = Path()
+    private var trailStartX = 0f
+    private var trailStartY = 0f
+    private var trailPoints = 0
+    internal val activeTrailPointCount get() = if (trailVisible) trailPoints else 0
+    private var trailVisible = false
+    private fun clearTrail() {
+        trail.reset()
+        trailPoints = 0
+        trailVisible = false
+        invalidate()
+    }
+    private fun addTrailPoint(x: Float, y: Float) {
+        if (trailPoints == 0 || trailPoints >= 256) return
+        val threshold = (geometry.width / geometry.rows[1].size * .55f).coerceAtLeast(12f)
+        if (!trailVisible && Math.hypot((x - trailStartX).toDouble(), (y - trailStartY).toDouble()) >= threshold) {
+            trailVisible = true
+        }
+        trail.lineTo(x, y)
+        trailPoints++
+        if (trailVisible) invalidate()
+    }
     private val rect = RectF()
+    private val iconPath = Path()
     private var focusId = View.NO_ID
     private val nodeProvider = object : AccessibilityNodeProvider() {
         override fun createAccessibilityNodeInfo(virtualViewId: Int): AccessibilityNodeInfo? {
@@ -137,6 +183,9 @@ class KeyboardSurfaceView @JvmOverloads constructor(
         rebuild()
     }
     private fun rebuild() {
+        stopRepeat()
+        clearTrail()
+        repeatStarted = false
         controller.cancel()
         if (width > 0 && height > 0) {
             geometry = KeyboardGeometry(width, height, language, symbolMode)
@@ -149,36 +198,143 @@ class KeyboardSurfaceView @JvmOverloads constructor(
         super.onDraw(canvas)
         val colors = palette
         canvas.drawColor(colors.surface)
-        val inset = (3f * resources.displayMetrics.density).coerceAtMost(geometry.width / 120f)
+        val density = resources.displayMetrics.density
+        val inset = (3f * density).coerceAtMost(geometry.width / 120f)
         for (key in geometry.keys) {
             val b = key.bounds
             rect.set(b.left + inset, b.top + inset, b.right - inset, b.bottom - inset)
             paint.color = when (key.kind) {
                 KeyKind.ENTER -> colors.enter
-                KeyKind.SHIFT, KeyKind.BACKSPACE, KeyKind.SYMBOLS, KeyKind.COMMA, KeyKind.EMOJI, KeyKind.LANGUAGE, KeyKind.PERIOD -> colors.modifier
+                KeyKind.SHIFT, KeyKind.BACKSPACE, KeyKind.SYMBOLS, KeyKind.COMMA, KeyKind.PERIOD -> colors.modifier
                 else -> colors.letter
             }
-            canvas.drawRoundRect(rect, 6f * resources.displayMetrics.density, 6f * resources.displayMetrics.density, paint)
+            val radius = if (key.kind == KeyKind.ENTER || key.kind == KeyKind.SYMBOLS) rect.height() / 2f
+                else 7f * density
+            canvas.drawRoundRect(rect, radius, radius, paint)
             paint.color = if (key.kind == KeyKind.ENTER) colors.enterLabel else colors.label
             paint.textAlign = Paint.Align.CENTER
-            paint.textSize = (if (key.kind == KeyKind.SPACE || key.kind == KeyKind.SYMBOLS || key.kind == KeyKind.LANGUAGE) 15f else 22f) * resources.displayMetrics.scaledDensity
-            paint.typeface = android.graphics.Typeface.DEFAULT
-            val baseline = b.centerY - (paint.ascent() + paint.descent()) / 2f
-            canvas.drawText(key.label.trim(), b.centerX, baseline, paint)
+            paint.style = Paint.Style.FILL
+            if (key.kind == KeyKind.SHIFT || key.kind == KeyKind.BACKSPACE ||
+                key.kind == KeyKind.EMOJI || key.kind == KeyKind.ENTER) {
+                drawOriginalIcon(canvas, key, density)
+            } else {
+                paint.textSize = (if (key.kind == KeyKind.SPACE) 15f else if (key.kind == KeyKind.SYMBOLS) 19f else 24f) * resources.displayMetrics.scaledDensity
+                paint.typeface = Typeface.DEFAULT
+                val baseline = b.centerY - (paint.ascent() + paint.descent()) / 2f
+                canvas.drawText(key.label.trim(), b.centerX, baseline, paint)
+                key.secondarySymbol?.let { hint ->
+                    paint.color = if (darkMode) 0xffc3c6cc.toInt() else 0xff50545a.toInt()
+                    paint.textSize = 10f * resources.displayMetrics.scaledDensity
+                    paint.textAlign = Paint.Align.RIGHT
+                    canvas.drawText(hint, rect.right - 4f * density, rect.top + 12f * density, paint)
+                }
+            }
         }
+        if (trailVisible) {
+            trailPaint.color = if (darkMode) 0x558ebaff else 0x557398d6
+            trailPaint.strokeWidth = 11f * resources.displayMetrics.density
+            canvas.drawPath(trail, trailPaint)
+            trailPaint.color = if (darkMode) 0xffa8c7fa.toInt() else 0xff4c7dcc.toInt()
+            trailPaint.strokeWidth = 4f * resources.displayMetrics.density
+            canvas.drawPath(trail, trailPaint)
+        }
+    }
+    /** Geometry-only artwork: no copied vendor image assets or font-dependent glyphs. */
+    private fun drawOriginalIcon(canvas: Canvas, key: SurfaceKey, density: Float) {
+        val b = key.bounds
+        val scale = minOf(26f * density, (b.right - b.left) * .34f, (b.bottom - b.top) * .40f) / 24f
+        canvas.save()
+        canvas.translate(b.centerX - 12f * scale, b.centerY - 12f * scale)
+        canvas.scale(scale, scale)
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 1.8f
+        paint.strokeCap = Paint.Cap.ROUND
+        paint.strokeJoin = Paint.Join.ROUND
+        iconPath.reset()
+        when (key.kind) {
+            KeyKind.SHIFT -> {
+                iconPath.moveTo(12f, 2f); iconPath.lineTo(22f, 12f)
+                iconPath.lineTo(17f, 12f); iconPath.lineTo(17f, 21f)
+                iconPath.lineTo(7f, 21f); iconPath.lineTo(7f, 12f)
+                iconPath.lineTo(2f, 12f); iconPath.close()
+                canvas.drawPath(iconPath, paint)
+            }
+            KeyKind.BACKSPACE -> {
+                iconPath.moveTo(9f, 4f); iconPath.lineTo(22f, 4f)
+                iconPath.lineTo(22f, 20f); iconPath.lineTo(9f, 20f)
+                iconPath.lineTo(2f, 12f); iconPath.close()
+                canvas.drawPath(iconPath, paint)
+                canvas.drawLine(12f, 9f, 18f, 15f, paint)
+                canvas.drawLine(18f, 9f, 12f, 15f, paint)
+            }
+            KeyKind.EMOJI -> {
+                paint.strokeWidth = 2f
+                canvas.drawCircle(12f, 12f, 9f, paint)
+                paint.style = Paint.Style.FILL
+                canvas.drawCircle(8.5f, 10f, 1f, paint)
+                canvas.drawCircle(15.5f, 10f, 1f, paint)
+                paint.style = Paint.Style.STROKE
+                canvas.drawArc(7f, 10f, 17f, 18f, 20f, 140f, false, paint)
+            }
+            KeyKind.ENTER -> {
+                paint.strokeWidth = 2.3f
+                iconPath.moveTo(20f, 6f); iconPath.lineTo(20f, 14f)
+                iconPath.lineTo(5f, 14f); iconPath.moveTo(10f, 9f)
+                iconPath.lineTo(5f, 14f); iconPath.lineTo(10f, 19f)
+                canvas.drawPath(iconPath, paint)
+            }
+            else -> Unit
+        }
+        paint.style = Paint.Style.FILL
+        canvas.restore()
     }
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> controller.down(event.x, event.y, event.eventTime)
-            MotionEvent.ACTION_MOVE -> {
-                for (i in 0 until event.historySize) controller.move(event.getHistoricalX(i), event.getHistoricalY(i), event.getHistoricalEventTime(i))
-                controller.move(event.x, event.y, event.eventTime)
+            MotionEvent.ACTION_DOWN -> {
+                stopRepeat()
+                clearTrail()
+                repeatStarted = false
+                controller.down(event.x, event.y, event.eventTime)
+                if (!symbolMode && geometry.hit(event.x, event.y)?.kind == KeyKind.LETTER) {
+                    trailStartX = event.x
+                    trailStartY = event.y
+                    trail.moveTo(event.x, event.y)
+                    trailPoints = 1
+                }
+                if (geometry.hit(event.x, event.y)?.kind == KeyKind.BACKSPACE) {
+                    repeatArmed = true
+                    repeatHandler.postDelayed(repeatTick, 380L)
+                }
             }
-            MotionEvent.ACTION_UP -> controller.up(event.x, event.y, event.eventTime)
-            MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_POINTER_DOWN -> controller.cancel()
+            MotionEvent.ACTION_MOVE -> {
+                for (i in 0 until event.historySize) {
+                    controller.move(event.getHistoricalX(i), event.getHistoricalY(i), event.getHistoricalEventTime(i))
+                    addTrailPoint(event.getHistoricalX(i), event.getHistoricalY(i))
+                }
+                controller.move(event.x, event.y, event.eventTime)
+                addTrailPoint(event.x, event.y)
+                if (repeatArmed && geometry.hit(event.x, event.y)?.kind != KeyKind.BACKSPACE) stopRepeat()
+            }
+            MotionEvent.ACTION_UP -> {
+                stopRepeat()
+                if (repeatStarted) controller.cancel() else controller.up(event.x, event.y, event.eventTime)
+                repeatStarted = false
+                clearTrail()
+            }
+            MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_POINTER_DOWN -> {
+                stopRepeat()
+                repeatStarted = false
+                controller.cancel()
+                clearTrail()
+            }
             else -> return false
         }
         return true
     }
-    override fun onDetachedFromWindow() { controller.cancel(); super.onDetachedFromWindow() }
+    override fun onDetachedFromWindow() {
+        stopRepeat()
+        clearTrail()
+        controller.cancel()
+        super.onDetachedFromWindow()
+    }
 }

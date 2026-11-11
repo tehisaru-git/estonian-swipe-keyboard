@@ -6,8 +6,10 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Robolectric
 import android.widget.LinearLayout
+import android.widget.FrameLayout
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import org.robolectric.RuntimeEnvironment
 import android.view.View
 import android.view.KeyEvent
@@ -49,7 +51,7 @@ class EstonianSwipeServiceTest {
         val et = KeyboardGeometry(301, 235, KeyboardLanguage.ESTONIAN)
         val en = KeyboardGeometry(301, 235, KeyboardLanguage.ENGLISH)
         input.accept(tap(et, KeyKind.SHIFT))
-        input.accept(tap(et, KeyKind.LANGUAGE))
+        input.switchLanguage()
         input.accept(tap(et, KeyKind.LETTER, "õ"))
         input.accept(tap(en, KeyKind.LETTER, "a"))
         assertEquals(KeyboardLanguage.ENGLISH, input.language)
@@ -136,17 +138,56 @@ class EstonianSwipeServiceTest {
         assertTrue(controller.words.isEmpty())
     }
 
-    @Test fun inputViewWrapsKeyboardWithThreeHiddenCandidates() {
+    @Test fun inputViewKeepsToolbarAndCandidatesInOneFixedHeightSlot() {
         val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
         val layout = service.onCreateInputView() as LinearLayout
         assertEquals(3, layout.childCount)
-        val bar = layout.getChildAt(0) as LinearLayout
-        assertEquals(View.GONE, bar.visibility)
-        assertEquals(3, bar.childCount)
-        assertTrue((0..2).all { bar.getChildAt(it) is Button })
+        val bar = layout.getChildAt(0) as FrameLayout
+        assertEquals(View.VISIBLE, bar.visibility)
+        assertTrue(bar.layoutParams.height > 0)
+        val toolbar = bar.getChildAt(0) as LinearLayout
+        val candidates = bar.getChildAt(1) as LinearLayout
+        assertEquals(View.VISIBLE, toolbar.visibility)
+        assertEquals(View.GONE, candidates.visibility)
+        assertTrue((layout.getChildAt(2).layoutParams.height / service.resources.displayMetrics.density) >= 280f)
+        assertEquals(6, candidates.childCount)
+        assertTrue((0..2).all { candidates.getChildAt(it * 2 + 1) is TextView })
+        assertTrue(toolbar.childCount >= 3)
         assertTrue(layout.getChildAt(1) is EmojiPanelView)
         assertEquals(View.GONE, layout.getChildAt(1).visibility)
+        assertEquals((100 * service.resources.displayMetrics.density).toInt(), layout.getChildAt(1).layoutParams.height)
         assertTrue(layout.getChildAt(2) is KeyboardSurfaceView)
+    }
+
+    @Test fun recreatingInputViewResetsToolbarCompactState() {
+        val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
+        fun toolbar() = ((service.onCreateInputView() as LinearLayout).getChildAt(0) as FrameLayout)
+            .getChildAt(0) as LinearLayout
+        val first = toolbar()
+        first.getChildAt(0).performClick()
+        assertEquals(View.INVISIBLE, first.getChildAt(1).visibility)
+        val second = toolbar()
+        assertEquals(View.VISIBLE, second.getChildAt(1).visibility)
+        second.getChildAt(0).performClick()
+        assertEquals(View.INVISIBLE, second.getChildAt(1).visibility)
+    }
+
+    @Test fun toolbarLanguageSwitchPreservesKeyboardHeightAndChangesDecoderLayout() {
+        val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
+        val layout = service.onCreateInputView() as LinearLayout
+        val bar = layout.getChildAt(0) as FrameLayout
+        val toolbar = bar.getChildAt(0) as LinearLayout
+        val keySurface = layout.getChildAt(2) as KeyboardSurfaceView
+        val initialBarHeight = bar.layoutParams.height
+        val initialKeysHeight = keySurface.layoutParams.height
+        assertEquals(KeyboardLanguage.ESTONIAN, keySurface.language)
+        val languageButton = (0 until toolbar.childCount).map { toolbar.getChildAt(it) }
+            .filterIsInstance<TextView>().first { it.contentDescription == "Switch to English" }
+        languageButton.performClick()
+        assertEquals(KeyboardLanguage.ENGLISH, keySurface.language)
+        assertEquals(initialBarHeight, bar.layoutParams.height)
+        assertEquals(initialKeysHeight, keySurface.layoutParams.height)
+        assertEquals("Switch to Estonian", languageButton.contentDescription)
     }
 
     @Test fun ownCompositionSelectionKeepsOfferButExternalSelectionDoesNot() {
@@ -270,6 +311,138 @@ class EstonianSwipeServiceTest {
         val source = java.io.File("src/main/kotlin/tribixbite/cleverkeys/EstonianSwipeService.kt").readText()
         assertTrue(source.contains("Config.initGlobalConfig("))
         assertTrue(source.contains("CtcInstalledPacks.bind(this)"))
+    }
+
+    @Test fun backspaceImmediatelyAfterSwipeDeletesOnlyOwnedWord() {
+        val field = EditText(RuntimeEnvironment.getApplication()).apply { setText("algus "); setSelection(text.length) }
+        val connection = field.onCreateInputConnection(EditorInfo())
+        val sink = OwnedWordSink(connection) { true }
+        val session = SwipeSuggestionSession()
+        val owner = session.startField(sink, false)
+        session.accept(session.beginSwipe(owner)!!, PredictionResult(listOf("tere"), listOf(1)))!!
+        assertEquals("algus tere", field.text.toString())
+        assertEquals(true, sink.deleteOwnedWord())
+        assertEquals("algus ", field.text.toString())
+        assertNull(sink.deleteOwnedWord())
+    }
+
+    @Test fun failedOwnedWordDeleteNeverFallsBackToCharacterDeletion() {
+        val field = EditText(RuntimeEnvironment.getApplication())
+        val base = field.onCreateInputConnection(EditorInfo())
+        val connection = object : InputConnectionWrapper(base, false) {
+            override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean =
+                if (text?.isEmpty() == true) false else super.commitText(text, newCursorPosition)
+        }
+        val sink = OwnedWordSink(connection) { true }
+        val session = SwipeSuggestionSession()
+        val owner = session.startField(sink, false)
+        session.accept(session.beginSwipe(owner)!!, PredictionResult(listOf("tere"), listOf(1)))!!
+        assertEquals(false, sink.deleteOwnedWord())
+        assertEquals("tere", field.text.toString())
+    }
+
+    @Test fun wordDeleteSelectsPreviousWordAndSeparatingWhitespace() {
+        val field = EditText(RuntimeEnvironment.getApplication()).apply {
+            setText("üks kaks "); setSelection(text.length)
+        }
+        val connection = field.onCreateInputConnection(EditorInfo())
+        assertTrue(EstonianSwipeService.deletePreviousWord(connection))
+        assertEquals("üks ", field.text.toString())
+        assertTrue(EstonianSwipeService.deletePreviousWord(connection))
+        assertEquals("", field.text.toString())
+    }
+
+    @Test fun wordDeleteDeclinesUninspectableEditorWithoutDestroyingText() {
+        val field = EditText(RuntimeEnvironment.getApplication()).apply { setText("tere"); setSelection(text.length) }
+        val base = field.onCreateInputConnection(EditorInfo())
+        val blind = object : InputConnectionWrapper(base, false) {
+            override fun getExtractedText(request: android.view.inputmethod.ExtractedTextRequest?, flags: Int) = null
+        }
+        assertFalse(EstonianSwipeService.deletePreviousWord(blind))
+        assertEquals("tere", field.text.toString())
+    }
+
+    @Test fun offsetExtractedTextDeleteWordLeavesIdenticalEarlierWordUntouched() {
+        val field = EditText(RuntimeEnvironment.getApplication())
+        field.setText("foo foo")
+        field.setSelection(field.length())
+        val connection = offsetConnection(field)
+        assertTrue(EstonianSwipeService.deletePreviousWord(connection))
+        assertEquals("foo ", field.text.toString())
+    }
+
+    @Test fun offsetExtractedTextOwnedDeleteLeavesIdenticalEarlierWordUntouched() {
+        val field = EditText(RuntimeEnvironment.getApplication())
+        field.setText("foo ")
+        field.setSelection(field.length())
+        val connection = offsetConnection(field)
+        val sink = OwnedWordSink(connection) { true }
+        assertTrue(sink.setComposingText("foo"))
+        assertEquals("foo foo", field.text.toString())
+        assertEquals(true, sink.deleteOwnedWord())
+        assertEquals("foo ", field.text.toString())
+    }
+
+    @Test fun offsetExtractedTextCorrectionReplacesOnlyOwnedWord() {
+        val field = EditText(RuntimeEnvironment.getApplication())
+        field.setText("foo ")
+        field.setSelection(field.length())
+        val connection = offsetConnection(field)
+        val sink = OwnedWordSink(connection) { true }
+        assertTrue(sink.setComposingText("foo"))
+        assertTrue(sink.setComposingText("bar"))
+        assertEquals("foo bar", field.text.toString())
+    }
+
+    private fun offsetConnection(field: EditText): android.view.inputmethod.InputConnection {
+        val base = field.onCreateInputConnection(EditorInfo())
+        return object : InputConnectionWrapper(base, false) {
+            override fun getExtractedText(request: android.view.inputmethod.ExtractedTextRequest?, flags: Int): android.view.inputmethod.ExtractedText? {
+                val extracted = super.getExtractedText(request, flags) ?: return null
+                extracted.startOffset = 4
+                extracted.text = field.text.substring(4)
+                extracted.selectionStart -= 4
+                extracted.selectionEnd -= 4
+                return extracted
+            }
+        }
+    }
+
+    @Test fun blindEditorBackspaceUsesKeyEventsInsteadOfUnsafeCodePointDeletion() {
+        val field = EditText(RuntimeEnvironment.getApplication())
+        field.setText("ab")
+        field.setSelection(2)
+        val base = field.onCreateInputConnection(EditorInfo())
+        var codePointDeletes = 0
+        val connection = object : InputConnectionWrapper(base, false) {
+            override fun getTextBeforeCursor(n: Int, flags: Int): CharSequence? = null
+            override fun sendKeyEvent(event: KeyEvent): Boolean {
+                if (event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_DEL &&
+                    field.length() > 0) field.text.delete(field.length() - 1, field.length())
+                return true
+            }
+            override fun deleteSurroundingTextInCodePoints(beforeLength: Int, afterLength: Int): Boolean {
+                codePointDeletes++
+                return super.deleteSurroundingTextInCodePoints(beforeLength, afterLength)
+            }
+        }
+        assertTrue(EstonianSwipeService.deleteBackward(connection))
+        assertEquals("a", field.text.toString())
+        assertEquals(0, codePointDeletes)
+    }
+
+    @Test fun repeatBackspaceAtEmptyEditorDoesNotSendDeleteCommand() {
+        val field = EditText(RuntimeEnvironment.getApplication())
+        val base = field.onCreateInputConnection(EditorInfo())
+        var deletes = 0
+        val connection = object : InputConnectionWrapper(base, false) {
+            override fun deleteSurroundingTextInCodePoints(beforeLength: Int, afterLength: Int): Boolean {
+                deletes++
+                return super.deleteSurroundingTextInCodePoints(beforeLength, afterLength)
+            }
+        }
+        assertFalse(EstonianSwipeService.deleteBackward(connection))
+        assertEquals(0, deletes)
     }
 
     @Test fun backspaceRemovesSelectedTextOrWholeUnicodeCodePoint() {

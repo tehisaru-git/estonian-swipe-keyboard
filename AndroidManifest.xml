@@ -79,6 +79,9 @@
       </intent-filter>
     </activity>
 
+    <activity android:name="tribixbite.cleverkeys.estonianstudy.SwipeStudyActivity"
+              android:label="@string/swipe_study_title" android:theme="@style/settingsTheme"
+              android:exported="false" android:windowSoftInputMode="adjustResize"/>
     <activity android:name="tribixbite.cleverkeys.LauncherActivity" android:icon="@mipmap/ic_launcher" android:theme="@style/launcherTheme" android:exported="true" android:directBootAware="true" tools:targetApi="24" android:windowSoftInputMode="adjustResize">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>

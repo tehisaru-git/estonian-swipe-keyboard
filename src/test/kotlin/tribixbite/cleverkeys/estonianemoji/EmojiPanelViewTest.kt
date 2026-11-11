@@ -15,6 +15,13 @@ import org.robolectric.RuntimeEnvironment
 class EmojiPanelViewTest {
     private fun panel() = EmojiPanelView(RuntimeEnvironment.getApplication())
 
+    @Test fun compactEmojiPanelShowsScrollableResultsWithoutGrowingIme() {
+        val panel = panel()
+        val scroll = panel.getChildAt(1) as ScrollView
+        assertEquals((56 * panel.resources.displayMetrics.density).toInt(), scroll.layoutParams.height)
+        assertTrue(scroll.getChildAt(0) is GridLayout)
+    }
+
     @Test fun emojiTilesUseKeyboardStyledTextRatherThanPlatformButtons() {
         val panel = panel()
         val grid = ((panel.getChildAt(1) as ScrollView).getChildAt(0) as GridLayout)

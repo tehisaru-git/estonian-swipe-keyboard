@@ -12,6 +12,26 @@
     <string name="swipe_setup_import_pack" translatable="false">Import updated language pack</string>
     <string name="swipe_setup_github" translatable="false">Source code</string>
     <string name="swipe_setup_privacy" translatable="false">Private by design · Open source</string>
+    <string name="swipe_study_title" translatable="false">Swipe study</string>
+    <string name="swipe_study_intro" translatable="false">Optional test: swipe only the shown word in this field. Up to 100 traces stay in memory until you choose where to save a JSON file. Stop or leave this screen to end recording. Do not enter personal text.</string>
+    <string name="swipe_study_field" translatable="false">Prompted words only</string>
+    <string name="swipe_study_prompt" translatable="false">Swipe: %1$s</string>
+    <string name="swipe_study_recording" translatable="false">%1$d / %2$d traces · Recording</string>
+    <string name="swipe_study_stopped" translatable="false">%1$d / %2$d traces · Stopped</string>
+    <string name="swipe_study_start" translatable="false">Start</string>
+    <string name="swipe_study_stop" translatable="false">Stop</string>
+    <string name="swipe_study_clear" translatable="false">Clear</string>
+    <string name="swipe_study_export" translatable="false">Export JSON</string>
+    <string name="swipe_study_saved" translatable="false">Study JSON saved locally</string>
+    <string name="swipe_study_save_failed" translatable="false">Could not save study JSON</string>
+    <string name="swipe_study_empty" translatable="false">No captured swipes to export. Start a new session.</string>
+    <string name="swipe_toolbar_toggle" translatable="false">Toggle keyboard toolbar</string>
+    <string name="swipe_toolbar_emoji" translatable="false">Search emoji</string>
+    <string name="swipe_toolbar_symbols" translatable="false">Toggle symbols</string>
+    <string name="swipe_toolbar_language" translatable="false">Switch input language</string>
+    <string name="swipe_toolbar_to_english" translatable="false">Switch to English</string>
+    <string name="swipe_toolbar_to_estonian" translatable="false">Switch to Estonian</string>
+    <string name="swipe_toolbar_settings" translatable="false">Open keyboard settings</string>
     <string name="swipe_setup_done" translatable="false">Ready</string>
     <string name="swipe_settings_title" translatable="false">Preferences</string>
     <string name="swipe_settings_description" translatable="false">Make this keyboard yours.</string>

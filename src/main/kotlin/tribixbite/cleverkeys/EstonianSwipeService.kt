@@ -1,11 +1,15 @@
 package tribixbite.cleverkeys
 
 import android.graphics.PointF
+import android.graphics.drawable.GradientDrawable
+import android.content.Intent
 import android.inputmethodservice.InputMethodService
 import android.text.InputType
 import android.view.KeyEvent
+import android.view.Gravity
 import android.view.View
-import android.widget.Button
+import android.widget.TextView
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +28,7 @@ import tribixbite.cleverkeys.estonianui.KeyboardGeometry as SurfaceGeometry
 import tribixbite.cleverkeys.estonianui.KeyboardLanguage
 import tribixbite.cleverkeys.estonianui.KeyboardSurfaceView
 import tribixbite.cleverkeys.estonianui.SurfaceGesture
+import tribixbite.cleverkeys.estonianstudy.SwipeStudyBridge
 import tribixbite.cleverkeys.swipe.CtcEngineAdapter
 import tribixbite.cleverkeys.swipe.GeometricEngineAdapter
 import tribixbite.cleverkeys.a11y.KeyboardGeometry as AdapterGeometry
@@ -41,8 +46,14 @@ class EstonianSwipeService : InputMethodService() {
     private var emojiSearch: OfflineEmojiSearch? = null
     private var emojiScope: CoroutineScope? = null
     private val suggestions = EstonianSuggestionController()
-    private var suggestionRow: LinearLayout? = null
-    private var suggestionButtons: List<Button> = emptyList()
+    private var suggestionRow: FrameLayout? = null
+    private var toolbarRow: LinearLayout? = null
+    private var candidatesRow: LinearLayout? = null
+    private var toolbarLanguageButton: TextView? = null
+    private var toolbarArrowButton: TextView? = null
+    private var forceToolbar = false
+    private var toolbarCompact = false
+    private var suggestionButtons: List<TextView> = emptyList()
     private var ownedConnection: InputConnection? = null
     private var ownedEditor: EditorInfo? = null
     private var ownedWordSink: OwnedWordSink? = null
@@ -53,6 +64,7 @@ class EstonianSwipeService : InputMethodService() {
         suggestions.clear()
         ownedWordSink?.forget()
         expectedOwnSelection = null
+        forceToolbar = false
         renderSuggestions()
     }
 
@@ -62,7 +74,9 @@ class EstonianSwipeService : InputMethodService() {
             button.text = words.getOrNull(index) ?: ""
             button.visibility = if (index < words.size) View.VISIBLE else View.INVISIBLE
         }
-        suggestionRow?.visibility = if (words.isEmpty()) View.GONE else View.VISIBLE
+        val showCandidates = words.isNotEmpty() && !forceToolbar
+        candidatesRow?.visibility = if (showCandidates) View.VISIBLE else View.GONE
+        toolbarRow?.visibility = if (showCandidates) View.GONE else View.VISIBLE
     }
 
     private fun ownSelectionAfterWrite(connection: InputConnection) {
@@ -116,6 +130,7 @@ class EstonianSwipeService : InputMethodService() {
     override fun onCreateInputView(): View {
         epoch++
         clearSuggestions()
+        toolbarCompact = false
         emojiPanel?.let { it.onEmojiPicked = null; it.onClose = null }
         surface?.onGesture = null
         val view = KeyboardSurfaceView(this).also {
@@ -124,15 +139,100 @@ class EstonianSwipeService : InputMethodService() {
             it.onGesture = ::handleGesture
         }
         val container = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        val row = LinearLayout(this).apply {
+        val dp = resources.displayMetrics.density
+        val row = FrameLayout(this).apply { setBackgroundColor(view.palette.surface) }
+        suggestionRow = row
+        val toolbar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setBackgroundColor(0xff30343b.toInt())
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        toolbarRow = toolbar
+        val candidates = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
             visibility = View.GONE
         }
-        suggestionRow = row
+        candidatesRow = candidates
+        fun navButton(label: String, description: String): TextView = TextView(this).apply {
+            text = label
+            contentDescription = description
+            gravity = Gravity.CENTER
+            textSize = 23f
+            setTextColor(view.palette.label)
+            background = GradientDrawable().apply {
+                setColor(view.palette.letter)
+                shape = GradientDrawable.OVAL
+            }
+        }
+        val arrow = navButton("‹", getString(R.string.swipe_toolbar_toggle))
+        toolbarArrowButton = arrow
+        val arrowSize = (32 * dp).toInt()
+        toolbar.addView(arrow, LinearLayout.LayoutParams(arrowSize, arrowSize).apply {
+            leftMargin = (8 * dp).toInt()
+            rightMargin = (8 * dp).toInt()
+        })
+        val tools = listOf(
+            Triple("☺︎", R.string.swipe_toolbar_emoji, { showEmojiPanel() }),
+            Triple("?123", R.string.swipe_toolbar_symbols, {
+                epoch++; clearSuggestions(); surface?.let { it.symbolMode = !it.symbolMode }
+            }),
+            Triple(if (taps.language == KeyboardLanguage.ESTONIAN) "ET" else "EN",
+                R.string.swipe_toolbar_language, {
+                    epoch++; clearSuggestions(); taps.switchLanguage()
+                    view.language = taps.language
+                    toolbarLanguageButton?.apply {
+                        text = if (taps.language == KeyboardLanguage.ESTONIAN) "ET" else "EN"
+                        contentDescription = getString(if (taps.language == KeyboardLanguage.ESTONIAN)
+                            R.string.swipe_toolbar_to_english else R.string.swipe_toolbar_to_estonian)
+                    }
+                    view.post { if (surface === view && view.width > 0) prewarmSwipe(view) }
+                }),
+            Triple("⚙", R.string.swipe_toolbar_settings, {
+                startActivity(Intent(this, SettingsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            })
+        )
+        tools.forEachIndexed { index, (label, description, action) ->
+            val button = TextView(this).apply {
+                text = label
+                textSize = if (label == "?123" || label == "ET" || label == "EN") 17f else 23f
+                gravity = Gravity.CENTER
+                setTextColor(view.palette.label)
+                contentDescription = getString(description)
+                setOnClickListener { action() }
+            }
+            if (index == 2) {
+                toolbarLanguageButton = button
+                button.contentDescription = getString(if (taps.language == KeyboardLanguage.ESTONIAN)
+                    R.string.swipe_toolbar_to_english else R.string.swipe_toolbar_to_estonian)
+            }
+            toolbar.addView(button, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
+        }
+        arrow.setOnClickListener {
+            if (suggestions.words.isNotEmpty() && forceToolbar) {
+                forceToolbar = false
+                renderSuggestions()
+            } else {
+                toolbarCompact = !toolbarCompact
+                arrow.text = if (toolbarCompact) "›" else "‹"
+                for (i in 1 until toolbar.childCount) toolbar.getChildAt(i).visibility =
+                    if (toolbarCompact) View.INVISIBLE else View.VISIBLE
+            }
+        }
+        val candidateArrow = navButton("‹", getString(R.string.swipe_toolbar_toggle)).apply {
+            setOnClickListener { forceToolbar = true; renderSuggestions() }
+        }
+        candidates.addView(candidateArrow, LinearLayout.LayoutParams(arrowSize, arrowSize).apply {
+            leftMargin = (8 * dp).toInt(); rightMargin = (8 * dp).toInt()
+        })
         suggestionButtons = (0..2).map { index ->
-            Button(this).apply {
-                isAllCaps = false
+            if (index > 0) candidates.addView(View(this).apply {
+                setBackgroundColor(if (view.darkMode) 0xff696b70.toInt() else 0xffc6cbd3.toInt())
+            }, LinearLayout.LayoutParams((1 * dp).toInt().coerceAtLeast(1), (24 * dp).toInt()))
+            TextView(this).apply {
+                gravity = Gravity.CENTER
+                textSize = 18f
+                setTextColor(view.palette.label)
+                visibility = View.INVISIBLE
                 setOnClickListener {
                     val info = editor
                     val connection = currentInputConnection
@@ -148,20 +248,24 @@ class EstonianSwipeService : InputMethodService() {
                         clearSuggestions()
                     }
                 }
-            }.also { row.addView(it, LinearLayout.LayoutParams(0,
-                ViewGroup.LayoutParams.WRAP_CONTENT, 1f)) }
+            }.also { candidates.addView(it, LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.MATCH_PARENT, 1f)) }
         }
+        row.addView(toolbar, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT))
+        row.addView(candidates, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT))
         container.addView(row, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT))
+            (44 * dp).toInt()))
         val panel = EmojiPanelView(this).apply {
             visibility = View.GONE
             setSearchIndex(emojiSearch)
         }
         emojiPanel = panel
         container.addView(panel, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-            (194 * resources.displayMetrics.density).toInt()))
+            (100 * resources.displayMetrics.density).toInt()))
         container.addView(view, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-            (240 * resources.displayMetrics.density).toInt()))
+            (290 * resources.displayMetrics.density).toInt()))
         return container
     }
 
@@ -201,6 +305,17 @@ class EstonianSwipeService : InputMethodService() {
         surface?.onGesture = ::handleGesture
         surface?.language = taps.language
         val view = surface
+        val imeWindow = window?.window
+        if (view != null && imeWindow != null) {
+            imeWindow.navigationBarColor = view.palette.surface
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                val flag = View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+                imeWindow.decorView.systemUiVisibility = if (view.darkMode)
+                    imeWindow.decorView.systemUiVisibility and flag.inv()
+                else imeWindow.decorView.systemUiVisibility or flag
+            }
+            if (android.os.Build.VERSION.SDK_INT >= 29) imeWindow.isNavigationBarContrastEnforced = false
+        }
         view?.post {
             if (surface === view && editor === info && view.width > 0 && view.height > 0) {
                 prewarmSwipe(view)
@@ -287,6 +402,12 @@ class EstonianSwipeService : InputMethodService() {
         super.onDestroy()
     }
 
+    private fun deleteOnePress() {
+        val owned = ownedWordSink?.deleteOwnedWord()
+        clearSuggestions()
+        if (owned == null) currentInputConnection?.let(::deleteBackward)
+    }
+
     private fun handleGesture(gesture: SurfaceGesture) {
         if (editor == null || currentInputConnection == null) return
         val panel = emojiPanel
@@ -311,6 +432,10 @@ class EstonianSwipeService : InputMethodService() {
             is SurfaceGesture.Tap -> {
                 if (gesture.language != taps.language) return
                 epoch++ // A tap invalidates any in-flight decode, including the fallback.
+                if (gesture.key.kind == KeyKind.BACKSPACE) {
+                    deleteOnePress()
+                    return
+                }
                 clearSuggestions()
                 taps.accept(gesture)
                 if (gesture.key.kind == KeyKind.LANGUAGE) {
@@ -326,7 +451,28 @@ class EstonianSwipeService : InputMethodService() {
                 clearSuggestions()
                 taps.acceptHold(gesture)
             }
+            is SurfaceGesture.DeleteWord -> {
+                if (gesture.language != taps.language) return
+                epoch++
+                val owned = ownedWordSink?.deleteOwnedWord()
+                clearSuggestions()
+                if (owned == null) currentInputConnection?.let(::deletePreviousWord)
+            }
+            is SurfaceGesture.RepeatBackspace -> {
+                if (gesture.language != taps.language) return
+                epoch++
+                deleteOnePress()
+            }
             is SurfaceGesture.Swipe -> decode(gesture)
+        }
+    }
+
+    /** Emoji results reuse key-area height so the host editor never jumps or vanishes. */
+    private fun resizeForEmoji(expanded: Boolean) {
+        surface?.let { view ->
+            val params = view.layoutParams ?: return@let
+            params.height = ((if (expanded) 190 else 290) * resources.displayMetrics.density).toInt()
+            view.layoutParams = params
         }
     }
 
@@ -347,6 +493,7 @@ class EstonianSwipeService : InputMethodService() {
             }
             closeEmojiPanel()
         }
+        resizeForEmoji(true)
         panel.visibility = View.VISIBLE
     }
 
@@ -357,6 +504,7 @@ class EstonianSwipeService : InputMethodService() {
             panel.onEmojiPicked = null
             panel.onClose = null
         }
+        resizeForEmoji(false)
     }
 
     private fun decode(gesture: SurfaceGesture.Swipe) {
@@ -381,6 +529,7 @@ class EstonianSwipeService : InputMethodService() {
             ) {
                 writingSuggestion = true
                 try {
+                    SwipeStudyBridge.onSwipeDecoded(info, gesture.samples, geometry, result.words)
                     if (suggestions.accept(ticket, result)) {
                         ownSelectionAfterWrite(connection)
                         renderSuggestions()
@@ -429,10 +578,57 @@ class EstonianSwipeService : InputMethodService() {
             if (extracted != null && extracted.selectionStart != extracted.selectionEnd) {
                 return connection.commitText("", 1)
             }
+            // Repeating a code-point deletion on an empty Compose field can
+            // throw inside the app's EditProcessor and terminate its process.
+            // Never issue it without observing at least one preceding character.
+            val before = connection.getTextBeforeCursor(2, 0)
+            if (before == null) {
+                // Blind editors cannot prove that a code-point deletion is safe at
+                // offset zero. Route a normal DEL key instead; never send the
+                // crashing deleteSurroundingTextInCodePoints command blindly.
+                val down = connection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL))
+                val up = connection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL))
+                return down && up
+            }
+            if (before.isEmpty()) return false
             if (connection.deleteSurroundingTextInCodePoints(1, 0)) return true
             val down = connection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL))
             val up = connection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL))
             return down && up
+        }
+
+        /** Select a bounded verified word plus any trailing whitespace before deleting. */
+        internal fun deletePreviousWord(connection: InputConnection): Boolean {
+            val selection = connection.getExtractedText(ExtractedTextRequest(), 0) ?: return false
+            val end = selection.startOffset.toLong() + selection.selectionEnd
+            if (selection.startOffset < 0 || selection.selectionEnd < 0 ||
+                selection.selectionStart != selection.selectionEnd || end <= 0 || end > Int.MAX_VALUE) return false
+            val caret = end.toInt()
+            val before = connection.getTextBeforeCursor(256, 0)?.toString() ?: return false
+            if (before.isEmpty()) return false
+            var start = before.length
+            while (start > 0 && before[start - 1].isWhitespace()) start--
+            while (start > 0) {
+                val cp = Character.codePointBefore(before, start)
+                val type = Character.getType(cp)
+                if (!Character.isLetterOrDigit(cp) && type != Character.NON_SPACING_MARK.toInt() &&
+                    type != Character.COMBINING_SPACING_MARK.toInt() && cp != '-'.code && cp != '\''.code) break
+                start -= Character.charCount(cp)
+            }
+            // An incomplete 256-unit prefix might split a word; never remove an unknown suffix.
+            if (start == 0 && before.length == 256 && caret > 256) return false
+            if (start == before.length) return false
+            val from = caret - (before.length - start)
+            if (from < 0 || !connection.setSelection(from, caret)) return false
+            if (connection.getSelectedText(0)?.toString() != before.substring(start)) {
+                connection.setSelection(caret, caret)
+                return false
+            }
+            if (!connection.commitText("", 1)) {
+                connection.setSelection(caret, caret)
+                return false
+            }
+            return true
         }
 
         /** Secret fields never send traces to the predictor or display candidate text. */
@@ -484,6 +680,32 @@ internal class OwnedWordSink(
 
     fun forget() { ownedWord = null; pendingSeparator = "" }
 
+    private fun collapsedCaret(): Int? {
+        val extracted = connection.getExtractedText(ExtractedTextRequest(), 0) ?: return null
+        if (extracted.startOffset < 0 || extracted.selectionEnd < 0 ||
+            extracted.selectionStart != extracted.selectionEnd) return null
+        val absolute = extracted.startOffset.toLong() + extracted.selectionEnd
+        return if (absolute in 0..Int.MAX_VALUE.toLong()) absolute.toInt() else null
+    }
+
+    /** null = not our word; false = editor rejected deletion; true = word removed. */
+    fun deleteOwnedWord(): Boolean? {
+        val word = ownedWord ?: return null
+        if (!isCurrent() || pendingSeparator.isNotEmpty() ||
+            connection.getTextBeforeCursor(word.length, 0)?.toString() != word) return null
+        val end = collapsedCaret() ?: return null
+        if (end < word.length) return null
+        if (!connection.setSelection(end - word.length, end)) return false
+        if (connection.getSelectedText(0)?.toString() != word) {
+            connection.setSelection(end, end)
+            return false
+        }
+        val deleted = connection.commitText("", 1)
+        if (!deleted) connection.setSelection(end, end)
+        else forget()
+        return deleted
+    }
+
     override fun beforeCursor(): String? =
         if (isCurrent()) connection.getTextBeforeCursor(4096, 0)?.toString() else null
 
@@ -493,10 +715,8 @@ internal class OwnedWordSink(
         if (previous != null) {
             if (pendingSeparator.isNotEmpty() || connection.getSelectedText(0)?.isNotEmpty() == true ||
                 connection.getTextBeforeCursor(previous.length, 0)?.toString() != previous) return false
-            val selection = connection.getExtractedText(ExtractedTextRequest(), 0)
-                ?: return false // A blind editor cannot prove the range we own.
-            val end = selection.selectionEnd
-            if (selection.selectionStart != end || end < previous.length) return false
+            val end = collapsedCaret() ?: return false // A blind editor cannot prove the range we own.
+            if (end < previous.length) return false
             if (!connection.setSelection(end - previous.length, end)) return false
             if (connection.getSelectedText(0)?.toString() != previous) {
                 connection.setSelection(end, end)

@@ -13,7 +13,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 class KeyboardSurfaceTest {
     @Test fun estonianRowsHaveDistinctLanguageAndCompleteTargets() {
         val et = KeyboardGeometry(1080, 700, KeyboardLanguage.ESTONIAN)
-        assertEquals(listOf("1234567890", "qwertyuiopü", "asdfghjklöä", "⇧zxcvbnmõ⌫", "?123,☺ET Eesti .↵"), et.rows.map { row -> row.joinToString("") { it.label } })
+        assertEquals(listOf("1234567890", "qwertyuiopü", "asdfghjklöä", "⇧zxcvbnmõ⌫", "?123,☺ Eesti .↵"), et.rows.map { row -> row.joinToString("") { it.label } })
         assertEquals("qwertyuiop", KeyboardGeometry(1080, 700, KeyboardLanguage.ENGLISH).rows[1].joinToString("") { it.label })
         for (key in et.keys) {
             assertSame(key, et.hit(key.bounds.centerX, key.bounds.centerY))
@@ -34,19 +34,29 @@ class KeyboardSurfaceTest {
         assertNull(geometry.hit(Float.NaN, 10f))
     }
 
-    @Test fun languageAndEmojiAreDistinctTargetsOnBothPages() {
+    @Test fun emojiRemainsAndSpaceExpandsWithoutDedicatedLanguageKeyOnBothPages() {
         for (language in KeyboardLanguage.values()) for (symbols in listOf(false, true)) {
             val geometry = KeyboardGeometry(337, 241, language, symbolMode = symbols)
             val bottom = geometry.rows.last()
-            val switch = bottom.single { it.kind == KeyKind.LANGUAGE }
+            assertFalse(bottom.any { it.kind == KeyKind.LANGUAGE })
             val emoji = bottom.single { it.kind == KeyKind.EMOJI }
-            assertEquals(if (language == KeyboardLanguage.ESTONIAN) "ET" else "EN", switch.label)
             assertEquals("Emoji", emoji.accessibilityLabel)
-            assertEquals("Switch language", switch.accessibilityLabel)
-            assertSame(switch, geometry.hit(switch.bounds.centerX, switch.bounds.centerY))
             assertSame(emoji, geometry.hit(emoji.bounds.centerX, emoji.bounds.centerY))
-            assertTrue(switch.bounds.right <= bottom.single { it.kind == KeyKind.SPACE }.bounds.left)
+            val space = bottom.single { it.kind == KeyKind.SPACE }
+            assertEquals(emoji.bounds.right, space.bounds.left)
+            assertTrue(space.bounds.right - space.bounds.left >= geometry.width * 4 / 10)
         }
+    }
+
+    @Test fun originalSecondarySymbolsBelongToLettersOnly() {
+        val geometry = KeyboardGeometry(1080, 700, KeyboardLanguage.ESTONIAN)
+        assertEquals(listOf("%", "\\", "|", "=", "[", "]", "<", ">", "{", "}", "°"),
+            geometry.rows[1].map { it.secondarySymbol })
+        assertEquals(listOf("@", "#", "€", "_", "&", "-", "+", "(", ")", "/", "~"),
+            geometry.rows[2].map { it.secondarySymbol })
+        assertEquals(listOf(null, "*", "\"", "'", ":", ";", "!", "?", "\\", null),
+            geometry.rows[3].map { it.secondarySymbol })
+        assertTrue(KeyboardGeometry(1080, 700, KeyboardLanguage.ENGLISH, true).keys.all { it.secondarySymbol == null })
     }
 
     @Test fun symbolsPageContainsEssentialSymbolsAndHasCompleteGeometry() {
@@ -128,6 +138,17 @@ class KeyboardSurfaceTest {
         input.move(s.centerX, s.centerY, 560)
         input.up(s.centerX, s.centerY, 650)
         assertEquals("Hold", emitted.single()::class.simpleName)
+    }
+
+    @Test fun backspaceSwipeLeftRequestsWordDeletionInsteadOfACharacter() {
+        val geometry = KeyboardGeometry(330, 250, KeyboardLanguage.ESTONIAN)
+        val emitted = mutableListOf<SurfaceGesture>()
+        val input = SurfaceGestureController(geometry, emitted::add)
+        val back = geometry.keys.first { it.kind == KeyKind.BACKSPACE }.bounds
+        input.down(back.centerX, back.centerY, 1)
+        input.move(back.centerX - 110f, back.centerY, 70)
+        input.up(back.centerX - 110f, back.centerY, 120)
+        assertTrue(emitted.single() is SurfaceGesture.DeleteWord)
     }
 
     @Test fun holdingEstonianSProducesAnAlternativeInsteadOfOrdinaryTap() {

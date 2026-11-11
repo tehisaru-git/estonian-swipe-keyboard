@@ -27,10 +27,10 @@ class EmojiPanelView(context: Context) : LinearLayout(context) {
     private val grid = GridLayout(context)
     private val dark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
         Configuration.UI_MODE_NIGHT_YES
-    private val surfaceColor = if (dark) 0xff1f1f1f.toInt() else 0xfff0f1f4.toInt()
-    private val keyColor = if (dark) 0xff33383f.toInt() else Color.WHITE
-    private val actionColor = if (dark) 0xff444746.toInt() else 0xffd9dce3.toInt()
-    private val labelColor = if (dark) 0xffe3e3e3.toInt() else 0xff252932.toInt()
+    private val surfaceColor = if (dark) 0xff202127.toInt() else 0xffeef3fb.toInt()
+    private val keyColor = if (dark) 0xff444851.toInt() else Color.WHITE
+    private val actionColor = if (dark) 0xff5b606b.toInt() else 0xffdfe3e7.toInt()
+    private val labelColor = if (dark) 0xfff0f1f5.toInt() else 0xff202124.toInt()
     private val common = listOf("🙂", "😂", "❤️", "👍", "🙏", "🎉", "😍", "😢", "😮", "🤔", "🔥", "✅",
         "👋", "🥰", "😊", "👏", "💙", "🤝", "🎂", "🐈", "🌞", "🍎", "💐", "💡")
 
@@ -51,7 +51,7 @@ class EmojiPanelView(context: Context) : LinearLayout(context) {
         addView(top, LayoutParams(LayoutParams.MATCH_PARENT, dp(44)))
         grid.columnCount = 6
         addView(ScrollView(context).apply { addView(grid) },
-            LayoutParams(LayoutParams.MATCH_PARENT, dp(150)))
+            LayoutParams(LayoutParams.MATCH_PARENT, dp(56)))
         render()
     }
 

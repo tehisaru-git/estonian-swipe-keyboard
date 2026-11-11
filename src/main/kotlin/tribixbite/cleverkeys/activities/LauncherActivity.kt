@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import tribixbite.cleverkeys.theme.EstonianSwipeTheme
+import tribixbite.cleverkeys.estonianstudy.SwipeStudyActivity
 
 /** Minimal setup shell. The IME's swipe backend remains separate from this Compose UI. */
 class LauncherActivity : ComponentActivity() {
@@ -102,6 +103,7 @@ class LauncherActivity : ComponentActivity() {
                     onEnableKeyboard = ::launchKeyboardSettings,
                     onSelectKeyboard = ::launchInputMethodPicker,
                     onOpenSettings = ::launchAppSettings,
+                    onOpenStudy = { startActivity(Intent(this, SwipeStudyActivity::class.java)) },
                     onOpenGitHub = ::openGitHub
                 )
             }
@@ -181,6 +183,7 @@ fun LauncherScreen(
     onEnableKeyboard: () -> Unit,
     onSelectKeyboard: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenStudy: () -> Unit,
     onOpenGitHub: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -250,6 +253,9 @@ fun LauncherScreen(
             )
             TextButton(onClick = onOpenSettings) {
                 Text(stringResource(R.string.swipe_setup_languages))
+            }
+            TextButton(onClick = onOpenStudy) {
+                Text(stringResource(R.string.swipe_study_title))
             }
             Spacer(Modifier.height(18.dp))
             TextButton(onClick = onOpenGitHub) {

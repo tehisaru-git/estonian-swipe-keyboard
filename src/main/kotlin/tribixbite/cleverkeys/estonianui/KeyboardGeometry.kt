@@ -11,6 +11,16 @@ data class KeyBounds(val left: Int, val top: Int, val right: Int, val bottom: In
 }
 
 data class SurfaceKey(val label: String, val kind: KeyKind, val bounds: KeyBounds, val row: Int) {
+    /** Original alternate glyphs, displayed only on the alphabetic page. */
+    val secondarySymbol: String? get() = if (kind != KeyKind.LETTER) null else when (label) {
+        "q" -> "%"; "w" -> "\\"; "e" -> "|"; "r" -> "="; "t" -> "["
+        "y" -> "]"; "u" -> "<"; "i" -> ">"; "o" -> "{"; "p" -> "}"; "ü" -> "°"
+        "a" -> "@"; "s" -> "#"; "d" -> "€"; "f" -> "_"; "g" -> "&"
+        "h" -> "-"; "j" -> "+"; "k" -> "("; "l" -> ")"; "ö" -> "/"; "ä" -> "~"
+        "z" -> "*"; "x" -> "\""; "c" -> "'"; "v" -> ":"; "b" -> ";"
+        "n" -> "!"; "m" -> "?"; "õ" -> "\\"
+        else -> null
+    }
     val accessibilityLabel: String get() = when (kind) {
         KeyKind.SHIFT -> "Shift"
         KeyKind.BACKSPACE -> "Backspace"
@@ -35,8 +45,8 @@ class KeyboardGeometry(val width: Int, val height: Int, val language: KeyboardLa
         if (symbolMode) symbols("$£¥_[]{}~^") + Spec("⌫", KeyKind.BACKSPACE, 2)
         else listOf(Spec("⇧", KeyKind.SHIFT, 2)) + letters(if (language == KeyboardLanguage.ESTONIAN) "zxcvbnmõ" else "zxcvbnm") + Spec("⌫", KeyKind.BACKSPACE, 2),
         listOf(Spec(if (symbolMode) "ABC" else "?123", KeyKind.SYMBOLS, 3), Spec(",", KeyKind.COMMA, 2),
-            Spec("☺", KeyKind.EMOJI, 2), Spec(if (language == KeyboardLanguage.ESTONIAN) "ET" else "EN", KeyKind.LANGUAGE, 2),
-            Spec(if (language == KeyboardLanguage.ESTONIAN) " Eesti " else " English ", KeyKind.SPACE, 8),
+            Spec("☺", KeyKind.EMOJI, 2),
+            Spec(if (language == KeyboardLanguage.ESTONIAN) " Eesti " else " English ", KeyKind.SPACE, 9),
             Spec(".", KeyKind.PERIOD, 2), Spec("↵", KeyKind.ENTER, 3))
     )
     val rows: List<List<SurfaceKey>> = definitions.mapIndexed { row, specs ->
