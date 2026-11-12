@@ -110,7 +110,6 @@
     <string name="clipboard_filter_private_only_hint">Ipakita lang ang mga entry na na-copy nang pribado (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ Mga Setting ng CleverKeys</string>
     <string name="settings_description">I-configure ang mga setting ng iyong keyboard para sa pinakamahusay na karanasan sa pagtatype.</string>
 
     <!-- Swipe Typing Section -->
@@ -1094,7 +1093,6 @@
     <string name="calibration_touch_here">👆 Pindutin dito</string>
     <string name="calibration_min_readout">Min: %1$d%%</string>
     <string name="calibration_max_readout">Max: %1$d%%</string>
-    <string name="launcher_logo_desc">Logo ng CleverKeys</string>
     <string name="launcher_tagline">Privacy, lakas, at kontrol — na may utak.</string>
     <string name="launcher_step_enable">I-enable ang Keyboard</string>
     <string name="launcher_step_select">Piliin ang Keyboard</string>
@@ -1713,7 +1711,6 @@
     <string name="swipe_debug_clear_traces_playground">Playground lang</string>
     <string name="swipe_debug_clear_traces_all">Lahat ng swipe data</string>
     <string name="swipe_debug_clear_traces_message">I-delete ang mga na-record na swipe trace mula sa device na ito?\n\nInaalis ng “%1$s” ang mga trace na na-record sa screen na ito; inaalis din ng “%2$s” ang mga trace mula sa global na ML collection.</string>
-    <string name="manifest_ime_service_label">CleverKeys Keyboard</string>
     <string name="manifest_backup_restore_label">Backup at Restore</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">Na-clear ang %1$d trace</item>

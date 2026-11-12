@@ -1,4 +1,10 @@
-# Estonian Swipe: independent keyboard surface
+# Viipio keyboard: independent keyboard surface
+
+The project was previously called Estonian Swipe. The public product name and
+repository may change, but the Android application ID
+`io.github.tehisaru.estonianswipe` and release signing identity must stay stable
+so existing installations can update without losing data. The legacy internal
+class and source-file names are not user-facing brand elements.
 
 ## Product boundary
 
@@ -50,6 +56,15 @@ but must not render the shipped keyboard or handle its input.
   missing-pack/geometric fallback, cancellation and cleanup. Do not commit a
   result after the editor, composing span or language changes. No learning on
   password fields; allow erasing learned data.
+- During ordinary letter-by-letter typing, show bounded, offline dictionary
+  completions for the selected Estonian or English language in the same
+  three-slot suggestion row. Refresh on each accepted letter and Backspace;
+  clear or revoke the row after a word boundary, field/language change, cursor
+  move or failed editor readback. A tapped completion may replace only the
+  verified word prefix immediately before the collapsed caret; preserve all
+  surrounding text, reject selected text and blind/editor-rewritten ranges,
+  and never silently autocorrect or log manually typed text as a swipe.
+  Password, no-suggestion and non-text editors must not expose these candidates.
 - An independent local emoji panel inserts through a guarded InputConnection;
   search uses the bundled bilingual emoji index. Keep English query priority
   intact and the typo fallback bounded.

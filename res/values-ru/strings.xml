@@ -101,7 +101,6 @@
     <string name="clipboard_filter_private_only_hint">Показывать только приватно скопированные записи (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ Настройки CleverKeys</string>
     <string name="settings_description">Настройте параметры клавиатуры для оптимального набора текста.</string>
 
     <!-- Swipe Typing Section -->
@@ -1091,7 +1090,6 @@
     <string name="calibration_touch_here">👆 Коснитесь здесь</string>
     <string name="calibration_min_readout">Мин: %1$d%%</string>
     <string name="calibration_max_readout">Макс: %1$d%%</string>
-    <string name="launcher_logo_desc">Логотип CleverKeys</string>
     <string name="launcher_tagline">Приватность, мощь и контроль — с умом.</string>
     <string name="launcher_step_enable">Включите клавиатуру</string>
     <string name="launcher_step_select">Выберите клавиатуру</string>
@@ -1778,7 +1776,6 @@
     <string name="swipe_debug_clear_traces_playground">Только Playground</string>
     <string name="swipe_debug_clear_traces_all">Все данные свайпов</string>
     <string name="swipe_debug_clear_traces_message">Удалить записанные траектории свайпов с этого устройства?\n\n«%1$s» удаляет траектории, записанные на этом экране; «%2$s» также удаляет траектории из общей коллекции для ML.</string>
-    <string name="manifest_ime_service_label">Клавиатура CleverKeys</string>
     <string name="manifest_backup_restore_label">Резервное копирование и восстановление</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">Удалена %1$d траектория</item>

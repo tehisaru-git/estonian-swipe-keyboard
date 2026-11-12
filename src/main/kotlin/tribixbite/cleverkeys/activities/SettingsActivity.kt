@@ -87,7 +87,7 @@ class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPreferen
 
         /** Public Estonian dictionary ZIP for offline swipe; opens in browser (no INTERNET permission). */
         const val LANGUAGE_PACKS_URL =
-            "https://github.com/tehisaru-git/estonian-swipe-keyboard/releases/download/v0.1.0/langpack-et.zip"
+            "https://github.com/tehisaru-git/viipio-keyboard/releases/download/v0.1.0/langpack-et.zip"
 
         /** Intent extra naming a section to expand on launch (see the `scroll_to` handling). */
         const val EXTRA_SCROLL_TO = "scroll_to"

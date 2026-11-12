@@ -136,7 +136,6 @@
     <string name="clipboard_filter_private_only_hint">فقط موارد کپی‌شده به‌صورت خصوصی را نشان دهید (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ تنظیمات CleverKeys</string>
     <string name="settings_description">تنظیمات صفحه‌کلید خود را برای بهترین تجربه تایپ پیکربندی کنید.</string>
 
     <!-- Swipe Typing Section -->
@@ -1120,7 +1119,6 @@
     <string name="calibration_touch_here">👆 اینجا لمس کنید</string>
     <string name="calibration_min_readout">حداقل: %1$d%%</string>
     <string name="calibration_max_readout">حداکثر: %1$d%%</string>
-    <string name="launcher_logo_desc">نشان‌وارهٔ CleverKeys</string>
     <string name="launcher_tagline">حریم خصوصی، قدرت و کنترل — با یک مغز.</string>
     <string name="launcher_step_enable">فعال‌سازی صفحه‌کلید</string>
     <string name="launcher_step_select">انتخاب صفحه‌کلید</string>
@@ -1739,7 +1737,6 @@
     <string name="swipe_debug_clear_traces_playground">فقط زمین بازی</string>
     <string name="swipe_debug_clear_traces_all">همهٔ داده‌های کشیدن</string>
     <string name="swipe_debug_clear_traces_message">ردهای کشیدن ضبط‌شده از این دستگاه حذف شوند؟\n\n«%1$s» ردهای ضبط‌شده در این صفحه را حذف می‌کند؛ «%2$s» ردهای مجموعهٔ سراسری یادگیری ماشین را نیز حذف می‌کند.</string>
-    <string name="manifest_ime_service_label">صفحه‌کلید CleverKeys</string>
     <string name="manifest_backup_restore_label">پشتیبان‌گیری و بازیابی</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">%1$d رد پاک شد</item>

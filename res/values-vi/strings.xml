@@ -140,7 +140,6 @@
     <string name="clipboard_filter_private_only_hint">Chỉ hiển thị các mục đã sao chép riêng tư (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ Cài đặt CleverKeys</string>
     <string name="settings_description">Cấu hình bàn phím để có trải nghiệm gõ tối ưu.</string>
 
     <!-- Swipe Typing Section -->
@@ -984,7 +983,6 @@
     <string name="intent_editor_title_create">Tạo hành động intent</string>
     <string name="intent_editor_title_edit">Sửa hành động intent</string>
     <string name="launcher_footer">Bàn phím mã nguồn mở không khoan nhượng.</string>
-    <string name="launcher_logo_desc">Logo CleverKeys</string>
     <string name="launcher_step_calibrate">Hiệu chỉnh cử chỉ từng phím</string>
     <string name="launcher_step_completed_desc">Đã hoàn thành</string>
     <string name="launcher_step_enable">Bật bàn phím</string>
@@ -1693,7 +1691,6 @@
     <string name="swipe_debug_clear_traces_playground">Chỉ Sân thử</string>
     <string name="swipe_debug_clear_traces_all">Mọi dữ liệu vuốt</string>
     <string name="swipe_debug_clear_traces_message">Xóa các vệt vuốt đã ghi khỏi thiết bị này?\n\n“%1$s” xóa các vệt được ghi trên màn hình này; “%2$s” còn xóa cả các vệt trong bộ sưu tập ML chung.</string>
-    <string name="manifest_ime_service_label">Bàn phím CleverKeys</string>
     <string name="manifest_backup_restore_label">Sao lưu &amp; Khôi phục</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="other">Đã xóa %1$d vệt vuốt</item>

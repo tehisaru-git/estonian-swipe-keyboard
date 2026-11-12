@@ -16,6 +16,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import tribixbite.cleverkeys.swipeui.ManualCompletions
 import tribixbite.cleverkeys.estonianemoji.EmojiPanelView
 import tribixbite.cleverkeys.estonianemoji.OfflineEmojiSearch
 import android.view.inputmethod.EditorInfo
@@ -55,6 +57,7 @@ class EstonianSwipeService : InputMethodService() {
     private var emojiSearch: OfflineEmojiSearch? = null
     private var emojiScope: CoroutineScope? = null
     private val suggestions = EstonianSuggestionController()
+    private var manualCompletions: ManualCompletions? = null
     private var suggestionRow: FrameLayout? = null
     private var toolbarRow: LinearLayout? = null
     private var candidatesRow: LinearLayout? = null
@@ -81,6 +84,7 @@ class EstonianSwipeService : InputMethodService() {
 
     private fun clearSuggestions() {
         suggestions.clear()
+        manualCompletions?.clear()
         ownedWordSink?.forget()
         expectedOwnSelection = null
         forceToolbar = false
@@ -88,13 +92,24 @@ class EstonianSwipeService : InputMethodService() {
     }
 
     private fun renderSuggestions() {
-        val words = suggestions.words
+        val words = suggestions.words.ifEmpty { manualCompletions?.words.orEmpty() }
         suggestionButtons.forEachIndexed { index, button ->
             button.bind(words.getOrNull(index))
         }
         val showCandidates = words.isNotEmpty() && !forceToolbar
         candidatesRow?.visibility = if (showCandidates) View.VISIBLE else View.GONE
         toolbarRow?.visibility = if (showCandidates) View.GONE else View.VISIBLE
+    }
+
+    private fun refreshManualCompletions() {
+        val info = editor
+        val connection = currentInputConnection
+        if (info == null || connection == null || connection !== ownedConnection ||
+            info !== ownedEditor || suggestions.words.isNotEmpty() ||
+            emojiPanel?.visibility == View.VISIBLE || afterSwipeWord != null) {
+            manualCompletions?.clear()
+        } else manualCompletions?.update(connection, info, taps.language)
+        renderSuggestions()
     }
 
     private fun ownSelectionAfterWrite(connection: InputConnection) {
@@ -172,6 +187,17 @@ class EstonianSwipeService : InputMethodService() {
                 emojiPanel?.setSearchIndex(loaded)
             } catch (_: Exception) {
                 // No network fallback: common emojis remain available if the asset fails.
+            }
+        }
+        scope.launch {
+            try {
+                val loaded = withContext(Dispatchers.IO) {
+                    ManualCompletions.fromBundledAssets(this@EstonianSwipeService)
+                }
+                manualCompletions = loaded
+                refreshManualCompletions()
+            } catch (_: Exception) {
+                // The keyboard remains usable without a dictionary.
             }
         }
     }
@@ -257,7 +283,7 @@ class EstonianSwipeService : InputMethodService() {
             toolbar.addView(button, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
         }
         arrow.setOnClickListener {
-            if (suggestions.words.isNotEmpty() && forceToolbar) {
+            if ((suggestions.words.isNotEmpty() || manualCompletions?.words?.isNotEmpty() == true) && forceToolbar) {
                 forceToolbar = false
                 renderSuggestions()
             } else {
@@ -283,11 +309,26 @@ class EstonianSwipeService : InputMethodService() {
                 setOnClickListener {
                     val info = editor
                     val connection = currentInputConnection
+                    var manualAttempted = false
                     val selected = if (info != null && info === ownedEditor && connection != null && connection === ownedConnection) {
                         writingSuggestion = true
-                        try { suggestions.choose(index) } finally { writingSuggestion = false }
+                        try {
+                            if (suggestions.words.isNotEmpty()) suggestions.choose(index)
+                            else {
+                                manualAttempted = true
+                                manualCompletions?.choose(connection, index) == true
+                            }
+                        } finally { writingSuggestion = false }
                     } else false
+                    if (manualAttempted && !selected) {
+                        manualCompletions?.clear()
+                        renderSuggestions()
+                    }
                     if (selected && connection != null) {
+                        if (suggestions.words.isEmpty()) {
+                            refreshManualCompletions()
+                            return@setOnClickListener
+                        }
                         val newWord = suggestions.composingWord
                         val previous = loggedSwipe
                         if (newWord != null && previous != null && previous.info === info &&
@@ -357,6 +398,7 @@ class EstonianSwipeService : InputMethodService() {
         finishTelemetryField()
         epoch++
         suggestions.end()
+        manualCompletions?.clear()
         renderSuggestions()
         afterSwipeWord = null
         manualPolicy.reset()
@@ -374,6 +416,7 @@ class EstonianSwipeService : InputMethodService() {
         epoch++
         editor = info
         startSuggestions(info)
+        refreshManualCompletions()
         surface?.onGesture = ::handleGesture
         surface?.language = taps.language
         val view = surface
@@ -414,6 +457,7 @@ class EstonianSwipeService : InputMethodService() {
         finishTelemetryField()
         epoch++
         suggestions.end()
+        manualCompletions?.clear()
         renderSuggestions()
         afterSwipeWord = null
         manualPolicy.reset()
@@ -452,6 +496,7 @@ class EstonianSwipeService : InputMethodService() {
                 expectedOwnSelection = null
                 renderSuggestions()
             }
+            refreshManualCompletions()
         }
         lastCandidatesStart = candidatesStart
         lastCandidatesEnd = candidatesEnd
@@ -465,6 +510,7 @@ class EstonianSwipeService : InputMethodService() {
         emojiScope?.cancel()
         emojiScope = null
         emojiSearch = null
+        manualCompletions = null
         suggestions.end()
         suggestionRow = null
         suggestionButtons = emptyList()
@@ -509,6 +555,7 @@ class EstonianSwipeService : InputMethodService() {
                 else if (tracked != null) { loggedSwipe = null; correctionTracker.clear() }
             }
         }
+        refreshManualCompletions()
     }
 
     private fun handleGesture(gesture: SurfaceGesture) {
@@ -550,6 +597,8 @@ class EstonianSwipeService : InputMethodService() {
                 clearSuggestions()
                 manualLetterGesture = gesture.key.kind == KeyKind.LETTER
                 try { taps.accept(gesture) } finally { manualLetterGesture = false }
+                if (gesture.key.kind == KeyKind.LETTER || gesture.key.kind == KeyKind.LANGUAGE ||
+                    gesture.key.kind == KeyKind.SPACE) refreshManualCompletions()
                 if (gesture.key.kind == KeyKind.LANGUAGE) {
                     surface?.let { view ->
                         view.language = taps.language
@@ -563,6 +612,7 @@ class EstonianSwipeService : InputMethodService() {
                 clearSuggestions()
                 manualLetterGesture = true
                 try { taps.acceptHold(gesture) } finally { manualLetterGesture = false }
+                refreshManualCompletions()
             }
             is SurfaceGesture.LongPress -> {
                 if (gesture.language != taps.language) return
@@ -578,6 +628,7 @@ class EstonianSwipeService : InputMethodService() {
                 manualLetterGesture = letter
                 try { taps.acceptLongPress(gesture.value, gesture.language) }
                 finally { manualLetterGesture = false }
+                refreshManualCompletions()
             }
             is SurfaceGesture.DeleteWord -> {
                 if (gesture.language != taps.language) return
@@ -598,6 +649,7 @@ class EstonianSwipeService : InputMethodService() {
                 }
                 clearSuggestions()
                 if (owned == null) currentInputConnection?.let(::deletePreviousWord)
+                refreshManualCompletions()
             }
             is SurfaceGesture.RepeatBackspace -> {
                 if (gesture.language != taps.language) return
@@ -779,8 +831,10 @@ class EstonianSwipeService : InputMethodService() {
         if (!isSwipeAllowed(info) || info !== ownedEditor || connection !== ownedConnection) return
         if (undoneSwipe != null && replacementText.isNotEmpty()) finishUndoneWord()
         finalizeLoggedWord()
-        val ticket = suggestions.begin() ?: return
+        manualCompletions?.clear()
+        val ticket = suggestions.begin()
         renderSuggestions()
+        if (ticket == null) return
         val accept: (PredictionResult) -> Unit = { result ->
             if (owner == epoch && emojiPanel?.visibility != View.VISIBLE &&
                 editor === info && currentInputConnection === connection &&

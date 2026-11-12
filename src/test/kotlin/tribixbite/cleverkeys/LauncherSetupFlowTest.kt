@@ -4,7 +4,7 @@ import com.google.common.truth.Truth.assertWithMessage
 import java.io.File
 import org.junit.Test
 
-/** Guards the small, honest setup flow of the Estonian Swipe launcher. */
+/** Guards the small, honest setup flow of the Viipio keyboard launcher. */
 class LauncherSetupFlowTest {
     private val launcher by lazy {
         File("src/main/kotlin/tribixbite/cleverkeys/activities/LauncherActivity.kt").readText()
@@ -30,7 +30,7 @@ class LauncherSetupFlowTest {
     @Test fun launcherUsesOwnIdentityAndQuietInterface() {
         assertWithMessage("new brand wordmark").that(launcher).contains("R.string.app_name")
         assertWithMessage("correct source link").that(launcher)
-            .contains("https://github.com/tehisaru-git/estonian-swipe-keyboard")
+            .contains("https://github.com/tehisaru-git/viipio-keyboard")
         assertWithMessage("Compose cannot load an adaptive launcher icon with painterResource")
             .that(launcher).doesNotContain("painterResource(R.mipmap.ic_launcher)")
         assertWithMessage("launcher logo must load its vector foreground")

@@ -135,7 +135,6 @@
     <string name="clipboard_filter_private_only_hint">Mostra solo le voci copiate in privato (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ Impostazioni CleverKeys</string>
     <string name="settings_description">Configura le impostazioni della tastiera per un\'esperienza di digitazione ottimale.</string>
 
     <!-- Swipe Typing Section -->
@@ -1123,7 +1122,6 @@
     <string name="calibration_touch_here">👆 Tocca qui</string>
     <string name="calibration_min_readout">Min: %1$d%%</string>
     <string name="calibration_max_readout">Max: %1$d%%</string>
-    <string name="launcher_logo_desc">Logo CleverKeys</string>
     <string name="launcher_tagline">Privacy, potenza e controllo — con un cervello.</string>
     <string name="launcher_step_enable">Abilita tastiera</string>
     <string name="launcher_step_select">Seleziona tastiera</string>
@@ -1777,7 +1775,6 @@
     <string name="swipe_debug_clear_traces_playground">Solo area di prova</string>
     <string name="swipe_debug_clear_traces_all">Tutti i dati di scorrimento</string>
     <string name="swipe_debug_clear_traces_message">Eliminare le tracce di scorrimento registrate da questo dispositivo?\n\n\"%1$s\" rimuove le tracce registrate in questa schermata; \"%2$s\" rimuove anche le tracce dalla raccolta ML globale.</string>
-    <string name="manifest_ime_service_label">Tastiera CleverKeys</string>
     <string name="manifest_backup_restore_label">Backup e ripristino</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">Cancellata %1$d traccia</item>

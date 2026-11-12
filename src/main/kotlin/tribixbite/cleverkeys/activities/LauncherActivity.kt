@@ -33,11 +33,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Settings
+
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -51,6 +51,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,14 +60,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import tribixbite.cleverkeys.theme.EstonianSwipeTheme
-import tribixbite.cleverkeys.estonianstudy.SwipeStudyActivity
-import tribixbite.cleverkeys.estoniantelemetry.TelemetryActivity
 
 /** Minimal setup shell. The IME's swipe backend remains separate from this Compose UI. */
 class LauncherActivity : ComponentActivity() {
     companion object {
         private const val TAG = "LauncherActivity"
-        private const val GITHUB_URL = "https://github.com/tehisaru-git/estonian-swipe-keyboard"
+        private const val GITHUB_URL = "https://github.com/tehisaru-git/viipio-keyboard"
     }
 
     private var pickerPending = false
@@ -103,9 +102,6 @@ class LauncherActivity : ComponentActivity() {
                 LauncherScreen(
                     onEnableKeyboard = ::launchKeyboardSettings,
                     onSelectKeyboard = ::launchInputMethodPicker,
-                    onOpenSettings = ::launchAppSettings,
-                    onOpenStudy = { startActivity(Intent(this, SwipeStudyActivity::class.java)) },
-                    onOpenDiagnostics = { startActivity(Intent(this, TelemetryActivity::class.java)) },
                     onOpenGitHub = ::openGitHub
                 )
             }
@@ -156,11 +152,6 @@ class LauncherActivity : ComponentActivity() {
         }
     }
 
-    private fun launchAppSettings() {
-        startActivity(Intent(this, SettingsActivity::class.java))
-    }
-
-
     private fun openGitHub() {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(GITHUB_URL)))
@@ -184,9 +175,6 @@ private fun keyboardSelected(context: Context): Boolean = try {
 fun LauncherScreen(
     onEnableKeyboard: () -> Unit,
     onSelectKeyboard: () -> Unit,
-    onOpenSettings: () -> Unit,
-    onOpenStudy: () -> Unit,
-    onOpenDiagnostics: () -> Unit,
     onOpenGitHub: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -219,14 +207,10 @@ fun LauncherScreen(
         ) {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.size(56.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(16.dp)),
+                    .background(Color(0xFF22364C), RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center) {
                     Image(painterResource(R.drawable.ic_launcher_foreground), contentDescription = null,
                         modifier = Modifier.size(52.dp))
-                }
-                Spacer(Modifier.weight(1f))
-                IconButton(onClick = onOpenSettings) {
-                    Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.key_descr_config))
                 }
             }
             Spacer(Modifier.height(12.dp))
@@ -254,14 +238,23 @@ fun LauncherScreen(
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 shape = RoundedCornerShape(18.dp)
             )
-            TextButton(onClick = onOpenSettings) {
-                Text(stringResource(R.string.swipe_setup_languages))
-            }
-            TextButton(onClick = onOpenStudy) {
-                Text(stringResource(R.string.swipe_study_title))
-            }
-            TextButton(onClick = onOpenDiagnostics) {
-                Text(stringResource(R.string.telemetry_title))
+            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                Column(modifier = Modifier.fillMaxWidth().padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.swipe_preview_languages),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.swipe_preview_languages_detail),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.swipe_preview_dictionaries),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.swipe_preview_dictionaries_detail),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall)
+                }
             }
             Spacer(Modifier.height(18.dp))
             TextButton(onClick = onOpenGitHub) {

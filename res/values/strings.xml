@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name" translatable="false">Estonian Swipe</string>
+    <string name="app_name" translatable="false">Viipio keyboard</string>
     <string name="swipe_setup_intro" translatable="false">A calm keyboard for Estonian and English. Your words stay on your device.</string>
     <string name="swipe_setup_enable" translatable="false">Enable keyboard</string>
-    <string name="swipe_setup_enable_detail" translatable="false">Turn on Estonian Swipe in Android settings</string>
+    <string name="swipe_setup_enable_detail" translatable="false">Turn on Viipio keyboard in Android settings</string>
     <string name="swipe_setup_select" translatable="false">Select keyboard</string>
-    <string name="swipe_setup_select_detail" translatable="false">Choose Estonian Swipe as your keyboard</string>
+    <string name="swipe_setup_select_detail" translatable="false">Choose Viipio keyboard as your keyboard</string>
     <string name="swipe_setup_try" translatable="false">Try it out</string>
     <string name="swipe_setup_try_hint" translatable="false">Tap or swipe a word here</string>
     <string name="swipe_setup_languages" translatable="false">Languages and preferences</string>
@@ -184,7 +184,7 @@
     <!-- Swipe Engine Settings (Material 3) -->
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ CleverKeys Settings</string>
+    <string name="settings_title" translatable="false">Viipio keyboard settings</string>
     <string name="settings_description">Configure your keyboard settings for optimal typing experience.</string>
 
     <!-- Swipe Typing Section -->
@@ -1568,7 +1568,7 @@
     <string name="calibration_max_readout">Max: %1$d%%</string>
 
     <!-- LauncherActivity.kt — first-run setup screen -->
-    <string name="launcher_logo_desc">CleverKeys Logo</string>
+    <string name="launcher_logo_desc" translatable="false">Viipio keyboard icon</string>
     <string name="launcher_tagline">Privacy, power, and control— with a brain.</string>
     <string name="launcher_step_enable">Enable Keyboard</string>
     <string name="launcher_step_select">Select Keyboard</string>
@@ -2190,8 +2190,8 @@
     <string name="swipe_debug_clear_traces_playground">Playground only</string>
     <string name="swipe_debug_clear_traces_all">All swipe data</string>
     <string name="swipe_debug_clear_traces_message">Delete recorded swipe traces from this device?\n\n“%1$s” removes traces recorded on this screen; “%2$s” also removes traces from the global ML collection.</string>
-    <string name="manifest_ime_service_label">CleverKeys Keyboard</string>
-    <string name="estonian_swipe_ime_label" translatable="false">Estonian Swipe Keyboard</string>
+    <string name="manifest_ime_service_label" translatable="false">Viipio keyboard</string>
+    <string name="estonian_swipe_ime_label" translatable="false">Viipio keyboard</string>
     <string name="manifest_backup_restore_label">Backup &amp; Restore</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">Cleared %1$d trace</item>

@@ -112,7 +112,6 @@
     <string name="clipboard_filter_private_only_hint">비공개로 복사한 항목(🔒)만 표시</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ CleverKeys 설정</string>
     <string name="settings_description">최적의 입력 환경을 위해 키보드 설정을 구성합니다.</string>
 
     <!-- Swipe Typing Section -->
@@ -1079,7 +1078,6 @@
     <string name="calibration_touch_here">👆 여기를 터치하세요</string>
     <string name="calibration_min_readout">최소: %1$d%%</string>
     <string name="calibration_max_readout">최대: %1$d%%</string>
-    <string name="launcher_logo_desc">CleverKeys 로고</string>
     <string name="launcher_tagline">프라이버시, 성능, 제어 — 두뇌까지.</string>
     <string name="launcher_step_enable">키보드 활성화</string>
     <string name="launcher_step_select">키보드 선택</string>
@@ -1665,7 +1663,6 @@
     <string name="swipe_debug_clear_traces_playground">플레이그라운드만</string>
     <string name="swipe_debug_clear_traces_all">모든 스와이프 데이터</string>
     <string name="swipe_debug_clear_traces_message">이 기기에서 기록된 스와이프 트레이스를 삭제하시겠습니까?\n\n“%1$s”는 이 화면에서 기록된 트레이스를 삭제하고, “%2$s”는 전역 ML 수집 데이터의 트레이스도 삭제합니다.</string>
-    <string name="manifest_ime_service_label">CleverKeys 키보드</string>
     <string name="manifest_backup_restore_label">백업 및 복원</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="other">트레이스 %1$d개를 지웠습니다</item>

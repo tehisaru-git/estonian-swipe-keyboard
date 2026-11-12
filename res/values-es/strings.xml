@@ -113,7 +113,6 @@
     <string name="clipboard_filter_private_only_hint">Mostrar solo las entradas copiadas de forma privada (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ Ajustes de CleverKeys</string>
     <string name="settings_description">Configura los ajustes del teclado para una experiencia de escritura óptima.</string>
 
     <!-- Swipe Typing Section -->
@@ -1101,7 +1100,6 @@
     <string name="calibration_touch_here">👆 Toca aquí</string>
     <string name="calibration_min_readout">Mín: %1$d%%</string>
     <string name="calibration_max_readout">Máx: %1$d%%</string>
-    <string name="launcher_logo_desc">Logotipo de CleverKeys</string>
     <string name="launcher_tagline">Privacidad, potencia y control — con cerebro.</string>
     <string name="launcher_step_enable">Activar el teclado</string>
     <string name="launcher_step_select">Seleccionar el teclado</string>
@@ -1755,7 +1753,6 @@
     <string name="swipe_debug_clear_traces_playground">Solo área de pruebas</string>
     <string name="swipe_debug_clear_traces_all">Todos los datos de deslizamiento</string>
     <string name="swipe_debug_clear_traces_message">¿Eliminar de este dispositivo los trazos de deslizamiento registrados?\n\n«%1$s» elimina los trazos registrados en esta pantalla; «%2$s» también elimina los trazos de la colección global de ML.</string>
-    <string name="manifest_ime_service_label">Teclado CleverKeys</string>
     <string name="manifest_backup_restore_label">Copia de seguridad y restauración</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">Se borró %1$d trazo</item>

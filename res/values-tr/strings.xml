@@ -110,7 +110,6 @@
     <string name="clipboard_filter_private_only_hint">Yalnızca gizli olarak kopyalanan kayıtları göster (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ CleverKeys Ayarları</string>
     <string name="settings_description">En iyi yazma deneyimi için klavye ayarlarınızı yapılandırın.</string>
 
     <!-- Swipe Typing Section -->
@@ -1093,7 +1092,6 @@
     <string name="calibration_touch_here">👆 Buraya dokunun</string>
     <string name="calibration_min_readout">Min: %%%1$d</string>
     <string name="calibration_max_readout">Maks: %%%1$d</string>
-    <string name="launcher_logo_desc">CleverKeys Logosu</string>
     <string name="launcher_tagline">Gizlilik, güç ve kontrol — beyinle birlikte.</string>
     <string name="launcher_step_enable">Klavyeyi Etkinleştir</string>
     <string name="launcher_step_select">Klavyeyi Seç</string>
@@ -1712,7 +1710,6 @@
     <string name="swipe_debug_clear_traces_playground">Yalnızca deneme alanı</string>
     <string name="swipe_debug_clear_traces_all">Tüm kaydırma verileri</string>
     <string name="swipe_debug_clear_traces_message">Kaydedilen kaydırma izleri bu cihazdan silinsin mi?\n\n“%1$s” bu ekranda kaydedilen izleri kaldırır; “%2$s” ayrıca genel ML koleksiyonundaki izleri de kaldırır.</string>
-    <string name="manifest_ime_service_label">CleverKeys Klavye</string>
     <string name="manifest_backup_restore_label">Yedekle &amp; Geri Yükle</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">%1$d iz temizlendi</item>

@@ -110,7 +110,6 @@
     <string name="clipboard_filter_private_only_hint">Показувати лише приватно скопійовані записи (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ Налаштування CleverKeys</string>
     <string name="settings_description">Налаштуйте параметри клавіатури для оптимального введення тексту.</string>
 
     <!-- Swipe Typing Section -->
@@ -973,7 +972,6 @@
     <string name="intent_editor_title_create">Створити intent-дію</string>
     <string name="intent_editor_title_edit">Редагувати intent-дію</string>
     <string name="launcher_footer">Безкомпромісна клавіатура з відкритим кодом.</string>
-    <string name="launcher_logo_desc">Логотип CleverKeys</string>
     <string name="launcher_step_calibrate">Відкалібрувати жести клавіш</string>
     <string name="launcher_step_completed_desc">Завершено</string>
     <string name="launcher_step_enable">Увімкнути клавіатуру</string>
@@ -1784,7 +1782,6 @@
     <string name="swipe_debug_clear_traces_playground">Лише Playground</string>
     <string name="swipe_debug_clear_traces_all">Усі дані свайпів</string>
     <string name="swipe_debug_clear_traces_message">Видалити записані траєкторії свайпів із цього пристрою?\n\n«%1$s» видаляє траєкторії, записані на цьому екрані; «%2$s» також видаляє траєкторії із загальної колекції для ML.</string>
-    <string name="manifest_ime_service_label">Клавіатура CleverKeys</string>
     <string name="manifest_backup_restore_label">Резервне копіювання та відновлення</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">Видалено %1$d траєкторію</item>

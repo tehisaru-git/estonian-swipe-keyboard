@@ -110,7 +110,6 @@
     <string name="clipboard_filter_private_only_hint">仅显示私密复制的条目（🔒）</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ CleverKeys 设置</string>
     <string name="settings_description">配置键盘设置以获得最佳输入体验。</string>
 
     <!-- Swipe Typing Section -->
@@ -954,7 +953,6 @@
     <string name="intent_editor_title_create">创建 Intent 操作</string>
     <string name="intent_editor_title_edit">编辑 Intent 操作</string>
     <string name="launcher_footer">一款毫不妥协的开源键盘。</string>
-    <string name="launcher_logo_desc">CleverKeys 徽标</string>
     <string name="launcher_step_calibrate">校准按键手势</string>
     <string name="launcher_step_completed_desc">已完成</string>
     <string name="launcher_step_enable">启用键盘</string>
@@ -1663,7 +1661,6 @@
     <string name="swipe_debug_clear_traces_playground">仅练习场</string>
     <string name="swipe_debug_clear_traces_all">所有滑动数据</string>
     <string name="swipe_debug_clear_traces_message">要从本设备删除已记录的滑动轨迹吗？\n\n“%1$s”会删除在此界面记录的轨迹；“%2$s”还会删除全局 ML 收集中的轨迹。</string>
-    <string name="manifest_ime_service_label">CleverKeys 键盘</string>
     <string name="manifest_backup_restore_label">备份与恢复</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="other">已清除 %1$d 条轨迹</item>

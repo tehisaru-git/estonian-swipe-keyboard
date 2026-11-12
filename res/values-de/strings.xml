@@ -115,7 +115,6 @@
     <string name="clipboard_filter_private_only_hint">Nur privat kopierte Einträge anzeigen (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ CleverKeys-Einstellungen</string>
     <string name="settings_description">Konfigurieren Sie Ihre Tastatureinstellungen für ein optimales Tipperlebnis.</string>
 
     <!-- Swipe Typing Section -->
@@ -1101,7 +1100,6 @@
     <string name="calibration_touch_here">👆 Hier berühren</string>
     <string name="calibration_min_readout">Min: %1$d%%</string>
     <string name="calibration_max_readout">Max: %1$d%%</string>
-    <string name="launcher_logo_desc">CleverKeys-Logo</string>
     <string name="launcher_tagline">Privatsphäre, Leistung und Kontrolle — mit Köpfchen.</string>
     <string name="launcher_step_enable">Tastatur aktivieren</string>
     <string name="launcher_step_select">Tastatur auswählen</string>
@@ -1721,7 +1719,6 @@
     <string name="swipe_debug_clear_traces_playground">Nur Testumgebung</string>
     <string name="swipe_debug_clear_traces_all">Alle Wischdaten</string>
     <string name="swipe_debug_clear_traces_message">Aufgezeichnete Wischspuren von diesem Gerät löschen?\n\n„%1$s“ entfernt die auf diesem Bildschirm aufgezeichneten Wischspuren; „%2$s“ entfernt zusätzlich die Wischspuren aus der globalen ML-Sammlung.</string>
-    <string name="manifest_ime_service_label">CleverKeys-Tastatur</string>
     <string name="manifest_backup_restore_label">Sichern &amp; Wiederherstellen</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">%1$d Wischspur gelöscht</item>

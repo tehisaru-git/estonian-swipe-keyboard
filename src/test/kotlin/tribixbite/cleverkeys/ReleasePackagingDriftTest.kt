@@ -106,7 +106,7 @@ class ReleasePackagingDriftTest {
                 .containsMatchIn(buildGradle)
         ).isTrue()
         assertWithMessage("per-ABI outputs must carry the ABI in the filename (release assets)")
-            .that(buildGradle).contains("EstonianSwipe-v\${variant.versionName}-\${abi}.apk")
+            .that(buildGradle).contains("ViipioKeyboard-v\${variant.versionName}-\${abi}.apk")
     }
 
     @Test

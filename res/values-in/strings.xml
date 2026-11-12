@@ -110,7 +110,6 @@
     <string name="clipboard_filter_private_only_hint">Hanya tampilkan entri yang disalin secara pribadi (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ Pengaturan CleverKeys</string>
     <string name="settings_description">Konfigurasikan pengaturan keyboard Anda untuk pengalaman mengetik yang optimal.</string>
 
     <!-- Swipe Typing Section -->
@@ -1091,7 +1090,6 @@
     <string name="calibration_touch_here">👆 Sentuh di sini</string>
     <string name="calibration_min_readout">Min: %1$d%%</string>
     <string name="calibration_max_readout">Maks: %1$d%%</string>
-    <string name="launcher_logo_desc">Logo CleverKeys</string>
     <string name="launcher_tagline">Privasi, kekuatan, dan kendali — dengan otak.</string>
     <string name="launcher_step_enable">Aktifkan Keyboard</string>
     <string name="launcher_step_select">Pilih Keyboard</string>
@@ -1677,7 +1675,6 @@
     <string name="swipe_debug_clear_traces_playground">Hanya Playground</string>
     <string name="swipe_debug_clear_traces_all">Semua data geser</string>
     <string name="swipe_debug_clear_traces_message">Hapus jejak geser yang terekam dari perangkat ini?\n\n“%1$s” menghapus jejak yang direkam di layar ini; “%2$s” juga menghapus jejak dari koleksi ML global.</string>
-    <string name="manifest_ime_service_label">Keyboard CleverKeys</string>
     <string name="manifest_backup_restore_label">Cadangkan &amp; Pulihkan</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="other">%1$d jejak dihapus</item>

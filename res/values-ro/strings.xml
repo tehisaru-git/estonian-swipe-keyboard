@@ -136,7 +136,6 @@
     <string name="clipboard_filter_private_only_hint">Arată doar intrările copiate privat (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ Setări CleverKeys</string>
     <string name="settings_description">Configurează setările tastaturii pentru o experiență de scriere optimă.</string>
 
     <!-- Swipe Typing Section -->
@@ -1111,7 +1110,6 @@
     <string name="calibration_touch_here">👆 Atingeți aici</string>
     <string name="calibration_min_readout">Min: %1$d%%</string>
     <string name="calibration_max_readout">Max: %1$d%%</string>
-    <string name="launcher_logo_desc">Sigla CleverKeys</string>
     <string name="launcher_tagline">Confidențialitate, putere și control — cu creier.</string>
     <string name="launcher_step_enable">Activează tastatura</string>
     <string name="launcher_step_select">Selectează tastatura</string>
@@ -1764,7 +1762,6 @@
     <string name="swipe_debug_clear_traces_playground">Doar zona de test</string>
     <string name="swipe_debug_clear_traces_all">Toate datele de glisare</string>
     <string name="swipe_debug_clear_traces_message">Ștergeți traseele de glisare înregistrate de pe acest dispozitiv?\n\n„%1$s” elimină traseele înregistrate pe acest ecran; „%2$s” elimină și traseele din colecția ML globală.</string>
-    <string name="manifest_ime_service_label">Tastatura CleverKeys</string>
     <string name="manifest_backup_restore_label">Backup și restaurare</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">S-a șters %1$d traseu</item>

@@ -144,8 +144,8 @@ dependencies {
 // =============================================================================
 // UPDATE ONLY THESE THREE VALUES FOR A NEW RELEASE:
 ext.VERSION_MAJOR = 0
-ext.VERSION_MINOR = 2
-ext.VERSION_PATCH = 3
+ext.VERSION_MINOR = 3
+ext.VERSION_PATCH = 0
 // =============================================================================
 // DERIVED VALUES (auto-calculated, do not edit):
 // - versionCode = MAJOR*10000 + MINOR*100 + PATCH
@@ -454,7 +454,7 @@ android {
       shrinkResources true
       debuggable false
       proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-      resValue "string", "app_name", "Estonian Swipe (Test)"
+      // Use the canonical res/values app_name so release and IME picker agree.
       // Verbose logging: enabled for local builds, disabled for CI/production
       buildConfigField "boolean", "ENABLE_VERBOSE_LOGGING", isLocalBuild ? "true" : "false"
       // REPRODUCIBILITY: Only sign during build if non-empty keystore provided
@@ -475,7 +475,7 @@ android {
       // Translation QA (2026-09-29): generate en-XA (accented, ~30% longer) and ar-XB (RTL)
       // pseudolocales for visual long-text/RTL checks. DEBUG ONLY — release stays false.
       pseudoLocalesEnabled true
-      resValue "string", "app_name", "Estonian Swipe (Debug)"
+      resValue "string", "app_name", "Viipio keyboard (Debug)"
       resValue "bool", "debug_logs", "true"
       buildConfigField "boolean", "ENABLE_VERBOSE_LOGGING", "true"
       signingConfig signingConfigs.debug
@@ -489,9 +489,9 @@ android {
       if (abi != null) {
         def abiCode = rootProject.ext.abiCodes.get(abi, 0)
         output.versionCodeOverride = variant.versionCode * 10 + abiCode
-        output.outputFileName = "EstonianSwipe-v${variant.versionName}-${abi}.apk"
+        output.outputFileName = "ViipioKeyboard-v${variant.versionName}-${abi}.apk"
       } else {
-        output.outputFileName = "EstonianSwipe-v${variant.versionName}-universal.apk"
+        output.outputFileName = "ViipioKeyboard-v${variant.versionName}-universal.apk"
       }
     }
   }
@@ -1828,6 +1828,19 @@ tasks.register('checkKeyboardLayouts') {
 tasks.register('generateBinaryDictionaries') {
   doLast {
     def dictDir = file("src/main/assets/dictionaries")
+    // The published English tap dictionary must be CKDT V2. In a clean clone the
+    // asset is ignored but its byte-identical licensed source is tracked; the
+    // generic JSON converter below emits incompatible V1 DICT instead.
+    def enSource = file("scripts/dictionaries/en/en_enhanced.bin")
+    def enTarget = new File(dictDir, "en_enhanced.bin")
+    def enBytes = enSource.isFile() ? enSource.bytes : null
+    if (enBytes == null || enBytes.length < 4 ||
+        new String(enBytes, 0, 4, "US-ASCII") != "CKDT") {
+      throw new GradleException("Tracked English CKDT V2 dictionary is missing or invalid: ${enSource}")
+    }
+    if (!enTarget.isFile() || !java.util.Arrays.equals(enTarget.bytes, enBytes)) {
+      enTarget.bytes = enBytes
+    }
     dictDir.listFiles().findAll { it.name.endsWith(".json") && !it.name.contains("contraction") }.each { jsonFile ->
       def binFile = new File(dictDir, jsonFile.name.replace(".json", ".bin"))
       if (!binFile.exists() || jsonFile.lastModified() > binFile.lastModified()) {

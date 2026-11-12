@@ -112,7 +112,6 @@
     <string name="clipboard_filter_private_only_hint">Alleen privé gekopieerde items tonen (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ CleverKeys-instellingen</string>
     <string name="settings_description">Configureer je toetsenbordinstellingen voor de beste typervaring.</string>
 
     <!-- Swipe Typing Section -->
@@ -1081,7 +1080,6 @@
     <string name="calibration_touch_here">👆 Raak hier aan</string>
     <string name="calibration_min_readout">Min: %1$d%%</string>
     <string name="calibration_max_readout">Max: %1$d%%</string>
-    <string name="launcher_logo_desc">CleverKeys-logo</string>
     <string name="launcher_tagline">Privacy, kracht en controle — met een brein.</string>
     <string name="launcher_step_enable">Toetsenbord inschakelen</string>
     <string name="launcher_step_select">Toetsenbord selecteren</string>
@@ -1701,7 +1699,6 @@
     <string name="swipe_debug_clear_traces_playground">Alleen testomgeving</string>
     <string name="swipe_debug_clear_traces_all">Alle veeggegevens</string>
     <string name="swipe_debug_clear_traces_message">Vastgelegde veegsporen van dit apparaat verwijderen?\n\n\'%1$s\' verwijdert sporen die op dit scherm zijn vastgelegd; \'%2$s\' verwijdert ook sporen uit de globale ML-verzameling.</string>
-    <string name="manifest_ime_service_label">CleverKeys-toetsenbord</string>
     <string name="manifest_backup_restore_label">Back-up &amp; herstel</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">%1$d veegspoor gewist</item>

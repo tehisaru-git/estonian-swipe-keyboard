@@ -111,7 +111,6 @@
     <string name="clipboard_filter_private_only_hint">プライベートにコピーした項目(🔒)のみ表示</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ CleverKeys 設定</string>
     <string name="settings_description">最適な入力体験のためにキーボードを設定します。</string>
 
     <!-- Swipe Typing Section -->
@@ -1078,7 +1077,6 @@
     <string name="calibration_touch_here">👆 ここをタッチ</string>
     <string name="calibration_min_readout">最小: %1$d%%</string>
     <string name="calibration_max_readout">最大: %1$d%%</string>
-    <string name="launcher_logo_desc">CleverKeys ロゴ</string>
     <string name="launcher_tagline">プライバシー、パワー、コントロール — 頭脳とともに。</string>
     <string name="launcher_step_enable">キーボードを有効化</string>
     <string name="launcher_step_select">キーボードを選択</string>
@@ -1664,7 +1662,6 @@
     <string name="swipe_debug_clear_traces_playground">プレイグラウンドのみ</string>
     <string name="swipe_debug_clear_traces_all">すべてのスワイプデータ</string>
     <string name="swipe_debug_clear_traces_message">記録したスワイプのトレースをこの端末から削除しますか？\n\n「%1$s」はこの画面で記録したトレースを削除します。「%2$s」はグローバルな ML コレクションのトレースも削除します。</string>
-    <string name="manifest_ime_service_label">CleverKeys キーボード</string>
     <string name="manifest_backup_restore_label">バックアップと復元</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="other">%1$d 件のトレースを消去しました</item>

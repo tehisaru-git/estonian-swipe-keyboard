@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate original Estonian Swipe legacy launcher PNGs from the vector's geometry.
+"""Generate Viipio keyboard legacy launcher PNGs from the adaptive vector geometry.
 
 Requires Pillow only when regenerating artwork; Android builds use checked-in PNGs
 and the adaptive vector under res/drawable. No upstream mascot assets are used.
@@ -10,8 +10,9 @@ from PIL import Image, ImageDraw
 ROOT = Path(__file__).resolve().parents[1]
 BASE = 108
 SCALE = 8
-NAVY = '#24354F'
-MINT = '#8DE2D1'
+NAVY = '#22364C'
+MINT = '#A5E4D9'
+KEY = '#EDF3F7'
 SIZES = {'mdpi': 48, 'hdpi': 72, 'xhdpi': 96, 'xxhdpi': 144, 'xxxhdpi': 192}
 
 
@@ -22,21 +23,21 @@ def draw_mark(size: int) -> Image.Image:
     def xy(box):
         return tuple(round(v * scale) for v in box)
     draw.rounded_rectangle(xy((3, 3, 105, 105)), radius=23 * scale, fill=NAVY)
-    for left in (20, 44, 68):
-        draw.rounded_rectangle(xy((left, 33, left + 20, 58)), radius=6 * scale, fill='white')
+    for left in (22, 44, 66):
+        draw.rounded_rectangle(xy((left, 29, left + 20, 59)), radius=6 * scale, fill=KEY)
     points = []
     for i in range(101):
         t = i / 100
-        x = (1-t)**3 * 29 + 3*(1-t)**2*t*40 + 3*(1-t)*t*t*52 + t**3*65
-        y = (1-t)**3 * 75 + 3*(1-t)**2*t*59 + 3*(1-t)*t*t*78 + t**3*70
+        x = (1-t)**3 * 28 + 3*(1-t)**2*t*39 + 3*(1-t)*t*t*42 + t**3*54
+        y = (1-t)**3 * 67 + 3*(1-t)**2*t*67 + 3*(1-t)*t*t*81 + t**3*81
         points.append((round(x * scale), round(y * scale)))
     for i in range(101):
         t = i / 100
-        x = (1-t)**3 * 65 + 3*(1-t)**2*t*72 + 3*(1-t)*t*t*76 + t**3*80
-        y = (1-t)**3 * 70 + 3*(1-t)**2*t*66 + 3*(1-t)*t*t*65 + t**3*64
+        x = (1-t)**3 * 54 + 3*(1-t)**2*t*66 + 3*(1-t)*t*t*69 + t**3*81
+        y = (1-t)**3 * 81 + 3*(1-t)**2*t*81 + 3*(1-t)*t*t*67 + t**3*67
         points.append((round(x * scale), round(y * scale)))
-    draw.line(points, fill=MINT, width=round(5.5 * scale), joint='curve')
-    for x, y, r in ((29,75,2.75), (79,64,5)):
+    draw.line(points, fill=MINT, width=round(6 * scale), joint='curve')
+    for x, y, r in ((28,67,3), (81,67,4)):
         draw.ellipse(xy((x-r,y-r,x+r,y+r)), fill=MINT)
     return image.resize((size, size), Image.Resampling.LANCZOS)
 
@@ -46,7 +47,7 @@ if __name__ == '__main__':
         path = ROOT / 'res' / ('mipmap-' + density) / 'ic_launcher.png'
         draw_mark(pixels).save(path, optimize=True)
         print(path.relative_to(ROOT), pixels)
-    preview = ROOT / 'build' / 'tooling' / 'estonian-swipe-icon-preview.png'
+    preview = ROOT / 'build' / 'tooling' / 'viipio-icon-preview.png'
     preview.parent.mkdir(parents=True, exist_ok=True)
     draw_mark(432).save(preview, optimize=True)
     print(preview)

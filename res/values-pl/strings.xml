@@ -110,7 +110,6 @@
     <string name="clipboard_filter_private_only_hint">Pokaż tylko wpisy skopiowane prywatnie (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ Ustawienia CleverKeys</string>
     <string name="settings_description">Skonfiguruj ustawienia klawiatury dla optymalnego pisania.</string>
 
     <!-- Swipe Typing Section -->
@@ -1095,7 +1094,6 @@
     <string name="calibration_touch_here">👆 Dotknij tutaj</string>
     <string name="calibration_min_readout">Min: %1$d%%</string>
     <string name="calibration_max_readout">Maks: %1$d%%</string>
-    <string name="launcher_logo_desc">Logo CleverKeys</string>
     <string name="launcher_tagline">Prywatność, moc i kontrola — z głową.</string>
     <string name="launcher_step_enable">Włącz klawiaturę</string>
     <string name="launcher_step_select">Wybierz klawiaturę</string>
@@ -1783,7 +1781,6 @@
     <string name="swipe_debug_clear_traces_playground">Tylko plac testowy</string>
     <string name="swipe_debug_clear_traces_all">Wszystkie dane gestów</string>
     <string name="swipe_debug_clear_traces_message">Usunąć zapisane ślady gestów z tego urządzenia?\n\n„%1$s” usuwa ślady zapisane na tym ekranie; „%2$s” usuwa też ślady z globalnego zbioru ML.</string>
-    <string name="manifest_ime_service_label">Klawiatura CleverKeys</string>
     <string name="manifest_backup_restore_label">Kopia zapasowa &amp; przywracanie</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">Wyczyszczono %1$d ślad</item>

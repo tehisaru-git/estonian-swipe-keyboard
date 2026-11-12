@@ -105,7 +105,6 @@
     <string name="clipboard_filter_private_only_hint">Csak a privát módon másolt bejegyzések megjelenítése (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ CleverKeys beállítások</string>
     <string name="settings_description">Állítsa be a billentyűzetet az optimális gépelési élményhez.</string>
 
     <!-- Swipe Typing Section -->
@@ -1087,7 +1086,6 @@
     <string name="calibration_touch_here">👆 Érintse meg itt</string>
     <string name="calibration_min_readout">Min: %1$d%%</string>
     <string name="calibration_max_readout">Max: %1$d%%</string>
-    <string name="launcher_logo_desc">CleverKeys logó</string>
     <string name="launcher_tagline">Adatvédelem, erő és irányítás — ésszel.</string>
     <string name="launcher_step_enable">Billentyűzet engedélyezése</string>
     <string name="launcher_step_select">Billentyűzet kiválasztása</string>
@@ -1707,7 +1705,6 @@
     <string name="swipe_debug_clear_traces_playground">Csak a Playground</string>
     <string name="swipe_debug_clear_traces_all">Minden csúsztatási adat</string>
     <string name="swipe_debug_clear_traces_message">Törli a rögzített csúsztatási nyomvonalakat erről az eszközről?\n\nA(z) „%1$s” az ezen a képernyőn rögzített nyomvonalakat törli; a(z) „%2$s” a globális ML-gyűjtemény nyomvonalait is törli.</string>
-    <string name="manifest_ime_service_label">CleverKeys billentyűzet</string>
     <string name="manifest_backup_restore_label">Biztonsági mentés &amp; Visszaállítás</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">%1$d nyomvonal törölve</item>

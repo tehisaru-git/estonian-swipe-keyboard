@@ -112,7 +112,6 @@
     <string name="clipboard_filter_private_only_hint">Zobrazit pouze soukromě zkopírované položky (🔒)</string>
 
     <!-- Settings Activity (Material 3) -->
-    <string name="settings_title">⚙️ Nastavení CleverKeys</string>
     <string name="settings_description">Nakonfigurujte nastavení klávesnice pro optimální zážitek z psaní.</string>
 
     <!-- Swipe Typing Section -->
@@ -1085,7 +1084,6 @@
     <string name="calibration_touch_here">👆 Dotkněte se zde</string>
     <string name="calibration_min_readout">Min: %1$d%%</string>
     <string name="calibration_max_readout">Max: %1$d%%</string>
-    <string name="launcher_logo_desc">Logo CleverKeys</string>
     <string name="launcher_tagline">Soukromí, síla a kontrola — s mozkem.</string>
     <string name="launcher_step_enable">Povolit klávesnici</string>
     <string name="launcher_step_select">Vybrat klávesnici</string>
@@ -1773,7 +1771,6 @@
     <string name="swipe_debug_clear_traces_playground">Pouze hřiště</string>
     <string name="swipe_debug_clear_traces_all">Všechna data tahů</string>
     <string name="swipe_debug_clear_traces_message">Smazat zaznamenané tahy z tohoto zařízení?\n\n„%1$s“ odstraní tahy zaznamenané na této obrazovce; „%2$s“ odstraní i tahy z globální sbírky pro ML.</string>
-    <string name="manifest_ime_service_label">Klávesnice CleverKeys</string>
     <string name="manifest_backup_restore_label">Záloha &amp; obnovení</string>
     <plurals name="swipe_debug_toast_cleared_traces">
         <item quantity="one">Vymazán %1$d záznam</item>
