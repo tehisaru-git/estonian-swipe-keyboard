@@ -17,6 +17,7 @@ import tribixbite.cleverkeys.PrivateCopyProcessTextActivity
 import tribixbite.cleverkeys.R
 import tribixbite.cleverkeys.SettingsActivity
 import tribixbite.cleverkeys.SettingsRanges
+import tribixbite.cleverkeys.ViipioSpacingPreference
 import tribixbite.cleverkeys.autocorrect.AutocorrectTuning
 import tribixbite.cleverkeys.ui.settings.sections.setPrivateCopyToolbarComponentEnabled
 import tribixbite.cleverkeys.ui.settings.io.detectAvailableV2Dictionaries
@@ -32,6 +33,9 @@ import tribixbite.cleverkeys.ui.settings.io.refreshInstalledLanguagePacks
 internal fun SettingsActivity.handlePreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         // Handle preference changes for reactive updates
         when (key) {
+            ViipioSpacingPreference.KEY -> {
+                viipioSpaceAfterSwipe = ViipioSpacingPreference.enabled(prefs)
+            }
             "continuous_swipe_enabled" -> { continuousSwipeEnabled = prefs.getSafeBoolean(key, Defaults.CONTINUOUS_SWIPE_ENABLED) }
             "swipe_typing_enabled" -> {
                 swipeTypingEnabled = prefs.getBoolean(key, Defaults.SWIPE_TYPING_ENABLED)
@@ -389,6 +393,7 @@ internal fun SettingsActivity.loadCurrentSettings() {
         // Phase 1: Load exposed Config.kt settings
         wordPredictionEnabled = prefs.getSafeBoolean("word_prediction_enabled", Defaults.WORD_PREDICTION_ENABLED)
         autoSpaceAfterSuggestion = prefs.getSafeBoolean("auto_space_after_suggestion", Defaults.AUTO_SPACE_AFTER_SUGGESTION)
+        viipioSpaceAfterSwipe = ViipioSpacingPreference.enabled(prefs)
         autoSpaceBeforeSuggestion = prefs.getSafeBoolean("auto_space_before_suggestion", Defaults.AUTO_SPACE_BEFORE_SUGGESTION)
         showExactTypedWord = prefs.getSafeBoolean("show_exact_typed_word", Defaults.SHOW_EXACT_TYPED_WORD)
         backspaceUndoSwipe = prefs.getSafeBoolean("backspace_undo_swipe", Defaults.BACKSPACE_UNDO_SWIPE)

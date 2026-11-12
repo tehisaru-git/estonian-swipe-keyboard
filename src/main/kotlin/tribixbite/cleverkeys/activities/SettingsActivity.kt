@@ -359,6 +359,7 @@ class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPreferen
     internal var swipeOnPasswordFields by mutableStateOf(Defaults.SWIPE_ON_PASSWORD_FIELDS)  // #39: Allow swipe on password fields
     internal var wordPredictionEnabled by mutableStateOf(Defaults.WORD_PREDICTION_ENABLED)
     internal var autoSpaceAfterSuggestion by mutableStateOf(Defaults.AUTO_SPACE_AFTER_SUGGESTION)  // #82: Add trailing space after selecting suggestion
+    internal var viipioSpaceAfterSwipe by mutableStateOf(ViipioSpacingPreference.DEFAULT)
     internal var autoSpaceBeforeSuggestion by mutableStateOf(Defaults.AUTO_SPACE_BEFORE_SUGGESTION)  // Add leading space before tapped suggestion
     internal var showExactTypedWord by mutableStateOf(Defaults.SHOW_EXACT_TYPED_WORD)  // F-8 / #42: exact-typed-word suggestion
     internal var backspaceUndoSwipe by mutableStateOf(Defaults.BACKSPACE_UNDO_SWIPE)  // #110: Backspace after swipe deletes entire swiped word

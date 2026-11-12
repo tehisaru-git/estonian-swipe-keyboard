@@ -11,6 +11,7 @@ import android.view.View
 import android.widget.TextView
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.HorizontalScrollView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -61,6 +62,9 @@ class EstonianSwipeService : InputMethodService() {
     private var suggestionRow: FrameLayout? = null
     private var toolbarRow: LinearLayout? = null
     private var candidatesRow: LinearLayout? = null
+    private var candidateScroller: HorizontalScrollView? = null
+    private var candidateSeparators: List<View> = emptyList()
+    private var lastRenderedCandidateWords: List<String> = emptyList()
     private var toolbarLanguageButton: TextView? = null
     private var toolbarArrowButton: TextView? = null
     private var forceToolbar = false
@@ -93,8 +97,15 @@ class EstonianSwipeService : InputMethodService() {
 
     private fun renderSuggestions() {
         val words = suggestions.words.ifEmpty { manualCompletions?.words.orEmpty() }
+        if (words != lastRenderedCandidateWords) {
+            candidateScroller?.scrollTo(0, 0)
+            lastRenderedCandidateWords = words.toList()
+        }
         suggestionButtons.forEachIndexed { index, button ->
             button.bind(words.getOrNull(index))
+        }
+        candidateSeparators.forEachIndexed { index, separator ->
+            separator.visibility = if (words.size > index + 1) View.VISIBLE else View.GONE
         }
         val showCandidates = words.isNotEmpty() && !forceToolbar
         candidatesRow?.visibility = if (showCandidates) View.VISIBLE else View.GONE
@@ -140,7 +151,9 @@ class EstonianSwipeService : InputMethodService() {
         writingManual = true
         try {
             val success = when {
-                manualLetterGesture -> manualPolicy.commitLetterAfterSwipe(connection, afterSwipeWord, value)
+                manualLetterGesture -> manualPolicy.commitLetterAfterSwipe(connection, afterSwipeWord, value,
+                    autoSpace = afterSwipeWord != null && ViipioSpacingPreference.enabled(
+                        DirectBootAwarePreferences.get_shared_preferences(this)))
                 value == " " && editor?.let(::isSwipeAllowed) == true -> manualPolicy.space(connection)
                 else -> { manualPolicy.reset(); connection.commitText(value, 1) }
             }
@@ -228,6 +241,19 @@ class EstonianSwipeService : InputMethodService() {
             visibility = View.GONE
         }
         candidatesRow = candidates
+        val scroll = HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = true
+            isScrollbarFadingEnabled = false
+            overScrollMode = View.OVER_SCROLL_NEVER
+        }
+        candidateScroller = scroll
+        lastRenderedCandidateWords = emptyList()
+        val candidateTrack = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        scroll.addView(candidateTrack, FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT))
         fun navButton(label: String, description: String): TextView = TextView(this).apply {
             text = label
             contentDescription = description
@@ -241,11 +267,8 @@ class EstonianSwipeService : InputMethodService() {
         }
         val arrow = navButton("‹", getString(R.string.swipe_toolbar_toggle))
         toolbarArrowButton = arrow
-        val arrowSize = (32 * dp).toInt()
-        toolbar.addView(arrow, LinearLayout.LayoutParams(arrowSize, arrowSize).apply {
-            leftMargin = (8 * dp).toInt()
-            rightMargin = (8 * dp).toInt()
-        })
+        val arrowSize = (48 * dp).toInt()
+        toolbar.addView(arrow, LinearLayout.LayoutParams(arrowSize, arrowSize))
         val tools = listOf(
             Triple("☺︎", R.string.swipe_toolbar_emoji, { showEmojiPanel() }),
             Triple("?123", R.string.swipe_toolbar_symbols, {
@@ -296,12 +319,13 @@ class EstonianSwipeService : InputMethodService() {
         val candidateArrow = navButton("‹", getString(R.string.swipe_toolbar_toggle)).apply {
             setOnClickListener { forceToolbar = true; renderSuggestions() }
         }
-        candidates.addView(candidateArrow, LinearLayout.LayoutParams(arrowSize, arrowSize).apply {
-            leftMargin = (8 * dp).toInt(); rightMargin = (8 * dp).toInt()
-        })
+        candidates.addView(candidateArrow, LinearLayout.LayoutParams(arrowSize, arrowSize))
+        val separators = mutableListOf<View>()
         suggestionButtons = (0..2).map { index ->
-            if (index > 0) candidates.addView(View(this).apply {
+            if (index > 0) candidateTrack.addView(View(this).apply {
                 setBackgroundColor(if (view.darkMode) 0xff696b70.toInt() else 0xffc6cbd3.toInt())
+                visibility = View.GONE
+                separators.add(this)
             }, LinearLayout.LayoutParams((1 * dp).toInt().coerceAtLeast(1), (24 * dp).toInt()))
             CandidateLabelView(this).apply {
                 setTextColor(view.palette.label)
@@ -355,15 +379,18 @@ class EstonianSwipeService : InputMethodService() {
                         clearSuggestions()
                     }
                 }
-            }.also { candidates.addView(it, LinearLayout.LayoutParams(0,
-                ViewGroup.LayoutParams.MATCH_PARENT, 1f)) }
+            }.also { candidateTrack.addView(it, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT)) }
         }
+        candidateSeparators = separators
+        candidates.addView(scroll, LinearLayout.LayoutParams(0,
+            ViewGroup.LayoutParams.MATCH_PARENT, 1f))
         row.addView(toolbar, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT))
         row.addView(candidates, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT))
         container.addView(row, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-            (44 * dp).toInt()))
+            (48 * dp).toInt()))
         val panel = EmojiPanelView(this).apply {
             visibility = View.GONE
             setSearchIndex(emojiSearch)
@@ -372,7 +399,7 @@ class EstonianSwipeService : InputMethodService() {
         container.addView(panel, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
             (100 * resources.displayMetrics.density).toInt()))
         container.addView(view, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-            (290 * resources.displayMetrics.density).toInt()))
+            (286 * resources.displayMetrics.density).toInt()))
         return container
     }
 
@@ -750,12 +777,12 @@ class EstonianSwipeService : InputMethodService() {
         correctionTracker.clear()
     }
 
-    /** Hide the normal word bar while browsing; reuse exactly its 44dp for emoji content. */
+    /** Hide the normal word bar while browsing; reuse its 48dp for emoji content. */
     internal fun resizeForEmoji(expanded: Boolean, search: Boolean = false) {
         val dp = resources.displayMetrics.density
-        val keyHeight = (290 * dp).toInt()
+        val keyHeight = (286 * dp).toInt()
         val searchHeight = (100 * dp).toInt()
-        val envelope = (44 * dp).toInt() + keyHeight
+        val envelope = (48 * dp).toInt() + keyHeight
         (surface?.parent as? ViewGroup)?.getChildAt(0)?.visibility =
             if (expanded) View.GONE else View.VISIBLE
         emojiPanel?.let { panel ->

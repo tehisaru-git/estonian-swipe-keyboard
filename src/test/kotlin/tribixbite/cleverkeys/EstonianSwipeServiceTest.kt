@@ -10,9 +10,11 @@ import android.widget.FrameLayout
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.HorizontalScrollView
 import org.robolectric.RuntimeEnvironment
 import android.view.View
 import android.view.KeyEvent
+import android.view.MotionEvent
 import tribixbite.cleverkeys.swipeui.SwipeSuggestionSession
 import tribixbite.cleverkeys.PredictionResult
 import android.text.InputType
@@ -178,7 +180,8 @@ class EstonianSwipeServiceTest {
         val row = strip.getChildAt(1) as LinearLayout
         row.visibility = View.VISIBLE
         val words = listOf("funktsionaalsus", "funktsionaalseid", "funktsionaalsuses")
-        val buttons = (0..2).map { row.getChildAt(it * 2 + 1) as CandidateLabelView }
+        val track = (row.getChildAt(1) as HorizontalScrollView).getChildAt(0) as LinearLayout
+        val buttons = (0..2).map { track.getChildAt(it * 2) as CandidateLabelView }
         buttons.zip(words).forEach { (button, word) -> button.bind(word) }
         val width = View.MeasureSpec.makeMeasureSpec(720, View.MeasureSpec.EXACTLY)
         val height = View.MeasureSpec.makeMeasureSpec(88, View.MeasureSpec.EXACTLY)
@@ -193,6 +196,109 @@ class EstonianSwipeServiceTest {
         assertEquals(88, strip.measuredHeight)
     }
 
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test fun longCandidateWordsStayWholeAndTheStripScrollsSideways() {
+        val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
+        val layout = service.onCreateInputView() as LinearLayout
+        val bar = layout.getChildAt(0) as FrameLayout
+        val candidates = bar.getChildAt(1) as LinearLayout
+        candidates.visibility = View.VISIBLE
+        val scroll = candidates.getChildAt(1) as HorizontalScrollView
+        val strip = scroll.getChildAt(0) as LinearLayout
+        val first = strip.getChildAt(0) as CandidateLabelView
+        val second = strip.getChildAt(2) as CandidateLabelView
+        val third = strip.getChildAt(4) as CandidateLabelView
+        val words = listOf("rahvusvahelistumine", "ebaproportsionaalsusega", "mitmetähenduslikkusest")
+        listOf(first, second, third).forEachIndexed { index, button -> button.bind(words[index]) }
+        strip.getChildAt(1).visibility = View.VISIBLE
+        strip.getChildAt(3).visibility = View.VISIBLE
+        val width = View.MeasureSpec.makeMeasureSpec(360, View.MeasureSpec.EXACTLY)
+        val height = View.MeasureSpec.makeMeasureSpec(88, View.MeasureSpec.EXACTLY)
+        candidates.measure(width, height)
+        candidates.layout(0, 0, 360, 88)
+        assertEquals(words[0], first.text.toString())
+        assertEquals(words[2], third.contentDescription.toString())
+        assertNull("a long word must not be silently ellipsized", first.ellipsize)
+        assertTrue("candidate viewport must be measured: ${scroll.width}", scroll.width > 0)
+        assertTrue("candidate strip must be measured: ${strip.width}", strip.width > 0)
+        assertTrue("the complete alternatives need horizontal overflow: ${strip.width} vs ${scroll.width}",
+            strip.width > scroll.width)
+        scroll.scrollTo(180, 0)
+        assertTrue(scroll.scrollX > 0)
+    }
+
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test fun shortCandidatesCannotScrollWhenAllWordsFitTheRow() {
+        val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
+        val layout = service.onCreateInputView() as LinearLayout
+        val candidates = (layout.getChildAt(0) as FrameLayout).getChildAt(1) as LinearLayout
+        candidates.visibility = View.VISIBLE
+        val scroll = candidates.getChildAt(1) as HorizontalScrollView
+        val track = scroll.getChildAt(0) as LinearLayout
+        listOf("ja", "on", "ei").forEachIndexed { index, word ->
+            (track.getChildAt(index * 2) as CandidateLabelView).bind(word)
+        }
+        track.getChildAt(1).visibility = View.VISIBLE
+        track.getChildAt(3).visibility = View.VISIBLE
+        val width = View.MeasureSpec.makeMeasureSpec(320, View.MeasureSpec.EXACTLY)
+        val height = View.MeasureSpec.makeMeasureSpec(88, View.MeasureSpec.EXACTLY)
+        candidates.measure(width, height)
+        candidates.layout(0, 0, 320, 88)
+        assertTrue("short words should fit without overflow", track.width <= scroll.width)
+        scroll.scrollTo(100, 0)
+        assertEquals("a fitting row must not move", 0, scroll.scrollX)
+    }
+
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test fun draggingAnOverflowingRowNeverClicksAWord() {
+        val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
+        val layout = service.onCreateInputView() as LinearLayout
+        val row = (layout.getChildAt(0) as FrameLayout).getChildAt(1) as LinearLayout
+        row.visibility = View.VISIBLE
+        val scroll = row.getChildAt(1) as HorizontalScrollView
+        val track = scroll.getChildAt(0) as LinearLayout
+        var selected = 0
+        listOf("rahvusvahelistumine", "ebaproportsionaalsusega", "mitmetähenduslikkusest")
+            .forEachIndexed { index, word ->
+                (track.getChildAt(index * 2) as CandidateLabelView).apply {
+                    bind(word)
+                    setOnClickListener { selected++ }
+                }
+            }
+        track.getChildAt(1).visibility = View.VISIBLE
+        track.getChildAt(3).visibility = View.VISIBLE
+        row.measure(View.MeasureSpec.makeMeasureSpec(360, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(88, View.MeasureSpec.EXACTLY))
+        row.layout(0, 0, 360, 88)
+        fun send(action: Int, x: Float, time: Long) {
+            MotionEvent.obtain(0, time, action, x, 44f, 0).also {
+                scroll.dispatchTouchEvent(it)
+                it.recycle()
+            }
+        }
+        send(MotionEvent.ACTION_DOWN, 230f, 1)
+        send(MotionEvent.ACTION_MOVE, 130f, 60)
+        send(MotionEvent.ACTION_MOVE, 30f, 120)
+        send(MotionEvent.ACTION_UP, 30f, 150)
+        assertTrue("overflow should move with a finger", scroll.scrollX > 0)
+        assertEquals("dragging must not select a word", 0, selected)
+    }
+
+    @Test fun candidateNavigationHasAccessibleTouchAreaWithoutGrowingIme() {
+        val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
+        val layout = service.onCreateInputView() as LinearLayout
+        val bar = layout.getChildAt(0) as FrameLayout
+        val keys = layout.getChildAt(2) as KeyboardSurfaceView
+        val candidates = bar.getChildAt(1) as LinearLayout
+        val arrow = candidates.getChildAt(0)
+        val dp = service.resources.displayMetrics.density
+        assertTrue("candidate row should be at least 48dp high", bar.layoutParams.height / dp >= 48f)
+        assertTrue("toolbar arrow needs a 48dp target", arrow.layoutParams.width / dp >= 48f)
+        assertTrue("toolbar arrow needs a 48dp target", arrow.layoutParams.height / dp >= 48f)
+        assertEquals("larger touch area must not hide the editor", 334f,
+            (bar.layoutParams.height + keys.layoutParams.height) / dp, 0.1f)
+    }
+
     @Test fun inputViewKeepsToolbarAndCandidatesInOneFixedHeightSlot() {
         val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
         val layout = service.onCreateInputView() as LinearLayout
@@ -205,8 +311,10 @@ class EstonianSwipeServiceTest {
         assertEquals(View.VISIBLE, toolbar.visibility)
         assertEquals(View.GONE, candidates.visibility)
         assertTrue((layout.getChildAt(2).layoutParams.height / service.resources.displayMetrics.density) >= 280f)
-        assertEquals(6, candidates.childCount)
-        assertTrue((0..2).all { candidates.getChildAt(it * 2 + 1) is TextView })
+        assertEquals(2, candidates.childCount)
+        val track = (candidates.getChildAt(1) as HorizontalScrollView).getChildAt(0) as LinearLayout
+        assertEquals(5, track.childCount)
+        assertTrue((0..2).all { track.getChildAt(it * 2) is CandidateLabelView })
         assertTrue(toolbar.childCount >= 3)
         assertTrue(layout.getChildAt(1) is EmojiPanelView)
         assertEquals(View.GONE, layout.getChildAt(1).visibility)

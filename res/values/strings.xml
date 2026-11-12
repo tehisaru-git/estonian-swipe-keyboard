@@ -14,6 +14,8 @@
     <string name="swipe_setup_privacy" translatable="false">Private by design · Open source</string>
     <string name="swipe_setup_diagnostics_detail" translatable="false">Off by default. Opt in to local swipe recording; export a file only when you choose.</string>
     <string name="swipe_setup_diagnostics_open" translatable="false">Open diagnostics</string>
+    <string name="viipio_auto_space_after_swipe_title" translatable="false">Add space after a swipe when typing</string>
+    <string name="viipio_auto_space_after_swipe_desc" translatable="false">Insert a space before the first manually typed letter after a swiped word. On by default; turn off to join words.</string>
     <string name="swipe_study_title" translatable="false">Swipe study</string>
     <string name="swipe_study_intro" translatable="false">Optional test: swipe only the shown word in this field. Up to 100 traces stay in memory until you choose where to save a JSON file. Stop or leave this screen to end recording. Do not enter personal text.</string>
     <string name="swipe_study_field" translatable="false">Prompted words only</string>

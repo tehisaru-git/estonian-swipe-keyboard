@@ -28,6 +28,13 @@ class ManualTypingPolicyTest {
         assertEquals("tere ka", field.text.toString())
     }
 
+    @Test fun disabledAutoSpaceKeepsNextManualLetterAdjacent() {
+        val (field, connection) = editor("tere")
+        val policy = ManualTypingPolicy()
+        assertTrue(policy.commitLetterAfterSwipe(connection, "tere", "k", autoSpace = false))
+        assertEquals("terek", field.text.toString())
+    }
+
     @Test fun changedCaretOrMissingSuffixNeverInsertsUnexpectedSpace() {
         val (field, connection) = editor("tere")
         val policy = ManualTypingPolicy()

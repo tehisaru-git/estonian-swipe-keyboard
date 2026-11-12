@@ -24,8 +24,10 @@ internal class ManualTypingPolicy(private val now: () -> Long = SystemClock::upt
     }
 
     /** A swipe-committed suffix and collapsed caret must still match before adding a space. */
-    fun commitLetterAfterSwipe(connection: InputConnection, swipeWord: String?, letter: String): Boolean {
+    fun commitLetterAfterSwipe(connection: InputConnection, swipeWord: String?, letter: String,
+                               autoSpace: Boolean = true): Boolean {
         reset()
+        if (!autoSpace) return connection.commitText(letter, 1)
         val matches = !swipeWord.isNullOrEmpty() && letter.isNotEmpty() &&
             caret(connection) != null &&
             connection.getTextBeforeCursor(swipeWord.length, 0)?.toString() == swipeWord

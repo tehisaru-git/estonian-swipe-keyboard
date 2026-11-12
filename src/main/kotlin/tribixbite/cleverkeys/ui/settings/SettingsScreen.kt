@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import tribixbite.cleverkeys.R
 import tribixbite.cleverkeys.SettingsActivity
+import tribixbite.cleverkeys.ViipioSpacingPreference
 import tribixbite.cleverkeys.ui.settings.io.importLanguagePack
 import tribixbite.cleverkeys.ui.settings.sections.TestKeyboardSection
 
@@ -56,6 +57,16 @@ internal fun SettingsActivity.SettingsScreen() {
             color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         TestKeyboardSection()
+
+        SettingsSwitch(
+            title = stringResource(R.string.viipio_auto_space_after_swipe_title),
+            description = stringResource(R.string.viipio_auto_space_after_swipe_desc),
+            checked = viipioSpaceAfterSwipe,
+            onCheckedChange = {
+                viipioSpaceAfterSwipe = it
+                saveSetting(ViipioSpacingPreference.KEY, it)
+            }
+        )
 
         InfoCard(stringResource(R.string.swipe_preview_languages), stringResource(R.string.swipe_preview_languages_detail))
         Card(shape = RoundedCornerShape(16.dp),
