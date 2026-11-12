@@ -245,6 +245,11 @@ class EstonianSwipeServiceTest {
         candidates.measure(width, height)
         candidates.layout(0, 0, 320, 88)
         assertTrue("short words should fit without overflow", track.width <= scroll.width)
+        assertEquals("fitting words should use the whole row", scroll.width, track.width)
+        val labels = (0..2).map { track.getChildAt(it * 2) as CandidateLabelView }
+        assertTrue("short words should be spread evenly: ${labels.map { it.width }}",
+            labels.maxOf { it.width } - labels.minOf { it.width } <= 2)
+        assertTrue("each short word should receive a wide tap slot", labels.all { it.width >= (scroll.width - 2) / 3 - 2 })
         scroll.scrollTo(100, 0)
         assertEquals("a fitting row must not move", 0, scroll.scrollX)
     }
@@ -282,6 +287,74 @@ class EstonianSwipeServiceTest {
         send(MotionEvent.ACTION_UP, 30f, 150)
         assertTrue("overflow should move with a finger", scroll.scrollX > 0)
         assertEquals("dragging must not select a word", 0, selected)
+    }
+
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test fun rebindingFitOverflowFitResetsScrollAndSpreadsShortWordsAgain() {
+        val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
+        val layout = service.onCreateInputView() as LinearLayout
+        val row = (layout.getChildAt(0) as FrameLayout).getChildAt(1) as LinearLayout
+        row.visibility = View.VISIBLE
+        val scroll = row.getChildAt(1) as HorizontalScrollView
+        val track = scroll.getChildAt(0) as LinearLayout
+        track.getChildAt(1).visibility = View.VISIBLE
+        track.getChildAt(3).visibility = View.VISIBLE
+        fun bind(words: List<String>, viewport: Int) {
+            words.forEachIndexed { index, word ->
+                (track.getChildAt(index * 2) as CandidateLabelView).bind(word)
+            }
+            row.measure(View.MeasureSpec.makeMeasureSpec(viewport, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(88, View.MeasureSpec.EXACTLY))
+            row.layout(0, 0, viewport, 88)
+        }
+        bind(listOf("ja", "on", "ei"), 320)
+        assertEquals(scroll.width, track.width)
+        bind(listOf("rahvusvahelistumine", "ebaproportsionaalsusega", "mitmetähenduslikkusest"), 240)
+        assertTrue(track.width > scroll.width)
+        scroll.scrollTo(120, 0)
+        assertTrue(scroll.scrollX > 0)
+        bind(listOf("ja", "on", "ei"), 320)
+        assertEquals(scroll.width, track.width)
+        assertEquals(0, scroll.scrollX)
+        val labels = (0..2).map { track.getChildAt(it * 2) as CandidateLabelView }
+        assertTrue(labels.maxOf { it.width } - labels.minOf { it.width } <= 2)
+    }
+
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test fun fittingMixedLengthWordsGiveTheLongWordItsFullNaturalWidth() {
+        val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
+        val layout = service.onCreateInputView() as LinearLayout
+        val row = (layout.getChildAt(0) as FrameLayout).getChildAt(1) as LinearLayout
+        row.visibility = View.VISIBLE
+        val scroll = row.getChildAt(1) as HorizontalScrollView
+        val track = scroll.getChildAt(0) as LinearLayout
+        listOf("ja", "rahvusvahelistumine", "ei").forEachIndexed { index, word ->
+            (track.getChildAt(index * 2) as CandidateLabelView).bind(word)
+        }
+        track.getChildAt(1).visibility = View.VISIBLE
+        track.getChildAt(3).visibility = View.VISIBLE
+        val labels = (0..2).map { track.getChildAt(it * 2) as CandidateLabelView }
+        val naturalWidths = labels.map { label ->
+            label.measure(View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+                View.MeasureSpec.makeMeasureSpec(88, View.MeasureSpec.EXACTLY))
+            label.measuredWidth
+        }
+        val separatorWidths = track.getChildAt(1).layoutParams.width + track.getChildAt(3).layoutParams.width
+        val natural = naturalWidths.sum() + separatorWidths
+        val rowWidth = natural + 24 + row.getChildAt(0).layoutParams.width
+        row.measure(View.MeasureSpec.makeMeasureSpec(rowWidth, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(88, View.MeasureSpec.EXACTLY))
+        row.layout(0, 0, rowWidth, 88)
+        assertTrue("test precondition: all complete words fit naturally", natural <= scroll.width)
+        val long = labels[1]
+        val longNatural = naturalWidths[1]
+        assertTrue("test precondition: long word exceeds an equal slot",
+            longNatural > (scroll.width - separatorWidths) / 3)
+        assertTrue("fitting mixed row must not clip its long word: ${long.width} < $longNatural",
+            long.width >= longNatural)
+        assertEquals(scroll.width, track.width)
+        scroll.scrollTo(100, 0)
+        assertEquals(0, scroll.scrollX)
     }
 
     @Test fun candidateNavigationHasAccessibleTouchAreaWithoutGrowingIme() {

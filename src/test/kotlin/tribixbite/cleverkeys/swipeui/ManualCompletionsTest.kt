@@ -87,6 +87,23 @@ class ManualCompletionsTest {
         assertThat(enWords.all { it.startsWith("th", ignoreCase = true) }).isTrue()
     }
 
+    @Test fun userAddedMhmIsLiveOnlyForItsChosenLanguageAndCanBeDeleted() {
+        val ownEt = mutableListOf("mhm")
+        val completions = ManualCompletions.fromEntries(et, en) { language ->
+            if (language == KeyboardLanguage.ESTONIAN) ownEt else emptyList()
+        }
+        val field = Field("mh")
+        assertThat(completions.update(field.connection, info(), KeyboardLanguage.ESTONIAN))
+            .containsExactly("mhm")
+        assertThat(completions.update(field.connection, info(), KeyboardLanguage.ENGLISH)).isEmpty()
+        assertThat(completions.update(field.connection, info(), KeyboardLanguage.ESTONIAN)).contains("mhm")
+        assertThat(completions.choose(field.connection, 0)).isTrue()
+        assertThat(field.text).isEqualTo("mhm")
+        ownEt.clear()
+        field.text = "mh"; field.caret = 2; field.selectionStart = 2
+        assertThat(completions.update(field.connection, info(), KeyboardLanguage.ESTONIAN)).isEmpty()
+    }
+
     @Test fun replacementSelectsOnlyVerifiedWordAndLeavesOtherWordsIntact() {
         val completions = ManualCompletions.fromEntries(et, en)
         val field = Field("tere ter rest", 8)

@@ -1,6 +1,7 @@
 package tribixbite.cleverkeys.swipe
 
 import android.content.SharedPreferences
+import org.json.JSONObject
 import tribixbite.cleverkeys.LanguagePreferenceKeys
 
 /**
@@ -30,11 +31,22 @@ internal data class UserLexiconInputs(
          * Read the inputs for [lang] from [prefs]. The caller passes the language in the form it
          * keys its lexicon by; [LanguagePreferenceKeys] lower-cases it.
          */
-        fun read(prefs: SharedPreferences, lang: String): UserLexiconInputs = UserLexiconInputs(
-            customJson = prefs.getString(LanguagePreferenceKeys.customWordsKey(lang), "{}") ?: "{}",
+        fun read(prefs: SharedPreferences, lang: String, personalJson: String = "{}"): UserLexiconInputs = UserLexiconInputs(
+            customJson = mergeCustomWords(prefs.getString(LanguagePreferenceKeys.customWordsKey(lang), "{}") ?: "{}",
+                personalJson),
             disabled = prefs.getStringSet(LanguagePreferenceKeys.disabledWordsKey(lang), emptySet())
                 ?: emptySet(),
             priorityJson = prefs.getString(LanguagePreferenceKeys.swipePriorityKey(lang), "") ?: "",
         )
+
+        private fun mergeCustomWords(legacy: String, personal: String): String {
+            if (personal == "{}") return legacy
+            return try {
+                val extra = JSONObject(personal)
+                val merged = try { JSONObject(legacy) } catch (_: Exception) { JSONObject() }
+                extra.keys().forEach { word -> merged.put(word, extra.getInt(word)) }
+                merged.toString()
+            } catch (_: Exception) { legacy } // Preserve old input, never write back a failed merge.
+        }
     }
 }

@@ -42,6 +42,10 @@ class KeyboardSurfaceView @JvmOverloads constructor(
         }
     var darkMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         set(value) { field = value; invalidate() }
+    var showCornerSymbols = true
+        set(value) {
+            if (field != value) { field = value; clearHold(); invalidate() }
+        }
     val palette get() = if (darkMode) Palette.DARK else Palette.LIGHT
     // Layout on a 0x0 view is deliberately absent; the first measure/layout supplies the geometry.
     var geometry: KeyboardGeometry = KeyboardGeometry(1, 1, language)
@@ -74,7 +78,7 @@ class KeyboardSurfaceView @JvmOverloads constructor(
     private val holdTick = Runnable {
         val key = heldKey
         val options = key?.takeIf { geometry.hit(holdPointerX, holdPointerY) == it }
-            ?.let { LongPressOptions.forKey(it, language, symbolMode) }
+            ?.let { LongPressOptions.forKey(it, language, symbolMode, showCornerSymbols) }
         if (key != null && options != null) {
             heldOptions = options
             heldIndex = options.defaultIndex
@@ -188,7 +192,7 @@ class KeyboardSurfaceView @JvmOverloads constructor(
                 setBoundsInParent(Rect(b.left, b.top, b.right, b.bottom))
                 setBoundsInScreen(Rect(location[0] + b.left, location[1] + b.top, location[0] + b.right, location[1] + b.bottom))
                 addAction(AccessibilityNodeInfo.ACTION_CLICK)
-                LongPressOptions.forKey(key, language, symbolMode)?.let { options ->
+                LongPressOptions.forKey(key, language, symbolMode, showCornerSymbols)?.let { options ->
                     addAction(AccessibilityNodeInfo.ACTION_LONG_CLICK)
                     options.values.forEachIndexed { index, value ->
                         addAction(AccessibilityNodeInfo.AccessibilityAction(0x01020000 + index,
@@ -208,7 +212,7 @@ class KeyboardSurfaceView @JvmOverloads constructor(
                     true
                 }
                 AccessibilityNodeInfo.ACTION_LONG_CLICK -> {
-                    val options = LongPressOptions.forKey(key, language, symbolMode) ?: return false
+                    val options = LongPressOptions.forKey(key, language, symbolMode, showCornerSymbols) ?: return false
                     onGesture?.invoke(SurfaceGesture.LongPress(options.defaultValue, language))
                     sendVirtualEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_CLICKED)
                     true
@@ -228,7 +232,7 @@ class KeyboardSurfaceView @JvmOverloads constructor(
                 }
                 else -> {
                     val index = action - 0x01020000
-                    val options = LongPressOptions.forKey(key, language, symbolMode)
+                    val options = LongPressOptions.forKey(key, language, symbolMode, showCornerSymbols)
                     val value = options?.values?.getOrNull(index) ?: return false
                     onGesture?.invoke(SurfaceGesture.LongPress(value, language))
                     sendVirtualEvent(virtualViewId, AccessibilityEvent.TYPE_VIEW_CLICKED)
@@ -313,7 +317,7 @@ class KeyboardSurfaceView @JvmOverloads constructor(
                 paint.typeface = Typeface.DEFAULT
                 val baseline = b.centerY - (paint.ascent() + paint.descent()) / 2f
                 canvas.drawText(key.label.trim(), b.centerX, baseline, paint)
-                key.secondarySymbol?.let { hint ->
+                key.secondarySymbol?.takeIf { showCornerSymbols }?.let { hint ->
                     paint.color = if (darkMode) 0xffc3c6cc.toInt() else 0xff50545a.toInt()
                     paint.textSize = 10f * resources.displayMetrics.scaledDensity
                     paint.textAlign = Paint.Align.RIGHT
@@ -450,7 +454,8 @@ class KeyboardSurfaceView @JvmOverloads constructor(
                 repeatStarted = false
                 controller.down(event.x, event.y, event.eventTime)
                 val touched = geometry.hit(event.x, event.y)
-                if (touched != null && LongPressOptions.forKey(touched, language, symbolMode) != null) {
+                if (touched != null && LongPressOptions.forKey(touched, language, symbolMode,
+                        showCornerSymbols) != null) {
                     heldKey = touched
                     holdStartX = event.x
                     holdStartY = event.y

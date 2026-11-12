@@ -9,7 +9,9 @@ class IndependentSettingsBoundaryTest {
     @Test fun settingsShowOnlyControlsThatAffectTheIndependentKeyboard() {
         val source = File("src/main/kotlin/tribixbite/cleverkeys/ui/settings/SettingsScreen.kt")
             .readText()
-        assertTrue(source.contains("TestKeyboardSection()"))
+        assertTrue(source.contains("LauncherActivity::class.java"))
+        assertFalse("practice is now a named destination, not a second settings home",
+            source.contains("TestKeyboardSection()"))
         assertTrue(source.contains("importLanguagePack()"))
         for (obsolete in listOf("SwipeTypingSection()", "AppearanceSection()", "AutoCorrectionSection()",
             "GestureTuningSection()", "MultiLanguageSection()", "GifPanelSection()",

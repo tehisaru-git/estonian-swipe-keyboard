@@ -1,20 +1,21 @@
-"""The opt-in diagnostics screen must be reachable in the branded launcher."""
+"""Opt-in diagnostics has one visible route in the unified settings home."""
 from pathlib import Path
 import unittest
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[3]
 LAUNCHER = ROOT / 'src/main/kotlin/tribixbite/cleverkeys/activities/LauncherActivity.kt'
+SCREEN = ROOT / 'src/main/kotlin/tribixbite/cleverkeys/ui/settings/SettingsScreen.kt'
 STRINGS = ROOT / 'res/values/strings.xml'
 
 
 class DiagnosticsEntryTest(unittest.TestCase):
-    def test_launcher_has_visible_direct_route_without_starting_collection(self):
-        source = LAUNCHER.read_text()
-        self.assertTrue('TelemetryActivity::class.java' in source,
-                        'v0.3.0 removed the only launcher route to opt-in diagnostics')
-        self.assertTrue('onClick = onOpenDiagnostics' in source,
-                        'the destination must have a visible user-operated control')
+    def test_settings_home_has_visible_direct_route_without_starting_collection(self):
+        source = SCREEN.read_text()
+        self.assertIn('TelemetryActivity::class.java', source)
+        self.assertIn('telemetry_title', source)
+        self.assertNotIn('TelemetryActivity::class.java', LAUNCHER.read_text(),
+                         'diagnostics must not remain on a competing setup screen')
         self.assertNotIn('TelemetryRuntime.enable(', source,
                          'opening the screen must not turn collection on')
         values = {s.get('name'): s.text for s in ET.parse(STRINGS).getroot().findall('string')}

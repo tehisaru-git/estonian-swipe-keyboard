@@ -31,6 +31,7 @@ import tribixbite.cleverkeys.estonianui.KeyboardGeometry as SurfaceGeometry
 import tribixbite.cleverkeys.estonianui.KeyboardLanguage
 import tribixbite.cleverkeys.estonianui.KeyboardSurfaceView
 import tribixbite.cleverkeys.estonianui.CandidateLabelView
+import tribixbite.cleverkeys.estonianui.AdaptiveCandidateScrollView
 import tribixbite.cleverkeys.estonianui.SurfaceGesture
 import tribixbite.cleverkeys.estonianstudy.SwipeStudyBridge
 import tribixbite.cleverkeys.estoniantelemetry.TelemetryRuntime
@@ -112,10 +113,14 @@ class EstonianSwipeService : InputMethodService() {
         toolbarRow?.visibility = if (showCandidates) View.GONE else View.VISIBLE
     }
 
+    private fun viipioOption(key: String): Boolean = ViipioBehaviorPreference.enabled(
+        DirectBootAwarePreferences.get_shared_preferences(this), key)
+
     private fun refreshManualCompletions() {
         val info = editor
         val connection = currentInputConnection
-        if (info == null || connection == null || connection !== ownedConnection ||
+        if (!viipioOption(ViipioBehaviorPreference.TYPED_SUGGESTIONS) ||
+            info == null || connection == null || connection !== ownedConnection ||
             info !== ownedEditor || suggestions.words.isNotEmpty() ||
             emojiPanel?.visibility == View.VISIBLE || afterSwipeWord != null) {
             manualCompletions?.clear()
@@ -154,7 +159,9 @@ class EstonianSwipeService : InputMethodService() {
                 manualLetterGesture -> manualPolicy.commitLetterAfterSwipe(connection, afterSwipeWord, value,
                     autoSpace = afterSwipeWord != null && ViipioSpacingPreference.enabled(
                         DirectBootAwarePreferences.get_shared_preferences(this)))
-                value == " " && editor?.let(::isSwipeAllowed) == true -> manualPolicy.space(connection)
+                value == " " && editor?.let(ViipioDoubleSpacePreference::allowed) == true ->
+                    manualPolicy.space(connection, ViipioDoubleSpacePreference.enabled(
+                        DirectBootAwarePreferences.get_shared_preferences(this)))
                 else -> { manualPolicy.reset(); connection.commitText(value, 1) }
             }
             if (!success) return
@@ -224,6 +231,7 @@ class EstonianSwipeService : InputMethodService() {
         val view = KeyboardSurfaceView(this).also {
             surface = it
             it.language = taps.language
+            it.showCornerSymbols = viipioOption(ViipioBehaviorPreference.CORNER_SYMBOLS)
             it.onGesture = ::handleGesture
         }
         val container = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -241,7 +249,7 @@ class EstonianSwipeService : InputMethodService() {
             visibility = View.GONE
         }
         candidatesRow = candidates
-        val scroll = HorizontalScrollView(this).apply {
+        val scroll = AdaptiveCandidateScrollView(this).apply {
             isHorizontalScrollBarEnabled = true
             isScrollbarFadingEnabled = false
             overScrollMode = View.OVER_SCROLL_NEVER
@@ -445,6 +453,7 @@ class EstonianSwipeService : InputMethodService() {
         startSuggestions(info)
         refreshManualCompletions()
         surface?.onGesture = ::handleGesture
+        surface?.showCornerSymbols = viipioOption(ViipioBehaviorPreference.CORNER_SYMBOLS)
         surface?.language = taps.language
         val view = surface
         val imeWindow = window?.window
@@ -561,7 +570,8 @@ class EstonianSwipeService : InputMethodService() {
         afterSwipeWord = null
         manualPolicy.reset()
         val tracked = loggedSwipe
-        val owned = ownedWordSink?.deleteOwnedWord()
+        val owned = if (viipioOption(ViipioBehaviorPreference.BACKSPACE_WORD_UNDO))
+            ownedWordSink?.deleteOwnedWord() else null
         if (owned == true && tracked != null && editor === tracked.info &&
             currentInputConnection === tracked.connection) {
             val anchor = tracked.connection.getTextBeforeCursor(SwipeCorrectionTracker.ANCHOR_WINDOW, 0)?.toString()
@@ -660,6 +670,7 @@ class EstonianSwipeService : InputMethodService() {
             is SurfaceGesture.DeleteWord -> {
                 if (gesture.language != taps.language) return
                 epoch++
+                if (!viipioOption(ViipioBehaviorPreference.GLIDE_DELETE)) return
                 afterSwipeWord = null
                 manualPolicy.reset()
                 val tracked = loggedSwipe

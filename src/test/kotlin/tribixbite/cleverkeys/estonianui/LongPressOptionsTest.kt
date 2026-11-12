@@ -38,6 +38,16 @@ class LongPressOptionsTest {
         assertTrue("*" in LongPressOptions.forKey(key("z"), KeyboardLanguage.ESTONIAN, false)!!.values)
     }
 
+    @Test fun hidingCornerSymbolsKeepsEstonianAccentsButRemovesSymbolShortcuts() {
+        assertNull(LongPressOptions.forKey(key("m"), KeyboardLanguage.ESTONIAN, false, includeSymbols = false))
+        assertEquals(listOf("š"), LongPressOptions.forKey(key("s"), KeyboardLanguage.ESTONIAN,
+            false, includeSymbols = false)!!.values)
+        assertEquals(listOf("ž"), LongPressOptions.forKey(key("z"), KeyboardLanguage.ESTONIAN,
+            false, includeSymbols = false)!!.values)
+        assertEquals(listOf("ğ", "ǵ"), LongPressOptions.forKey(key("g"), KeyboardLanguage.ESTONIAN,
+            false, includeSymbols = false)!!.values)
+    }
+
     @Test fun symbolsPageDoesNotInventLetterLongPressOptions() {
         val symbol = KeyboardGeometry(1080, 700, KeyboardLanguage.ESTONIAN, true).keys.first { it.label == "&" }
         assertNull(LongPressOptions.forKey(symbol, KeyboardLanguage.ESTONIAN, true))

@@ -9,6 +9,7 @@ import org.json.JSONObject
 import tribixbite.cleverkeys.BuildConfig
 import tribixbite.cleverkeys.ContractionManager
 import tribixbite.cleverkeys.DirectBootAwarePreferences
+import tribixbite.cleverkeys.ViipioPersonalWords
 import tribixbite.cleverkeys.KeyValue
 import tribixbite.cleverkeys.KeyboardData
 import tribixbite.cleverkeys.PredictionResult
@@ -631,7 +632,8 @@ class GeometricEngineAdapter(
         // The same three personal-dictionary reads the CTC lexicon makes (audit L7); swipe
         // priority (2026-10-08) is part of the version, like the words themselves.
         val (customJson, disabled, priorityJson) =
-            UserLexiconInputs.read(DirectBootAwarePreferences.get_shared_preferences(context), lang)
+            UserLexiconInputs.read(DirectBootAwarePreferences.get_shared_preferences(context),
+                lang, ViipioPersonalWords(context).json(lang))
 
         // ARC-081: the platform user dictionary is the SECOND user-word store, and it is
         // mutable outside this app entirely, so it has to be read here (not cached across

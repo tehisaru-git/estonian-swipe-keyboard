@@ -20,13 +20,16 @@ class LauncherSetupFlowTest {
         assertWithMessage("test field must remain").that(launcher).contains("OutlinedTextField(")
     }
 
-    @Test fun launcherDirectlyOpensOptInDiagnostics() {
-        assertWithMessage("diagnostics must have a launcher control, not just a dormant activity")
-            .that(launcher).contains("OutlinedButton(onClick = onOpenDiagnostics)")
-        assertWithMessage("the control must launch the existing opt-in screen")
-            .that(launcher).contains("Intent(this, TelemetryActivity::class.java)")
+    @Test fun unifiedSettingsHomeOpensOptInDiagnostics() {
+        val settings = File("src/main/kotlin/tribixbite/cleverkeys/ui/settings/SettingsScreen.kt").readText()
+        assertWithMessage("diagnostics must be a visible settings-home destination")
+            .that(settings).contains("title = stringResource(R.string.telemetry_title)")
+        assertWithMessage("the destination must launch the existing opt-in screen")
+            .that(settings).contains("Intent(this@SettingsScreen, TelemetryActivity::class.java)")
+        assertWithMessage("setup/practice must not duplicate diagnostic controls")
+            .that(launcher).doesNotContain("onOpenDiagnostics")
         assertWithMessage("opening diagnostics must not start data collection")
-            .that(launcher).doesNotContain("TelemetryRuntime.enable(")
+            .that(settings).doesNotContain("TelemetryRuntime.enable(")
     }
 
     @Test fun bundledEstonianDoesNotPresentDownloadAsRequiredSetup() {

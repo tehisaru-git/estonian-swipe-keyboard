@@ -67,8 +67,10 @@ class ViipioBrandingTest(unittest.TestCase):
         self.assertTrue('R.string.swipe_preview_dictionaries_detail' in source, 'describe bundled dictionaries')
         self.assertFalse('DictionaryManagerActivity::class.java' in source, 'do not link dormant dictionary manager')
         self.assertFalse('LayoutManagerActivity::class.java' in source, 'do not link dormant layout manager')
-        self.assertFalse('SettingsActivity::class.java' in source, 'do not link dormant settings')
-        self.assertIn('onOpenDiagnostics', source, 'diagnostics is an active opt-in screen')
+        self.assertFalse('SettingsActivity::class.java' in source, 'setup is a destination, not another settings home')
+        settings = (ROOT / 'src/main/kotlin/tribixbite/cleverkeys/ui/settings/SettingsScreen.kt').read_text()
+        self.assertIn('TelemetryActivity::class.java', settings, 'diagnostics remains a reachable opt-in screen')
+        self.assertIn('LauncherActivity::class.java', settings, 'setup remains reachable from the settings home')
         self.assertNotIn('onOpenStudy', source)
 
 

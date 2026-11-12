@@ -61,7 +61,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import tribixbite.cleverkeys.theme.EstonianSwipeTheme
-import tribixbite.cleverkeys.estoniantelemetry.TelemetryActivity
 
 /** Minimal setup shell. The IME's swipe backend remains separate from this Compose UI. */
 class LauncherActivity : ComponentActivity() {
@@ -104,7 +103,6 @@ class LauncherActivity : ComponentActivity() {
                 LauncherScreen(
                     onEnableKeyboard = ::launchKeyboardSettings,
                     onSelectKeyboard = ::launchInputMethodPicker,
-                    onOpenDiagnostics = { startActivity(Intent(this, TelemetryActivity::class.java)) },
                     onOpenGitHub = ::openGitHub
                 )
             }
@@ -178,7 +176,6 @@ private fun keyboardSelected(context: Context): Boolean = try {
 fun LauncherScreen(
     onEnableKeyboard: () -> Unit,
     onSelectKeyboard: () -> Unit,
-    onOpenDiagnostics: () -> Unit,
     onOpenGitHub: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -232,21 +229,6 @@ fun LauncherScreen(
             SetupStep(number = "02", title = stringResource(R.string.swipe_setup_select),
                 detail = stringResource(R.string.swipe_setup_select_detail),
                 completed = selected, onClick = onSelectKeyboard)
-            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                Column(modifier = Modifier.fillMaxWidth().padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.telemetry_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold)
-                    Text(stringResource(R.string.swipe_setup_diagnostics_detail),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall)
-                    OutlinedButton(onClick = onOpenDiagnostics) {
-                        Text(stringResource(R.string.swipe_setup_diagnostics_open))
-                    }
-                }
-            }
             Spacer(Modifier.height(8.dp))
             Text(stringResource(R.string.swipe_setup_try),
                 style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)

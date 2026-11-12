@@ -58,6 +58,7 @@ import tribixbite.cleverkeys.ui.settings.fallbackEncrypted
 import tribixbite.cleverkeys.ui.settings.handlePreferenceChanged
 import tribixbite.cleverkeys.ui.settings.loadCurrentSettings
 import tribixbite.cleverkeys.ui.settings.SettingsScreen
+import tribixbite.cleverkeys.estoniantelemetry.TelemetryRuntime
 
 /**
  * Shell host for the CleverKeys settings UI.
@@ -360,6 +361,13 @@ class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPreferen
     internal var wordPredictionEnabled by mutableStateOf(Defaults.WORD_PREDICTION_ENABLED)
     internal var autoSpaceAfterSuggestion by mutableStateOf(Defaults.AUTO_SPACE_AFTER_SUGGESTION)  // #82: Add trailing space after selecting suggestion
     internal var viipioSpaceAfterSwipe by mutableStateOf(ViipioSpacingPreference.DEFAULT)
+    internal var viipioDoubleSpacePeriod by mutableStateOf(ViipioDoubleSpacePreference.DEFAULT)
+    internal var viipioTypedSuggestions by mutableStateOf(true)
+    internal var viipioBackspaceWordUndo by mutableStateOf(true)
+    internal var viipioGlideDelete by mutableStateOf(true)
+    internal var viipioCornerSymbols by mutableStateOf(true)
+    internal var diagnosticsEnabled by mutableStateOf<Boolean?>(null)
+    internal var diagnosticsUnavailable by mutableStateOf(false)
     internal var autoSpaceBeforeSuggestion by mutableStateOf(Defaults.AUTO_SPACE_BEFORE_SUGGESTION)  // Add leading space before tapped suggestion
     internal var showExactTypedWord by mutableStateOf(Defaults.SHOW_EXACT_TYPED_WORD)  // F-8 / #42: exact-typed-word suggestion
     internal var backspaceUndoSwipe by mutableStateOf(Defaults.BACKSPACE_UNDO_SWIPE)  // #110: Backspace after swipe deletes entire swiped word
@@ -945,6 +953,14 @@ class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPreferen
     
     override fun onResume() {
         super.onResume()
+        diagnosticsEnabled = null
+        diagnosticsUnavailable = false
+        TelemetryRuntime.stats(this) { stats ->
+            if (!isFinishing && !isDestroyed) {
+                diagnosticsEnabled = stats?.enabled
+                diagnosticsUnavailable = stats == null
+            }
+        }
         // Register for preference changes
         prefs.registerOnSharedPreferenceChangeListener(this)
         // Layout Manager is a separate activity whose edits land while this one is paused.

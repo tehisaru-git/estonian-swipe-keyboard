@@ -65,6 +65,19 @@ class ManualTypingPolicyTest {
         assertEquals("tere. ", field.text.toString())
     }
 
+    @Test fun disabledDoubleSpacePeriodKeepsTwoLiteralSpaces() {
+        var now = 1000L
+        val policy = ManualTypingPolicy { now }
+        val (field, connection) = editor("tere")
+        assertTrue(policy.space(connection, doubleSpacePeriod = false))
+        now = 1200L
+        assertTrue(policy.space(connection, doubleSpacePeriod = false))
+        assertEquals("tere  ", field.text.toString())
+        now = 1300L
+        assertTrue(policy.space(connection, doubleSpacePeriod = true))
+        assertEquals("tere   ", field.text.toString()) // Enabling never rewrites the prior spaces.
+    }
+
     @Test fun slowOrPunctuatedDoubleSpaceLeavesLiteralSpaces() {
         var now = 1000L
         val policy = ManualTypingPolicy { now }

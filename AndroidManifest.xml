@@ -59,6 +59,7 @@
     <activity android:name="tribixbite.cleverkeys.SettingsActivity" android:icon="@mipmap/ic_launcher" android:theme="@style/settingsTheme" android:exported="true" android:directBootAware="true" tools:targetApi="24" android:launchMode="singleTop">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
       <!-- GIF pack ZIP import via share intent -->
       <intent-filter>
@@ -86,10 +87,6 @@
               android:label="@string/swipe_study_title" android:theme="@style/settingsTheme"
               android:exported="false" android:windowSoftInputMode="adjustResize"/>
     <activity android:name="tribixbite.cleverkeys.LauncherActivity" android:icon="@mipmap/ic_launcher" android:theme="@style/launcherTheme" android:exported="true" android:directBootAware="true" tools:targetApi="24" android:windowSoftInputMode="adjustResize">
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN"/>
-        <category android:name="android.intent.category.LAUNCHER"/>
-      </intent-filter>
     </activity>
 
     <!-- Internal settings sub-screens: launched only via explicit-component Intents

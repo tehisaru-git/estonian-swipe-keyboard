@@ -36,7 +36,11 @@ internal class ManualTypingPolicy(private val now: () -> Long = SystemClock::upt
     }
 
     /** Replace the first IME-inserted space with ". " on a quick second press. */
-    fun space(connection: InputConnection): Boolean {
+    fun space(connection: InputConnection, doubleSpacePeriod: Boolean = true): Boolean {
+        if (!doubleSpacePeriod) {
+            reset()
+            return connection.commitText(" ", 1)
+        }
         val end = caret(connection)
         val before = connection.getTextBeforeCursor(64, 0)?.toString()
         val second = previousSpaceConnection === connection && end != null &&

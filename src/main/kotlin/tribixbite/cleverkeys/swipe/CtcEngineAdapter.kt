@@ -12,6 +12,7 @@ import tribixbite.cleverkeys.Config
 import tribixbite.cleverkeys.ContractionManager
 import tribixbite.cleverkeys.Defaults
 import tribixbite.cleverkeys.DirectBootAwarePreferences
+import tribixbite.cleverkeys.ViipioPersonalWords
 import tribixbite.cleverkeys.KeyValue
 import tribixbite.cleverkeys.KeyboardData
 import tribixbite.cleverkeys.MemoryProbe
@@ -655,7 +656,8 @@ class CtcEngineAdapter(
             }
             return null
         }
-        val inputs = UserLexiconInputs.read(DirectBootAwarePreferences.get_shared_preferences(context), lang)
+        val inputs = UserLexiconInputs.read(DirectBootAwarePreferences.get_shared_preferences(context),
+            lang, ViipioPersonalWords(context).json(lang))
         val customJson = inputs.customJson
         val disabled = inputs.disabled
         val priorityJson = inputs.priorityJson

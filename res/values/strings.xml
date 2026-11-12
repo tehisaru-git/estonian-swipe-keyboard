@@ -14,7 +14,47 @@
     <string name="swipe_setup_privacy" translatable="false">Private by design · Open source</string>
     <string name="swipe_setup_diagnostics_detail" translatable="false">Off by default. Opt in to local swipe recording; export a file only when you choose.</string>
     <string name="swipe_setup_diagnostics_open" translatable="false">Open diagnostics</string>
+    <string name="viipio_diagnostics_checking" translatable="false">Checking local collection status…</string>
+    <string name="viipio_diagnostics_on" translatable="false">Collection ON · Open to stop, export or erase local data</string>
+    <string name="viipio_diagnostics_off" translatable="false">Collection OFF · Open to review and opt in</string>
+    <string name="viipio_diagnostics_unavailable" translatable="false">Status unavailable · Open diagnostics for details</string>
     <string name="viipio_auto_space_after_swipe_title" translatable="false">Add space after a swipe when typing</string>
+    <string name="viipio_double_space_period_title" translatable="false">Double-space inserts period</string>
+    <string name="viipio_double_space_period_desc" translatable="false">Tap Space twice quickly after a word to insert a period followed by a space. Off keeps two spaces.</string>
+    <string name="viipio_typed_suggestions_title" translatable="false">Suggestions while typing</string>
+    <string name="viipio_typed_suggestions_desc" translatable="false">Show matching words as you type; swipe alternatives remain available</string>
+    <string name="viipio_backspace_word_undo_title" translatable="false">Undo a swiped word with Backspace</string>
+    <string name="viipio_backspace_word_undo_desc" translatable="false">One Backspace removes your last swiped word when it is still at the cursor</string>
+    <string name="viipio_glide_delete_title" translatable="false">Swipe left on Backspace to delete a word</string>
+    <string name="viipio_glide_delete_desc" translatable="false">Turn off to disable this gesture; Backspace taps still work</string>
+    <string name="viipio_corner_symbols_title" translatable="false">Corner symbol shortcuts</string>
+    <string name="viipio_corner_symbols_desc" translatable="false">Show symbols on letter keys and offer them on long press; Estonian accents remain available</string>
+    <string name="viipio_setup_and_try_title" translatable="false">Keyboard setup &amp; practice</string>
+    <string name="viipio_setup_and_try_detail" translatable="false">Enable, select and test Viipio in a practice field</string>
+    <string name="viipio_settings_back" translatable="false">‹ Back to settings</string>
+    <string name="viipio_settings_preferences" translatable="false">Preferences</string>
+    <string name="viipio_settings_preferences_detail" translatable="false">Spacing and typing shortcuts</string>
+    <string name="viipio_settings_corrections" translatable="false">Corrections &amp; suggestions</string>
+    <string name="viipio_settings_corrections_detail" translatable="false">Offline word suggestions; no automatic replacement</string>
+    <string name="viipio_settings_glide" translatable="false">Glide typing</string>
+    <string name="viipio_settings_glide_detail" translatable="false">Swipe a word or slide left on Backspace to delete a word</string>
+    <string name="viipio_settings_dictionary" translatable="false">Languages &amp; personal words</string>
+    <string name="viipio_settings_dictionary_detail" translatable="false">Separate Estonian and English words; import a language pack</string>
+    <string name="viipio_personal_words_title" translatable="false">Personal words</string>
+    <string name="viipio_personal_words_detail" translatable="false">New words stay on this device in unlocked app storage and are excluded from Android automatic backup. You may need to add them again after reinstalling.</string>
+    <string name="viipio_language_estonian" translatable="false">Estonian (ET)</string>
+    <string name="viipio_language_english" translatable="false">English (EN)</string>
+    <string name="viipio_personal_word_label" translatable="false">Word (2–48 letters)</string>
+    <string name="viipio_personal_word_add" translatable="false">Add word</string>
+    <string name="viipio_personal_word_remove" translatable="false">Remove %1$s</string>
+    <string name="viipio_personal_words_empty" translatable="false">No personal words for this language yet</string>
+    <string name="viipio_word_added" translatable="false">Word added</string>
+    <string name="viipio_word_removed" translatable="false">Word removed</string>
+    <string name="viipio_word_invalid" translatable="false">Use 2–48 Latin letters without spaces</string>
+    <string name="viipio_word_exists" translatable="false">This word is already listed</string>
+    <string name="viipio_word_full" translatable="false">This language already has 200 personal words</string>
+    <string name="viipio_word_unavailable" translatable="false">Personal words could not be saved; existing entries were not changed</string>
+    <string name="viipio_settings_privacy" translatable="false">Privacy &amp; diagnostics</string>
     <string name="viipio_auto_space_after_swipe_desc" translatable="false">Insert a space before the first manually typed letter after a swiped word. On by default; turn off to join words.</string>
     <string name="swipe_study_title" translatable="false">Swipe study</string>
     <string name="swipe_study_intro" translatable="false">Optional test: swipe only the shown word in this field. Up to 100 traces stay in memory until you choose where to save a JSON file. Stop or leave this screen to end recording. Do not enter personal text.</string>

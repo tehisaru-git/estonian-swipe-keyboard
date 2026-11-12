@@ -6,16 +6,20 @@ data class LongPressOptions(val values: List<String>, val defaultIndex: Int) {
     val defaultValue: String get() = values[defaultIndex]
 
     companion object {
-        fun forKey(key: SurfaceKey, language: KeyboardLanguage, symbolMode: Boolean): LongPressOptions? {
+        fun forKey(key: SurfaceKey, language: KeyboardLanguage, symbolMode: Boolean,
+                   includeSymbols: Boolean = true): LongPressOptions? {
             if (symbolMode || key.kind != KeyKind.LETTER) return null
-            val hint = key.secondarySymbol ?: return null
+            val hint = key.secondarySymbol
             return when {
-                key.label == "g" -> LongPressOptions(listOf("ğ", hint, "ǵ"), 1)
+                key.label == "g" -> if (includeSymbols && hint != null)
+                    LongPressOptions(listOf("ğ", hint, "ǵ"), 1)
+                    else LongPressOptions(listOf("ğ", "ǵ"), 0)
                 language == KeyboardLanguage.ESTONIAN && key.label == "s" ->
-                    LongPressOptions(listOf("š", hint), 0)
+                    LongPressOptions(listOfNotNull("š", hint?.takeIf { includeSymbols }), 0)
                 language == KeyboardLanguage.ESTONIAN && key.label == "z" ->
-                    LongPressOptions(listOf("ž", hint), 0)
-                else -> LongPressOptions(listOf(hint), 0)
+                    LongPressOptions(listOfNotNull("ž", hint?.takeIf { includeSymbols }), 0)
+                includeSymbols && hint != null -> LongPressOptions(listOf(hint), 0)
+                else -> null
             }
         }
     }

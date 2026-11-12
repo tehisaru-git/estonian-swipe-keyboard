@@ -18,6 +18,8 @@ import tribixbite.cleverkeys.R
 import tribixbite.cleverkeys.SettingsActivity
 import tribixbite.cleverkeys.SettingsRanges
 import tribixbite.cleverkeys.ViipioSpacingPreference
+import tribixbite.cleverkeys.ViipioDoubleSpacePreference
+import tribixbite.cleverkeys.ViipioBehaviorPreference
 import tribixbite.cleverkeys.autocorrect.AutocorrectTuning
 import tribixbite.cleverkeys.ui.settings.sections.setPrivateCopyToolbarComponentEnabled
 import tribixbite.cleverkeys.ui.settings.io.detectAvailableV2Dictionaries
@@ -36,6 +38,17 @@ internal fun SettingsActivity.handlePreferenceChanged(sharedPreferences: SharedP
             ViipioSpacingPreference.KEY -> {
                 viipioSpaceAfterSwipe = ViipioSpacingPreference.enabled(prefs)
             }
+            ViipioDoubleSpacePreference.KEY -> {
+                viipioDoubleSpacePeriod = ViipioDoubleSpacePreference.enabled(prefs)
+            }
+            ViipioBehaviorPreference.TYPED_SUGGESTIONS ->
+                viipioTypedSuggestions = ViipioBehaviorPreference.enabled(prefs, key)
+            ViipioBehaviorPreference.BACKSPACE_WORD_UNDO ->
+                viipioBackspaceWordUndo = ViipioBehaviorPreference.enabled(prefs, key)
+            ViipioBehaviorPreference.GLIDE_DELETE ->
+                viipioGlideDelete = ViipioBehaviorPreference.enabled(prefs, key)
+            ViipioBehaviorPreference.CORNER_SYMBOLS ->
+                viipioCornerSymbols = ViipioBehaviorPreference.enabled(prefs, key)
             "continuous_swipe_enabled" -> { continuousSwipeEnabled = prefs.getSafeBoolean(key, Defaults.CONTINUOUS_SWIPE_ENABLED) }
             "swipe_typing_enabled" -> {
                 swipeTypingEnabled = prefs.getBoolean(key, Defaults.SWIPE_TYPING_ENABLED)
@@ -394,6 +407,11 @@ internal fun SettingsActivity.loadCurrentSettings() {
         wordPredictionEnabled = prefs.getSafeBoolean("word_prediction_enabled", Defaults.WORD_PREDICTION_ENABLED)
         autoSpaceAfterSuggestion = prefs.getSafeBoolean("auto_space_after_suggestion", Defaults.AUTO_SPACE_AFTER_SUGGESTION)
         viipioSpaceAfterSwipe = ViipioSpacingPreference.enabled(prefs)
+        viipioDoubleSpacePeriod = ViipioDoubleSpacePreference.enabled(prefs)
+        viipioTypedSuggestions = ViipioBehaviorPreference.enabled(prefs, ViipioBehaviorPreference.TYPED_SUGGESTIONS)
+        viipioBackspaceWordUndo = ViipioBehaviorPreference.enabled(prefs, ViipioBehaviorPreference.BACKSPACE_WORD_UNDO)
+        viipioGlideDelete = ViipioBehaviorPreference.enabled(prefs, ViipioBehaviorPreference.GLIDE_DELETE)
+        viipioCornerSymbols = ViipioBehaviorPreference.enabled(prefs, ViipioBehaviorPreference.CORNER_SYMBOLS)
         autoSpaceBeforeSuggestion = prefs.getSafeBoolean("auto_space_before_suggestion", Defaults.AUTO_SPACE_BEFORE_SUGGESTION)
         showExactTypedWord = prefs.getSafeBoolean("show_exact_typed_word", Defaults.SHOW_EXACT_TYPED_WORD)
         backspaceUndoSwipe = prefs.getSafeBoolean("backspace_undo_swipe", Defaults.BACKSPACE_UNDO_SWIPE)

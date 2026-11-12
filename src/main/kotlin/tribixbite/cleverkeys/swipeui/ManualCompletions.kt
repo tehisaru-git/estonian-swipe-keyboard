@@ -7,10 +7,14 @@ import android.view.inputmethod.InputConnection
 import tribixbite.cleverkeys.estonianui.KeyboardLanguage
 import tribixbite.cleverkeys.swipe.geometric.CkdtDictionaryReader
 import android.content.Context
+import tribixbite.cleverkeys.ViipioPersonalWords
 import java.util.Locale
 
 /** Read-only, bounded lookup of the bundled tap dictionaries; no learning or autocorrect. */
-internal class ManualCompletions private constructor(private val indexes: Map<KeyboardLanguage, PrefixIndex>) {
+internal class ManualCompletions private constructor(
+    private val indexes: Map<KeyboardLanguage, PrefixIndex>,
+    private val personalWords: (KeyboardLanguage) -> List<String>,
+) {
     private data class Offer(val connection: InputConnection, val caret: Int, val before: String,
                              val after: String, val word: String, val words: List<String>)
     private var offer: Offer? = null
@@ -38,7 +42,12 @@ internal class ManualCompletions private constructor(private val indexes: Map<Ke
         if (after.firstOrNull()?.isLetter() == true) return words
         val word = before.substring(start)
         if (word.length > 48 || word.any { !it.isLetter() }) return words
-        val matches = indexes[language]?.find(word.lowercase(Locale.ROOT)).orEmpty()
+        val prefix = word.lowercase(Locale.ROOT)
+        val personal = try { personalWords(language) } catch (_: Exception) { emptyList() }
+        val matches = (personal.asSequence().filter { candidate ->
+            ViipioPersonalWords.validWord(candidate) && candidate.startsWith(prefix, ignoreCase = true)
+        }.take(3).toList() + indexes[language]?.find(prefix).orEmpty())
+            .distinctBy { it.lowercase(Locale.ROOT) }.take(3)
         if (matches.isEmpty()) return words
         words = when {
             word.length > 1 && word.all(Char::isUpperCase) ->
@@ -124,16 +133,20 @@ internal class ManualCompletions private constructor(private val indexes: Map<Ke
     }
 
     companion object {
-        fun fromEntries(et: List<Pair<String, Int>>, en: List<Pair<String, Int>>) =
+        fun fromEntries(et: List<Pair<String, Int>>, en: List<Pair<String, Int>>,
+                        personalWords: (KeyboardLanguage) -> List<String> = { emptyList() }) =
             ManualCompletions(mapOf(KeyboardLanguage.ESTONIAN to PrefixIndex(et),
-                KeyboardLanguage.ENGLISH to PrefixIndex(en)))
+                KeyboardLanguage.ENGLISH to PrefixIndex(en)), personalWords)
 
-        fun fromBundledAssets(context: Context): ManualCompletions = fromEntries(
+        fun fromBundledAssets(context: Context): ManualCompletions {
+            val personal = ViipioPersonalWords(context)
+            return fromEntries(
             context.assets.open("dictionaries/et_enhanced.bin").use { input ->
                 CkdtDictionaryReader.readEntries(input).map { it.word to it.rank }
             },
             context.assets.open("dictionaries/en_enhanced.bin").use { input ->
                 CkdtDictionaryReader.readEntries(input).map { it.word to it.rank }
-            })
+            }) { language -> personal.words(if (language == KeyboardLanguage.ESTONIAN) "et" else "en") }
+        }
     }
 }
