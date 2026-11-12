@@ -20,6 +20,15 @@ class LauncherSetupFlowTest {
         assertWithMessage("test field must remain").that(launcher).contains("OutlinedTextField(")
     }
 
+    @Test fun launcherDirectlyOpensOptInDiagnostics() {
+        assertWithMessage("diagnostics must have a launcher control, not just a dormant activity")
+            .that(launcher).contains("OutlinedButton(onClick = onOpenDiagnostics)")
+        assertWithMessage("the control must launch the existing opt-in screen")
+            .that(launcher).contains("Intent(this, TelemetryActivity::class.java)")
+        assertWithMessage("opening diagnostics must not start data collection")
+            .that(launcher).doesNotContain("TelemetryRuntime.enable(")
+    }
+
     @Test fun bundledEstonianDoesNotPresentDownloadAsRequiredSetup() {
         assertWithMessage("fresh installs have bundled Estonian vocabulary")
             .that(launcher).doesNotContain("ESTONIAN_PACK_URL")

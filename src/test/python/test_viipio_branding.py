@@ -68,7 +68,7 @@ class ViipioBrandingTest(unittest.TestCase):
         self.assertFalse('DictionaryManagerActivity::class.java' in source, 'do not link dormant dictionary manager')
         self.assertFalse('LayoutManagerActivity::class.java' in source, 'do not link dormant layout manager')
         self.assertFalse('SettingsActivity::class.java' in source, 'do not link dormant settings')
-        self.assertNotIn('onOpenDiagnostics', source)
+        self.assertIn('onOpenDiagnostics', source, 'diagnostics is an active opt-in screen')
         self.assertNotIn('onOpenStudy', source)
 
 
