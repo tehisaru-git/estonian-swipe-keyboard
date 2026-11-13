@@ -79,6 +79,62 @@ class KeyboardSurfaceViewTest {
         assertNull(view.activeLongPressValue)
     }
 
+    @Test fun gboardLikeDefaultHoldOpensAt300MsNotBefore() {
+        val view = KeyboardSurfaceView(RuntimeEnvironment.getApplication())
+        view.layout(0, 0, 660, 500)
+        val events = mutableListOf<SurfaceGesture>()
+        view.onGesture = events::add
+        val m = view.geometry.keys.single { it.label == "m" }.bounds
+        MotionEvent.obtain(1, 1, MotionEvent.ACTION_DOWN, m.centerX, m.centerY, 0).also {
+            view.onTouchEvent(it); it.recycle()
+        }
+        val looper = org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+        looper.idleFor(299, java.util.concurrent.TimeUnit.MILLISECONDS)
+        assertNull("must not claim a short tap", view.activeLongPressValue)
+        looper.idleFor(1, java.util.concurrent.TimeUnit.MILLISECONDS)
+        assertEquals("?", view.activeLongPressValue)
+        assertTrue(events.isEmpty())
+        MotionEvent.obtain(1, 301, MotionEvent.ACTION_UP, m.centerX, m.centerY, 0).also {
+            view.onTouchEvent(it); it.recycle()
+        }
+        assertEquals("?", (events.single() as SurfaceGesture.LongPress).value)
+    }
+
+    @Test fun customHoldDurationDelaysPopupWithoutChangingCommittedAlternative() {
+        val view = KeyboardSurfaceView(RuntimeEnvironment.getApplication())
+        view.layout(0, 0, 660, 500)
+        view.holdDurationMs = 500
+        val events = mutableListOf<SurfaceGesture>()
+        view.onGesture = events::add
+        val m = view.geometry.keys.single { it.label == "m" }.bounds
+        MotionEvent.obtain(1, 1, MotionEvent.ACTION_DOWN, m.centerX, m.centerY, 0).also {
+            view.onTouchEvent(it); it.recycle()
+        }
+        val looper = org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+        looper.idleFor(499, java.util.concurrent.TimeUnit.MILLISECONDS)
+        assertNull(view.activeLongPressValue)
+        looper.idleFor(1, java.util.concurrent.TimeUnit.MILLISECONDS)
+        assertEquals("?", view.activeLongPressValue)
+        MotionEvent.obtain(1, 501, MotionEvent.ACTION_UP, m.centerX, m.centerY, 0).also {
+            view.onTouchEvent(it); it.recycle()
+        }
+        assertEquals("?", (events.single() as SurfaceGesture.LongPress).value)
+    }
+
+    @Test fun shiftStateChangesVisibleKeyLabelsAndAccessibleDescription() {
+        val view = KeyboardSurfaceView(RuntimeEnvironment.getApplication())
+        view.layout(0, 0, 660, 500)
+        val provider = view.accessibilityNodeProvider
+        val a = view.geometry.keys.indexOfFirst { it.label == "a" }
+        val shift = view.geometry.keys.indexOfFirst { it.kind == KeyKind.SHIFT }
+        assertEquals("a", provider.createAccessibilityNodeInfo(a)!!.contentDescription.toString())
+        view.shiftMode = ShiftMode.ONCE
+        assertEquals("A", provider.createAccessibilityNodeInfo(a)!!.contentDescription.toString())
+        assertEquals("Shift on", provider.createAccessibilityNodeInfo(shift)!!.contentDescription.toString())
+        view.shiftMode = ShiftMode.LOCKED
+        assertEquals("Caps lock on", provider.createAccessibilityNodeInfo(shift)!!.contentDescription.toString())
+    }
+
     @Test fun slidingHeldGSelectsAccentWithoutSwipingOrCommittingTwice() {
         val view = KeyboardSurfaceView(RuntimeEnvironment.getApplication())
         view.layout(0, 0, 660, 500)

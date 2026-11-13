@@ -362,6 +362,8 @@ class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPreferen
     internal var autoSpaceAfterSuggestion by mutableStateOf(Defaults.AUTO_SPACE_AFTER_SUGGESTION)  // #82: Add trailing space after selecting suggestion
     internal var viipioSpaceAfterSwipe by mutableStateOf(ViipioSpacingPreference.DEFAULT)
     internal var viipioDoubleSpacePeriod by mutableStateOf(ViipioDoubleSpacePreference.DEFAULT)
+    internal var viipioHoldDurationMs by mutableIntStateOf(ViipioHoldDurationPreference.DEFAULT_MS)
+    internal var viipioSentenceCapital by mutableStateOf(ViipioSentenceCapitalPreference.DEFAULT)
     internal var viipioTypedSuggestions by mutableStateOf(true)
     internal var viipioBackspaceWordUndo by mutableStateOf(true)
     internal var viipioGlideDelete by mutableStateOf(true)

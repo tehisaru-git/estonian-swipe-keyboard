@@ -33,6 +33,7 @@ import tribixbite.cleverkeys.estonianui.KeyboardSurfaceView
 import tribixbite.cleverkeys.estonianui.CandidateLabelView
 import tribixbite.cleverkeys.estonianui.AdaptiveCandidateScrollView
 import tribixbite.cleverkeys.estonianui.SurfaceGesture
+import tribixbite.cleverkeys.estonianui.ShiftMode
 import tribixbite.cleverkeys.estonianstudy.SwipeStudyBridge
 import tribixbite.cleverkeys.estoniantelemetry.TelemetryRuntime
 import tribixbite.cleverkeys.estoniantelemetry.SwipeTrace
@@ -116,6 +117,14 @@ class EstonianSwipeService : InputMethodService() {
     private fun viipioOption(key: String): Boolean = ViipioBehaviorPreference.enabled(
         DirectBootAwarePreferences.get_shared_preferences(this), key)
 
+    private fun refreshSentenceCapitalization() {
+        val info = editor ?: return
+        val connection = currentInputConnection ?: return
+        val prefs = DirectBootAwarePreferences.get_shared_preferences(this)
+        taps.setAutomaticShift(ViipioSentenceCapitalPreference.shouldCapitalize(prefs, info, connection))
+        surface?.shiftMode = taps.shiftMode
+    }
+
     private fun refreshManualCompletions() {
         val info = editor
         val connection = currentInputConnection
@@ -146,8 +155,8 @@ class EstonianSwipeService : InputMethodService() {
         ownedWordSink = sink
         suggestions.start(sink, isSwipeAllowed(info))
     }
-    private fun commitManualValue(value: String) {
-        val connection = currentInputConnection ?: return
+    private fun commitManualValue(value: String): Boolean {
+        val connection = currentInputConnection ?: return false
         val previous = loggedSwipe
         val ownSwipeSuffix = previous != null && afterSwipeWord == previous.word && verifiedSuffix(previous)
         if (!manualLetterGesture && value.isNotEmpty() && value != " " && value != "\n") {
@@ -164,7 +173,7 @@ class EstonianSwipeService : InputMethodService() {
                         DirectBootAwarePreferences.get_shared_preferences(this)))
                 else -> { manualPolicy.reset(); connection.commitText(value, 1) }
             }
-            if (!success) return
+            if (!success) return false
             if (manualLetterGesture && undoneSwipe?.connection === connection &&
                 value.length == 1 && value[0].isLetter() && replacementText.length < 40) {
                 replacementText.append(value)
@@ -177,6 +186,7 @@ class EstonianSwipeService : InputMethodService() {
                 }
             }
             afterSwipeWord = null
+            return true
         } finally { writingManual = false }
     }
 
@@ -231,6 +241,7 @@ class EstonianSwipeService : InputMethodService() {
         val view = KeyboardSurfaceView(this).also {
             surface = it
             it.language = taps.language
+            it.shiftMode = taps.shiftMode
             it.showCornerSymbols = viipioOption(ViipioBehaviorPreference.CORNER_SYMBOLS)
             it.onGesture = ::handleGesture
         }
@@ -286,6 +297,8 @@ class EstonianSwipeService : InputMethodService() {
                 R.string.swipe_toolbar_language, {
                     epoch++; clearSuggestions(); taps.switchLanguage()
                     view.language = taps.language
+                    view.shiftMode = taps.shiftMode
+                    refreshSentenceCapitalization()
                     toolbarLanguageButton?.apply {
                         text = if (taps.language == KeyboardLanguage.ESTONIAN) "ET" else "EN"
                         contentDescription = getString(if (taps.language == KeyboardLanguage.ESTONIAN)
@@ -426,6 +439,7 @@ class EstonianSwipeService : InputMethodService() {
         lastCandidatesStart = -1
         lastCandidatesEnd = -1
         taps.resetShift()
+        surface?.shiftMode = taps.shiftMode
         surface?.symbolMode = false
     }
 
@@ -443,6 +457,7 @@ class EstonianSwipeService : InputMethodService() {
         ownedEditor = null
         editor = null
         taps.resetShift()
+        surface?.shiftMode = taps.shiftMode
         super.onFinishInput()
     }
 
@@ -455,6 +470,10 @@ class EstonianSwipeService : InputMethodService() {
         surface?.onGesture = ::handleGesture
         surface?.showCornerSymbols = viipioOption(ViipioBehaviorPreference.CORNER_SYMBOLS)
         surface?.language = taps.language
+        surface?.shiftMode = taps.shiftMode
+        surface?.holdDurationMs = ViipioHoldDurationPreference.read(
+            DirectBootAwarePreferences.get_shared_preferences(this))
+        refreshSentenceCapitalization()
         val view = surface
         val imeWindow = window?.window
         if (view != null && imeWindow != null) {
@@ -533,6 +552,7 @@ class EstonianSwipeService : InputMethodService() {
                 renderSuggestions()
             }
             refreshManualCompletions()
+            refreshSentenceCapitalization()
         }
         lastCandidatesStart = candidatesStart
         lastCandidatesEnd = candidatesEnd
@@ -593,10 +613,12 @@ class EstonianSwipeService : InputMethodService() {
             }
         }
         refreshManualCompletions()
+        refreshSentenceCapitalization()
     }
 
     private fun handleGesture(gesture: SurfaceGesture) {
-        if (editor == null || currentInputConnection == null) return
+        if (editor == null || (currentInputConnection == null &&
+            !(gesture is SurfaceGesture.Tap && gesture.key.kind == KeyKind.SHIFT))) return
         val panel = emojiPanel
         if (panel != null && panel.visibility == View.VISIBLE) {
             if (gesture is SurfaceGesture.Tap && gesture.language == taps.language) {
@@ -608,7 +630,12 @@ class EstonianSwipeService : InputMethodService() {
                     KeyKind.BACKSPACE -> panel.backspaceQuery()
                     KeyKind.ENTER -> panel.visibleEmoji.firstOrNull()?.let(panel::pickForTest)
                     KeyKind.EMOJI -> closeEmojiPanel()
-                    KeyKind.LANGUAGE -> { taps.switchLanguage(); surface?.language = taps.language }
+                    KeyKind.LANGUAGE -> {
+                        taps.switchLanguage()
+                        surface?.language = taps.language
+                        surface?.shiftMode = taps.shiftMode
+                        refreshSentenceCapitalization()
+                    }
                     KeyKind.SYMBOLS -> surface?.let { it.symbolMode = !it.symbolMode }
                     else -> Unit
                 }
@@ -634,6 +661,10 @@ class EstonianSwipeService : InputMethodService() {
                 clearSuggestions()
                 manualLetterGesture = gesture.key.kind == KeyKind.LETTER
                 try { taps.accept(gesture) } finally { manualLetterGesture = false }
+                surface?.shiftMode = taps.shiftMode
+                if (gesture.key.kind == KeyKind.LETTER || gesture.key.kind == KeyKind.SPACE ||
+                    gesture.key.kind == KeyKind.PERIOD || gesture.key.kind == KeyKind.LANGUAGE)
+                    refreshSentenceCapitalization()
                 if (gesture.key.kind == KeyKind.LETTER || gesture.key.kind == KeyKind.LANGUAGE ||
                     gesture.key.kind == KeyKind.SPACE) refreshManualCompletions()
                 if (gesture.key.kind == KeyKind.LANGUAGE) {
@@ -649,6 +680,8 @@ class EstonianSwipeService : InputMethodService() {
                 clearSuggestions()
                 manualLetterGesture = true
                 try { taps.acceptHold(gesture) } finally { manualLetterGesture = false }
+                surface?.shiftMode = taps.shiftMode
+                refreshSentenceCapitalization()
                 refreshManualCompletions()
             }
             is SurfaceGesture.LongPress -> {
@@ -665,6 +698,8 @@ class EstonianSwipeService : InputMethodService() {
                 manualLetterGesture = letter
                 try { taps.acceptLongPress(gesture.value, gesture.language) }
                 finally { manualLetterGesture = false }
+                surface?.shiftMode = taps.shiftMode
+                if (letter) refreshSentenceCapitalization()
                 refreshManualCompletions()
             }
             is SurfaceGesture.DeleteWord -> {
@@ -834,7 +869,6 @@ class EstonianSwipeService : InputMethodService() {
         panel.onEmojiPicked = { emoji ->
             val inserted = panel.visibility == View.VISIBLE && editor === field &&
                 currentInputConnection === connection && surface === anchor && connection.commitText(emoji, 1)
-            if (inserted) closeEmojiPanel()
             inserted
         }
         resizeForEmoji(true, false)
@@ -880,12 +914,16 @@ class EstonianSwipeService : InputMethodService() {
             ) {
                 writingSuggestion = true
                 try {
-                    SwipeStudyBridge.onSwipeDecoded(info, gesture.samples, geometry, result.words)
-                    if (suggestions.accept(ticket, result)) {
+                    val casedResult = taps.caseCandidates(result)
+                    SwipeStudyBridge.onSwipeDecoded(info, gesture.samples, geometry, casedResult.words)
+                    if (suggestions.accept(ticket, casedResult)) {
+                        taps.consumeSwipeShift()
+                        view.shiftMode = taps.shiftMode
+                        refreshSentenceCapitalization()
                         afterSwipeWord = suggestions.composingWord
                         ownSelectionAfterWrite(connection)
                         afterSwipeWord?.let { committed ->
-                            recordDecodedSwipe(info, connection, gesture, geometry, result.words, committed)
+                            recordDecodedSwipe(info, connection, gesture, geometry, casedResult.words, committed)
                         }
                         renderSuggestions()
                     }
@@ -1177,7 +1215,7 @@ internal class EstonianSuggestionController {
 
 /** Tap state independent of Android so editor effects and language ownership are testable. */
 internal class EstonianTapInput(
-    private val commit: (String) -> Unit,
+    private val commit: (String) -> Boolean,
     private val delete: () -> Unit,
     private val enter: () -> Unit,
     private val symbols: () -> Unit = {},
@@ -1185,8 +1223,43 @@ internal class EstonianTapInput(
 ) {
     var language = KeyboardLanguage.ESTONIAN
         private set
-    private var shifted = false
-    fun resetShift() { shifted = false }
+    var shiftMode = ShiftMode.OFF
+        private set
+    private var lastShiftTapMs: Long? = null
+    private var automaticShift = false
+    private var manualOverride = false
+    fun resetShift() {
+        shiftMode = ShiftMode.OFF
+        lastShiftTapMs = null
+        automaticShift = false
+        manualOverride = false
+    }
+    fun setAutomaticShift(enabled: Boolean) {
+        if (shiftMode == ShiftMode.LOCKED || manualOverride) return
+        if (enabled && shiftMode == ShiftMode.OFF) {
+            shiftMode = ShiftMode.ONCE
+            automaticShift = true
+        } else if (!enabled && automaticShift) {
+            shiftMode = ShiftMode.OFF
+            automaticShift = false
+        }
+    }
+    fun caseCandidates(raw: PredictionResult): PredictionResult = when (shiftMode) {
+        ShiftMode.OFF -> raw
+        ShiftMode.ONCE -> raw.copy(words = raw.words.map { word ->
+            word.replaceFirstChar { it.titlecase(java.util.Locale.ROOT) }
+        })
+        ShiftMode.LOCKED -> raw.copy(words = raw.words.map { it.uppercase(java.util.Locale.ROOT) })
+    }
+    fun consumeSwipeShift() { consumeOneShot() }
+    private fun uppercase(text: String): String =
+        if (shiftMode == ShiftMode.OFF) text else text.uppercase(java.util.Locale.ROOT)
+    private fun consumeOneShot() {
+        if (shiftMode == ShiftMode.ONCE) shiftMode = ShiftMode.OFF
+        lastShiftTapMs = null
+        automaticShift = false
+        manualOverride = false
+    }
     fun switchLanguage() {
         language = if (language == KeyboardLanguage.ESTONIAN) KeyboardLanguage.ENGLISH else KeyboardLanguage.ESTONIAN
         resetShift()
@@ -1194,24 +1267,34 @@ internal class EstonianTapInput(
     fun acceptLongPress(value: String, activeLanguage: KeyboardLanguage) {
         if (activeLanguage != language || value.isEmpty() || value.length > 4 ||
             value.any { it.code < 32 || it.code == 127 }) return
-        commit(if (shifted && value.length == 1 && value[0].isLetter()) value.uppercase() else value)
-        shifted = false
+        val letter = value.length == 1 && value[0].isLetter()
+        if (commit(if (letter) uppercase(value) else value) && letter) consumeOneShot()
     }
     fun acceptHold(hold: SurfaceGesture.Hold) {
         if (hold.language != language || language != KeyboardLanguage.ESTONIAN) return
         val alternate = when (hold.key.label) { "s" -> "š"; "z" -> "ž"; else -> return }
-        commit(if (shifted) alternate.uppercase() else alternate)
-        shifted = false
+        if (commit(uppercase(alternate))) consumeOneShot()
     }
     fun accept(tap: SurfaceGesture.Tap) {
         if (tap.language != language) return
         when (tap.key.kind) {
             KeyKind.LETTER -> {
-                commit(if (shifted) tap.key.label.uppercase() else tap.key.label)
-                shifted = false
+                if (commit(uppercase(tap.key.label))) consumeOneShot()
             }
             KeyKind.NUMBER, KeyKind.SYMBOL, KeyKind.COMMA, KeyKind.PERIOD -> commit(tap.key.label)
-            KeyKind.SHIFT -> shifted = !shifted
+            KeyKind.SHIFT -> {
+                val at = tap.timeMs.takeIf { it > 0 } ?: SystemClock.uptimeMillis()
+                val previous = lastShiftTapMs
+                shiftMode = when {
+                    shiftMode == ShiftMode.LOCKED -> ShiftMode.OFF
+                    previous != null && at - previous in 0L..350L -> ShiftMode.LOCKED
+                    shiftMode == ShiftMode.ONCE -> ShiftMode.OFF
+                    else -> ShiftMode.ONCE
+                }
+                automaticShift = false
+                manualOverride = true
+                lastShiftTapMs = if (shiftMode == ShiftMode.LOCKED) null else at
+            }
             KeyKind.BACKSPACE -> delete()
             KeyKind.SPACE -> commit(" ")
             KeyKind.LANGUAGE -> switchLanguage()

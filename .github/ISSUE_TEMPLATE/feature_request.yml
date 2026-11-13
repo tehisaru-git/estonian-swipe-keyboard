@@ -1,5 +1,5 @@
 name: ✨ Feature Request
-description: Suggest a new feature or enhancement for CleverKeys
+description: Suggest a new feature or enhancement for Viipio keyboard
 title: "[Feature]: "
 labels: ["enhancement", "needs-triage"]
 body:
@@ -34,7 +34,7 @@ body:
       label: Feature Description
       description: Clearly describe the feature you'd like to see implemented.
       placeholder: |
-        What would you like CleverKeys to do that it doesn't currently do?
+        What would you like Viipio keyboard to do that it doesn't currently do?
         How would this feature work from a user's perspective?
     validations:
       required: true
@@ -81,7 +81,7 @@ body:
         - Nice to have (would be cool but not essential)
         - Moderate (would improve my experience)
         - High (would significantly improve my workflow)
-        - Critical (blocking my ability to use CleverKeys effectively)
+        - Critical (blocking my ability to use Viipio effectively)
     validations:
       required: true
 
@@ -105,7 +105,7 @@ body:
       label: Swipe engine considerations (if applicable)
       description: If this feature involves swipe predictions, please describe how it should work.
       placeholder: |
-        - How should the AI models be modified?
+        - Would the swipe recognition or dictionaries need to change?
         - What training data would be needed?
         - How should it integrate with existing predictions?
         - Any performance/accuracy trade-offs to consider?
@@ -114,7 +114,7 @@ body:
     id: privacy-considerations
     attributes:
       label: Privacy Considerations
-      description: How should this feature maintain CleverKeys' privacy-first approach?
+      description: How should this feature preserve Viipio's offline, user-controlled approach?
       placeholder: |
         - Should all processing remain local?
         - What data (if any) needs to be stored?

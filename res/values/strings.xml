@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">Viipio keyboard</string>
-    <string name="swipe_setup_intro" translatable="false">A calm keyboard for Estonian and English. Your words stay on your device.</string>
+    <string name="swipe_setup_intro" translatable="false">A calm, offline keyboard. Your words stay on your device.</string>
     <string name="swipe_setup_enable" translatable="false">Enable keyboard</string>
     <string name="swipe_setup_enable_detail" translatable="false">Turn on Viipio keyboard in Android settings</string>
     <string name="swipe_setup_select" translatable="false">Select keyboard</string>
@@ -29,6 +29,11 @@
     <string name="viipio_glide_delete_desc" translatable="false">Turn off to disable this gesture; Backspace taps still work</string>
     <string name="viipio_corner_symbols_title" translatable="false">Corner symbol shortcuts</string>
     <string name="viipio_corner_symbols_desc" translatable="false">Show symbols on letter keys and offer them on long press; Estonian accents remain available</string>
+    <string name="viipio_hold_duration_title" translatable="false">Touch and hold duration</string>
+    <string name="viipio_hold_duration_desc" translatable="false">Wait before showing alternate characters. Default: 300 ms.</string>
+    <string name="viipio_hold_duration_value" translatable="false">%1$d ms</string>
+    <string name="viipio_sentence_capital_title" translatable="false">Capitalize sentence starts</string>
+    <string name="viipio_sentence_capital_desc" translatable="false">Automatically uppercase the first letter of a sentence. Off by default; Shift and Caps Lock still work.</string>
     <string name="viipio_setup_and_try_title" translatable="false">Keyboard setup &amp; practice</string>
     <string name="viipio_setup_and_try_detail" translatable="false">Enable, select and test Viipio in a practice field</string>
     <string name="viipio_settings_back" translatable="false">‹ Back to settings</string>
@@ -99,7 +104,7 @@
     <string name="swipe_settings_keyboard" translatable="false">Keyboard</string>
     <string name="swipe_settings_layouts" translatable="false">Languages and layouts</string>
     <string name="swipe_settings_dictionaries" translatable="false">Dictionaries</string>
-    <string name="swipe_preview_intro" translatable="false">An offline keyboard for Estonian and English. Swipe or tap to type, then choose a suggested word.</string>
+    <string name="swipe_preview_intro" translatable="false">An offline keyboard for swipe and tap typing. Choose a suggested word when you need one.</string>
     <string name="swipe_preview_languages" translatable="false">Languages</string>
     <string name="swipe_preview_languages_detail" translatable="false">Tap the ET/EN key on the keyboard to switch recognition and layout. The Estonian word list is included in the app.</string>
     <string name="swipe_preview_dictionaries" translatable="false">Offline dictionaries</string>

@@ -26,6 +26,15 @@ class ViipioBrandingTest(unittest.TestCase):
                 for item in localized.findall('string'):
                     self.assertNotIn(item.get('name'), ('settings_title', 'manifest_ime_service_label', 'launcher_logo_desc'))
 
+    def test_product_intro_is_language_neutral_but_current_support_is_explicit(self):
+        strings = ET.parse(ROOT / 'res/values/strings.xml').getroot()
+        by_name = {item.get('name'): (item.text or '') for item in strings.findall('string')}
+        for name in ('swipe_setup_intro', 'swipe_preview_intro'):
+            self.assertNotIn('Estonian and English', by_name[name])
+            self.assertIn('keyboard', by_name[name])
+        self.assertIn('Estonian', by_name['swipe_preview_languages_detail'])
+        self.assertIn('English', by_name['swipe_preview_dictionaries_detail'])
+
     def test_manifest_keeps_ime_and_installed_identity(self):
         root = ET.parse(ROOT / 'AndroidManifest.xml').getroot()
         app = root.find('application')

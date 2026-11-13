@@ -20,6 +20,8 @@ import tribixbite.cleverkeys.SettingsRanges
 import tribixbite.cleverkeys.ViipioSpacingPreference
 import tribixbite.cleverkeys.ViipioDoubleSpacePreference
 import tribixbite.cleverkeys.ViipioBehaviorPreference
+import tribixbite.cleverkeys.ViipioHoldDurationPreference
+import tribixbite.cleverkeys.ViipioSentenceCapitalPreference
 import tribixbite.cleverkeys.autocorrect.AutocorrectTuning
 import tribixbite.cleverkeys.ui.settings.sections.setPrivateCopyToolbarComponentEnabled
 import tribixbite.cleverkeys.ui.settings.io.detectAvailableV2Dictionaries
@@ -40,6 +42,12 @@ internal fun SettingsActivity.handlePreferenceChanged(sharedPreferences: SharedP
             }
             ViipioDoubleSpacePreference.KEY -> {
                 viipioDoubleSpacePeriod = ViipioDoubleSpacePreference.enabled(prefs)
+            }
+            ViipioHoldDurationPreference.KEY -> {
+                viipioHoldDurationMs = ViipioHoldDurationPreference.read(prefs)
+            }
+            ViipioSentenceCapitalPreference.KEY -> {
+                viipioSentenceCapital = ViipioSentenceCapitalPreference.enabled(prefs)
             }
             ViipioBehaviorPreference.TYPED_SUGGESTIONS ->
                 viipioTypedSuggestions = ViipioBehaviorPreference.enabled(prefs, key)
@@ -408,6 +416,8 @@ internal fun SettingsActivity.loadCurrentSettings() {
         autoSpaceAfterSuggestion = prefs.getSafeBoolean("auto_space_after_suggestion", Defaults.AUTO_SPACE_AFTER_SUGGESTION)
         viipioSpaceAfterSwipe = ViipioSpacingPreference.enabled(prefs)
         viipioDoubleSpacePeriod = ViipioDoubleSpacePreference.enabled(prefs)
+        viipioHoldDurationMs = ViipioHoldDurationPreference.read(prefs)
+        viipioSentenceCapital = ViipioSentenceCapitalPreference.enabled(prefs)
         viipioTypedSuggestions = ViipioBehaviorPreference.enabled(prefs, ViipioBehaviorPreference.TYPED_SUGGESTIONS)
         viipioBackspaceWordUndo = ViipioBehaviorPreference.enabled(prefs, ViipioBehaviorPreference.BACKSPACE_WORD_UNDO)
         viipioGlideDelete = ViipioBehaviorPreference.enabled(prefs, ViipioBehaviorPreference.GLIDE_DELETE)

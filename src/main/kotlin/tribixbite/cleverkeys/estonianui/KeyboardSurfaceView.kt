@@ -46,6 +46,10 @@ class KeyboardSurfaceView @JvmOverloads constructor(
         set(value) {
             if (field != value) { field = value; clearHold(); invalidate() }
         }
+    var holdDurationMs = 300
+        set(value) { field = value.coerceIn(100, 700); clearHold() }
+    internal var shiftMode = ShiftMode.OFF
+        set(value) { if (field != value) { field = value; invalidate() } }
     val palette get() = if (darkMode) Palette.DARK else Palette.LIGHT
     // Layout on a 0x0 view is deliberately absent; the first measure/layout supplies the geometry.
     var geometry: KeyboardGeometry = KeyboardGeometry(1, 1, language)
@@ -184,7 +188,7 @@ class KeyboardSurfaceView @JvmOverloads constructor(
                 setParent(this@KeyboardSurfaceView)
                 packageName = context.packageName
                 className = "android.widget.Button"
-                contentDescription = key.accessibilityLabel
+                contentDescription = accessibleKeyLabel(key)
                 isEnabled = true
                 isClickable = true
                 isFocusable = true
@@ -242,12 +246,19 @@ class KeyboardSurfaceView @JvmOverloads constructor(
         }
     }
     override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider = nodeProvider
+    private fun accessibleKeyLabel(key: SurfaceKey): String = when {
+        key.kind == KeyKind.SHIFT && shiftMode == ShiftMode.LOCKED -> "Caps lock on"
+        key.kind == KeyKind.SHIFT && shiftMode == ShiftMode.ONCE -> "Shift on"
+        key.kind == KeyKind.LETTER && shiftMode != ShiftMode.OFF && !symbolMode ->
+            key.label.uppercase(java.util.Locale.ROOT)
+        else -> key.accessibilityLabel
+    }
     private fun sendVirtualEvent(id: Int, type: Int) {
         val parent = parent ?: return
         val event = AccessibilityEvent.obtain(type)
         event.packageName = context.packageName
         event.className = "android.widget.Button"
-        event.contentDescription = geometry.keys.getOrNull(id)?.accessibilityLabel
+        event.contentDescription = geometry.keys.getOrNull(id)?.let(::accessibleKeyLabel)
         event.setSource(this, id)
         parent.requestSendAccessibilityEvent(this, event)
     }
@@ -300,13 +311,15 @@ class KeyboardSurfaceView @JvmOverloads constructor(
             rect.set(b.left + inset, b.top + inset, b.right - inset, b.bottom - inset)
             paint.color = when (key.kind) {
                 KeyKind.ENTER -> colors.enter
-                KeyKind.SHIFT, KeyKind.BACKSPACE, KeyKind.SYMBOLS, KeyKind.COMMA, KeyKind.PERIOD -> colors.modifier
+                KeyKind.SHIFT -> if (shiftMode == ShiftMode.OFF) colors.modifier else colors.enter
+                KeyKind.BACKSPACE, KeyKind.SYMBOLS, KeyKind.COMMA, KeyKind.PERIOD -> colors.modifier
                 else -> colors.letter
             }
             val radius = if (key.kind == KeyKind.ENTER || key.kind == KeyKind.SYMBOLS) rect.height() / 2f
                 else 7f * density
             canvas.drawRoundRect(rect, radius, radius, paint)
-            paint.color = if (key.kind == KeyKind.ENTER) colors.enterLabel else colors.label
+            paint.color = if (key.kind == KeyKind.ENTER ||
+                (key.kind == KeyKind.SHIFT && shiftMode != ShiftMode.OFF)) colors.enterLabel else colors.label
             paint.textAlign = Paint.Align.CENTER
             paint.style = Paint.Style.FILL
             if (key.kind == KeyKind.SHIFT || key.kind == KeyKind.BACKSPACE ||
@@ -316,7 +329,9 @@ class KeyboardSurfaceView @JvmOverloads constructor(
                 paint.textSize = (if (key.kind == KeyKind.SPACE) 15f else if (key.kind == KeyKind.SYMBOLS) 19f else 24f) * resources.displayMetrics.scaledDensity
                 paint.typeface = Typeface.DEFAULT
                 val baseline = b.centerY - (paint.ascent() + paint.descent()) / 2f
-                canvas.drawText(key.label.trim(), b.centerX, baseline, paint)
+                val label = if (key.kind == KeyKind.LETTER && shiftMode != ShiftMode.OFF && !symbolMode)
+                    key.label.uppercase(java.util.Locale.ROOT) else key.label.trim()
+                canvas.drawText(label, b.centerX, baseline, paint)
                 key.secondarySymbol?.takeIf { showCornerSymbols }?.let { hint ->
                     paint.color = if (darkMode) 0xffc3c6cc.toInt() else 0xff50545a.toInt()
                     paint.textSize = 10f * resources.displayMetrics.scaledDensity
@@ -383,11 +398,16 @@ class KeyboardSurfaceView @JvmOverloads constructor(
         iconPath.reset()
         when (key.kind) {
             KeyKind.SHIFT -> {
+                paint.style = if (shiftMode == ShiftMode.OFF) Paint.Style.STROKE else Paint.Style.FILL
                 iconPath.moveTo(12f, 2f); iconPath.lineTo(22f, 12f)
                 iconPath.lineTo(17f, 12f); iconPath.lineTo(17f, 21f)
                 iconPath.lineTo(7f, 21f); iconPath.lineTo(7f, 12f)
                 iconPath.lineTo(2f, 12f); iconPath.close()
                 canvas.drawPath(iconPath, paint)
+                if (shiftMode == ShiftMode.LOCKED) {
+                    paint.style = Paint.Style.STROKE
+                    canvas.drawLine(7f, 23f, 17f, 23f, paint)
+                }
             }
             KeyKind.BACKSPACE -> {
                 iconPath.moveTo(9f, 4f); iconPath.lineTo(22f, 4f)
@@ -462,7 +482,7 @@ class KeyboardSurfaceView @JvmOverloads constructor(
                     holdPointerX = event.x
                     holdPointerY = event.y
                     holdStartTimeMs = event.eventTime
-                    holdHandler.postDelayed(holdTick, 450L)
+                    holdHandler.postDelayed(holdTick, holdDurationMs.toLong())
                 }
                 if (!symbolMode && touched?.kind == KeyKind.LETTER) {
                     trailStartX = event.x

@@ -3,7 +3,7 @@ package tribixbite.cleverkeys.estonianui
 /** Raw samples remain in view-local coordinates; no decoding or editor side effects. */
 data class SurfaceSample(val x: Float, val y: Float, val timeMs: Long, val key: SurfaceKey?)
 sealed class SurfaceGesture {
-    data class Tap(val key: SurfaceKey, val language: KeyboardLanguage) : SurfaceGesture()
+    data class Tap(val key: SurfaceKey, val language: KeyboardLanguage, val timeMs: Long = 0L) : SurfaceGesture()
     data class Hold(val key: SurfaceKey, val language: KeyboardLanguage) : SurfaceGesture()
     data class LongPress(val value: String, val language: KeyboardLanguage) : SurfaceGesture()
     data class DeleteWord(val language: KeyboardLanguage) : SurfaceGesture()
@@ -51,7 +51,7 @@ class SurfaceGestureController(
             qualifiedSwipe -> SurfaceGesture.Swipe(samples.toList(), geometry.language)
             heldAlternative -> SurfaceGesture.Hold(start, geometry.language)
             end == null -> null
-            end == start || !movedFar -> SurfaceGesture.Tap(start, geometry.language)
+            end == start || !movedFar -> SurfaceGesture.Tap(start, geometry.language, timeMs)
             else -> null
         }
         cancel()

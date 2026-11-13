@@ -20,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
@@ -37,6 +38,8 @@ import tribixbite.cleverkeys.SettingsActivity
 import tribixbite.cleverkeys.ViipioSpacingPreference
 import tribixbite.cleverkeys.ViipioDoubleSpacePreference
 import tribixbite.cleverkeys.ViipioBehaviorPreference
+import tribixbite.cleverkeys.ViipioHoldDurationPreference
+import tribixbite.cleverkeys.ViipioSentenceCapitalPreference
 import tribixbite.cleverkeys.ViipioPersonalWords
 import tribixbite.cleverkeys.estoniantelemetry.TelemetryActivity
 import tribixbite.cleverkeys.ui.settings.io.importLanguagePack
@@ -100,6 +103,34 @@ internal fun SettingsActivity.SettingsScreen() {
                 }
             }
             "preferences" -> {
+                SettingsSwitch(
+                    title = stringResource(R.string.viipio_sentence_capital_title),
+                    description = stringResource(R.string.viipio_sentence_capital_desc),
+                    checked = viipioSentenceCapital,
+                    onCheckedChange = {
+                        viipioSentenceCapital = it
+                        saveSetting(ViipioSentenceCapitalPreference.KEY, it)
+                    }
+                )
+                Text(stringResource(R.string.viipio_hold_duration_title),
+                    style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.viipio_hold_duration_desc),
+                    style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.viipio_hold_duration_value, viipioHoldDurationMs),
+                    style = MaterialTheme.typography.bodyMedium)
+                Slider(value = viipioHoldDurationMs.toFloat(),
+                    onValueChange = {
+                        val millis = it.toInt().coerceIn(ViipioHoldDurationPreference.MIN_MS,
+                            ViipioHoldDurationPreference.MAX_MS)
+                        viipioHoldDurationMs = millis
+                    },
+                    onValueChangeFinished = {
+                        saveSetting(ViipioHoldDurationPreference.KEY, viipioHoldDurationMs)
+                    },
+                    valueRange = ViipioHoldDurationPreference.MIN_MS.toFloat()..
+                        ViipioHoldDurationPreference.MAX_MS.toFloat(),
+                    steps = (ViipioHoldDurationPreference.MAX_MS - ViipioHoldDurationPreference.MIN_MS) /
+                        ViipioHoldDurationPreference.STEP_MS - 1)
                 SettingsSwitch(
                     title = stringResource(R.string.viipio_double_space_period_title),
                     description = stringResource(R.string.viipio_double_space_period_desc),

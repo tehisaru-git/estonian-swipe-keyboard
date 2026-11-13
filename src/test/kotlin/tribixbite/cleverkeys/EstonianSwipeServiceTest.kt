@@ -26,8 +26,8 @@ import tribixbite.cleverkeys.a11y.KeyboardGeometry as AdapterGeometry
 
 @RunWith(RobolectricTestRunner::class)
 class EstonianSwipeServiceTest {
-    private fun tap(geometry: KeyboardGeometry, kind: KeyKind, label: String? = null) =
-        SurfaceGesture.Tap(geometry.keys.first { it.kind == kind && (label == null || it.label == label) }, geometry.language)
+    private fun tap(geometry: KeyboardGeometry, kind: KeyKind, label: String? = null, timeMs: Long = 0L) =
+        SurfaceGesture.Tap(geometry.keys.first { it.kind == kind && (label == null || it.label == label) }, geometry.language, timeMs)
 
     @Test fun tapLettersShiftBackspaceSpaceAndEnter() {
         val texts = mutableListOf<String>()
@@ -45,6 +45,103 @@ class EstonianSwipeServiceTest {
         assertEquals(listOf("õ", "Ä", "ü", " "), texts)
         assertEquals(1, deletes)
         assertEquals(1, enters)
+    }
+
+    @Test fun doubleShiftLocksUppercaseUntilShiftIsTappedAgain() {
+        val text = mutableListOf<String>()
+        val input = EstonianTapInput(text::add, {}, {})
+        val et = KeyboardGeometry(301, 235, KeyboardLanguage.ESTONIAN)
+        input.accept(tap(et, KeyKind.SHIFT, timeMs = 1000L))
+        assertEquals(ShiftMode.ONCE, input.shiftMode)
+        input.accept(tap(et, KeyKind.LETTER, "a", 1100L))
+        assertEquals(ShiftMode.OFF, input.shiftMode)
+        input.accept(tap(et, KeyKind.SHIFT, timeMs = 2000L))
+        input.accept(tap(et, KeyKind.SHIFT, timeMs = 2250L))
+        assertEquals(ShiftMode.LOCKED, input.shiftMode)
+        input.accept(tap(et, KeyKind.LETTER, "õ", 2500L))
+        input.accept(tap(et, KeyKind.LETTER, "b", 3000L))
+        assertEquals(listOf("A", "Õ", "B"), text)
+        assertEquals(ShiftMode.LOCKED, input.shiftMode)
+        input.accept(tap(et, KeyKind.SHIFT, timeMs = 3500L))
+        assertEquals(ShiftMode.OFF, input.shiftMode)
+        input.accept(tap(et, KeyKind.LETTER, "c", 3700L))
+        assertEquals("c", text.last())
+    }
+
+    @Test fun automaticSentenceShiftCanBeSuppressedWithoutDisablingManualShift() {
+        val text = mutableListOf<String>()
+        val input = EstonianTapInput(text::add, {}, {})
+        val et = KeyboardGeometry(301, 235, KeyboardLanguage.ESTONIAN)
+        input.setAutomaticShift(true)
+        assertEquals(ShiftMode.ONCE, input.shiftMode)
+        input.accept(tap(et, KeyKind.SHIFT, timeMs = 1000L))
+        assertEquals(ShiftMode.OFF, input.shiftMode)
+        input.setAutomaticShift(true)
+        assertEquals("manual OFF must not be overridden", ShiftMode.OFF, input.shiftMode)
+        input.accept(tap(et, KeyKind.LETTER, "a", 1200L))
+        assertEquals("a", text.last())
+        input.setAutomaticShift(false)
+        input.accept(tap(et, KeyKind.PERIOD))
+        input.accept(tap(et, KeyKind.SPACE))
+        input.setAutomaticShift(true)
+        assertEquals(ShiftMode.ONCE, input.shiftMode)
+        input.accept(tap(et, KeyKind.LETTER, "b", 2000L))
+        assertEquals("B", text.last())
+        assertEquals(ShiftMode.OFF, input.shiftMode)
+        input.accept(tap(et, KeyKind.SHIFT, timeMs = 2500L))
+        input.accept(tap(et, KeyKind.LETTER, "õ", 2800L))
+        assertEquals("Õ", text.last())
+    }
+
+    @Test fun swipeCandidatesUseTheSameCaseAsTapAndOnlySuccessfulSwipeConsumesShift() {
+        val input = EstonianTapInput({ true }, {}, {})
+        val et = KeyboardGeometry(301, 235, KeyboardLanguage.ESTONIAN)
+        val raw = PredictionResult(listOf("tere", "tõre", "õun"), listOf(90, 70, 50))
+        input.accept(tap(et, KeyKind.SHIFT, timeMs = 1000L))
+        val first = input.caseCandidates(raw)
+        assertEquals(listOf("Tere", "Tõre", "Õun"), first.words)
+        assertEquals(raw.scores, first.scores)
+        assertEquals(ShiftMode.ONCE, input.shiftMode)
+        input.consumeSwipeShift()
+        assertEquals(ShiftMode.OFF, input.shiftMode)
+        input.accept(tap(et, KeyKind.SHIFT, timeMs = 2000L))
+        input.accept(tap(et, KeyKind.SHIFT, timeMs = 2200L))
+        assertEquals(listOf("TERE", "TÕRE", "ÕUN"), input.caseCandidates(raw).words)
+        input.consumeSwipeShift()
+        assertEquals(ShiftMode.LOCKED, input.shiftMode)
+    }
+
+    @Test fun rejectedEditorWriteDoesNotConsumeOneShotShift() {
+        var editorAccepts = false
+        val written = mutableListOf<String>()
+        val input = EstonianTapInput({ value ->
+            if (!editorAccepts) false else { written.add(value); true }
+        }, {}, {})
+        val et = KeyboardGeometry(301, 235, KeyboardLanguage.ESTONIAN)
+        input.accept(tap(et, KeyKind.SHIFT, timeMs = 1000L))
+        input.accept(tap(et, KeyKind.LETTER, "a", 1100L))
+        assertEquals(ShiftMode.ONCE, input.shiftMode)
+        assertTrue(written.isEmpty())
+        editorAccepts = true
+        input.accept(tap(et, KeyKind.LETTER, "õ", 1200L))
+        assertEquals(listOf("Õ"), written)
+        assertEquals(ShiftMode.OFF, input.shiftMode)
+    }
+
+    @Test fun activeImeReflectsManualShiftAndCapsLockOnVisibleSurface() {
+        val service = Robolectric.buildService(EstonianSwipeService::class.java).get()
+        val layout = service.onCreateInputView() as LinearLayout
+        val view = layout.getChildAt(2) as KeyboardSurfaceView
+        service.onStartInput(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT }, false)
+        service.onStartInputView(EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT }, false)
+        view.layout(0, 0, 330, 250)
+        val shift = view.geometry.keys.first { it.kind == KeyKind.SHIFT }
+        view.onGesture!!.invoke(SurfaceGesture.Tap(shift, view.language, 1000L))
+        assertEquals(ShiftMode.ONCE, view.shiftMode)
+        view.onGesture!!.invoke(SurfaceGesture.Tap(shift, view.language, 1200L))
+        assertEquals(ShiftMode.LOCKED, view.shiftMode)
+        view.onGesture!!.invoke(SurfaceGesture.Tap(shift, view.language, 1600L))
+        assertEquals(ShiftMode.OFF, view.shiftMode)
     }
 
     @Test fun switchLanguageRejectsOldSurfaceEventsAndResetsShift() {
